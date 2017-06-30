@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "This will create a systemctl entry in order that your bot will automatically started and restarted if it crashes. Enter your bot location here: (ex. /home/bot/bot.js)"
+read bot_location
+echo "Creating /etc/systemd/system/support.service..."
+echo "[Unit]\nDescription=support\n\n[Service]\nExecStart=/usr/bin/node $PWD/bin/support.js\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/support.service
+systemctl enable support
+systemctl start support
+filename="${bot_location##*/}"
+echo "Creating /etc/systemd/system/${filename}.service..."
+echo "[Unit]\nDescription=$filename\n\n[Service]\nExecStart=/usr/bin/node ${bot_location}\n\n[Install]\nWantedBy=multi-user.target" > /etc/systemd/system/${bot_location%%.*}.service
+systemctl enable ${bot_location%%.*}
+systemctl start ${bot_location%%.*}
