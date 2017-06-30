@@ -51,6 +51,24 @@ var con = mysql.createConnection({ // only needed if you want to get user info f
 /* edit end */
 ```
 
+## Features
+
+When a user sends a message to the support chat it will create a ticket which will be forwarded to the staff group. Any admin in the staff group may answer that ticket by just replying to it. Salutation is added automatically. Photos will be forwared too.
+
+Currently the support chat offers these commands (staff commands):
+* `/open` - lists all open tickets (messages where noone has replied yet)
+* `/close` - close a ticket manually (in case someone writes 'thank you')
+* `/id (userid)` - lists some stuff from the database about the user
+
+User commands:
+* `/start` - tells the user how to use this bot
+* `/faq` - shows the FAQ
+
+Admin/Owner commands:
+* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.
+
+<img src="https://puu.sh/wywe5/a4c3cee0b7.png" width="500" height="500" />
+
 ## Telegram token
 
 To use the [Telegram Bot API](https://core.telegram.org/bots/api), 
