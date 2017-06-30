@@ -5,7 +5,6 @@ const {
 
 /* edit below */
 const bot = new Telegraf('BOT_TOKEN_SUPPORT_BOT') // support bot
-const bot2 = new Telegraf("BOT_TOKEN_OTHER_BOT") // bot where all the stuff is about
 var staff_chat = 'SUPPORT_STAFF_GROUP_ID' // telegram staff group chat id
 var owner_id = 'OWNER_ID' // telgram owner id
 var supported_bot = 'service_name' // service name of the supported bot
