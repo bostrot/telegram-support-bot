@@ -6,6 +6,13 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 [![node](https://img.shields.io/node/v/telegraf.svg?style=flat-square)](https://www.npmjs.com/package/)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](http://standardjs.com/)
 
+<table>
+<tr>
+<th><img src="https://puu.sh/wyvPd/8dde465527.jpg" /></th>
+<th><img src="https://puu.sh/wyvxD/35a3b70290.jpg" /></th>
+</tr>
+</table>
+
 ## Documentation
 
 `telegram-support-bot` was built on top of [`Telegraf`](https://github.com/telegraf/telegraf) libary.
