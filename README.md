@@ -1,5 +1,5 @@
 # Telegram Support Bot
-is a support bot for telegram bots, using the Telegraf framework (by @dotcypress). It let users create tickets which will be send to a staff group and can be answered by a reply.
+is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It let users create tickets which will be send to a staff group and can be answered by a reply.
 
 [![Bot API Version](https://img.shields.io/badge/Bot%20API-v3.1-f36caf.svg?style=flat-square)](https://core.telegram.org/bots/api)
 [![NPM Version](https://img.shields.io/npm/v/telegraf.svg?style=flat-square)](https://www.npmjs.com/)
