@@ -17,17 +17,41 @@ is a support bot for telegram bots, using the Telegraf framework (by @dotcypress
 ```js
 $ npm install telegraf --save
 $ git clone https://github.com/bostrot/telegram-support-bot.git
-$ sudo setup_systemctl
+$ cd telegram-support-bot
+$ sudo bash setup 
 ```
+Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot name (ex. mybot)
+`setup` will create two systemctl links in order that your bot will be automatically restarted when it crashes and runs in the background.
 
 ## Configuration
 
-You need to set your bot tokens and chat id:
-
-const bot = new Telegraf('BOT_TOKEN_SUPPORT_BOT') // support bot
-const bitgram = new Telegraf("BOT_TOKEN_OTHER_BOT")
+You need to set your bot token and chat ids in `bin/support.js`:
 
 ```js
-const bot = new Telegraf('BOT_TOKEN_SUPPORT_BOT') // this is your support bot
-const bitgram = new Telegraf("BOT_TOKEN_OTHER_BOT") // this is your normal bot
+/* edit below */
+const bot = new Telegraf('BOT_TOKEN_SUPPORT_BOT') // support bot token
+var staff_chat = 'SUPPORT_STAFF_GROUP_ID' // telegram staff group chat id
+var owner_id = 'OWNER_ID' // telgram owner id
+var supported_bot = 'service_name' // service name of the supported bot
+var startCommandText = 'Welcome in our support chat! Ask your question here.'
+var faqCommandText = 'Check out our FAQ here: https://bitgram.pro/index.php/bitgram-faq'
+var con = mysql.createConnection({ // only needed if you want to get user info from a mysql database with /id command
+  host: 'HOST',
+  user: 'USR',
+  password: 'PWD',
+  database: 'DB'
+})
+/* edit end */
 ```
+
+## Telegram token
+
+To use the [Telegram Bot API](https://core.telegram.org/bots/api), 
+you first have to [get a bot account](https://core.telegram.org/bots) 
+by [chatting with BotFather](https://core.telegram.org/bots#6-botfather).
+
+BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsTUVwxyZ`.
+
+## Creating a bot
+
+[Telegraf bot framework](https://github.com/telegraf/telegraf) for building a bot
