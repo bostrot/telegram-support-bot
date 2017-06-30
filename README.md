@@ -17,6 +17,7 @@ is a support bot for telegram bots, using the Telegraf framework (by @dotcypress
 ```js
 $ npm install telegraf --save
 $ git clone https://github.com/bostrot/telegram-support-bot.git
+$ sudo setup_systemctl
 ```
 
 ## Configuration
