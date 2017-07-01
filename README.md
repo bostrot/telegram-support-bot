@@ -67,7 +67,7 @@ User commands:
 Admin/Owner commands:
 * `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.
 
-<img src="https://puu.sh/wywe5/a4c3cee0b7.png" width="500" height="500" />
+<img src="https://puu.sh/wywe5/a4c3cee0b7.png" width="400" height="400" />
 
 ## Telegram token
 
