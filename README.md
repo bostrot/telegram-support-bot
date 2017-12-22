@@ -21,21 +21,21 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 ## Installation
 
-Install Node ( > 6.1 ) and npm ( > 5 ).
+Install Node ( > 6.2 ) and npm ( > 5 ).
 
 ```js
-$ git clone https://github.com/bostrot/telegram-support-bot.git
-$ cd telegram-support-bot
-$ sudo bash setup
+git clone https://github.com/bostrot/telegram-support-bot.git
+cd telegram-support-bot
+sudo bash setup
 ```
 
 Without setup
 ```js
-$ npm install telegraf
-$ npm install cron
-$ git clone https://github.com/bostrot/telegram-support-bot.git
-$ cd telegram-support-bot
-$ sudo bash setup 
+npm install telegraf
+npm install cron
+git clone https://github.com/bostrot/telegram-support-bot.git
+cd telegram-support-bot
+sudo bash setup 
 ```
 Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot name (ex. mybot)
 `setup` will create two systemctl links in order that your bot will be automatically restarted when it crashes and runs in the background.
