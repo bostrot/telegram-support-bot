@@ -10,12 +10,6 @@ var owner_id = "OWNER_ID" // telgram owner id
 var supported_bot = "service_name" // service name of the supported bot
 var startCommandText = "Welcome in our support chat! Ask your question here."
 var faqCommandText = "Check out our FAQ here: Address to your FAQ"
-var con = mysql.createConnection({ // only needed if you want to get user info from a mysql database with /id command
-  host: "HOST",
-  user: "USR",
-  password: "PWD",
-  database: "DB"
-})
 /* edit end */
 
 var ticketID
@@ -30,33 +24,6 @@ var cronJob
 
 const html = Extra.HTML()
 const noSound = Extra.HTML().notifications(false)
-
-function handleDisconnect() { // reconnect to the database on disconnect
-  con.connect(function(err) {
-    if (err) {
-      console.log("error when connecting to db:", err)
-      setTimeout(handleDisconnect, 2000)
-    }
-  })
-  con.on("error", function(err) {
-    console.log("db error", err);
-    if (err.code === "PROTOCOL_CONNECTION_LOST") {
-      handleDisconnect()
-    } else { 
-      throw err;
-    }
-  });
-}
-handleDisconnect();
-
-var query = function(from, where, id, callback) { // select from database
-  con.query("SELECT * FROM " + from + " WHERE " + where + " = \"" + id + "\"", function(error, results) {
-    if (error) {
-      console.log(error);
-    }
-    callback(results)
-  })
-}
 
 const root = Extra.HTML().markup((m => // inline keyboard for admin dashboard
   m.inlineKeyboard([
@@ -174,19 +141,6 @@ bot.command("root", (ctx) => { // admin dashboard can only be used by owner
     cronSession(ctx)
   }
 })
-
-/* comment this if you dont need it */
-bot.hears(/\/id (.+)/, (ctx) => { // do something with the database eg: get username for userid
-  ctx.getChat().then(function(chat) {
-  if (chat.id === staff_chat) {
-    ctx.getChatAdministrators().then(function(admins) {
-      query("users", "userid", ctx.match[1], function(results) { 
-	      ctx.reply("<b>User details: <b/>\n" + results[0].username, noSound) // get username from users with userid from database
-	    })
-    })
-  }
-})
-/* end comment */
 
 bot.telegram.getMe().then((botInfo) => { // enable for groups (get own username)
   bot.options.username = botInfo.username
@@ -308,4 +262,3 @@ bot.hears(/(.+)/, (ctx) => { // creates a ticket for users and let group admins 
   })
 })
 bot.startPolling()
-})
