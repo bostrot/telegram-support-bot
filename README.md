@@ -21,8 +21,18 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 ## Installation
 
+Install Node ( > 6.1 ) and npm ( > 5 ).
+
 ```js
-$ npm install telegraf --save
+$ git clone https://github.com/bostrot/telegram-support-bot.git
+$ cd telegram-support-bot
+$ sudo bash setup
+```
+
+Without setup
+```js
+$ npm install telegraf
+$ npm install cron
 $ git clone https://github.com/bostrot/telegram-support-bot.git
 $ cd telegram-support-bot
 $ sudo bash setup 
