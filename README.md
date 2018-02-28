@@ -91,6 +91,14 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 
 [Telegraf bot framework](https://github.com/telegraf/telegraf) for building a bot
 
+## Help
+
+You are welcome to contribute with pull requests, bug reports, ideas and donations.
+
+Bitcoin: 18MQaV4zHEf1EY3ZmuUjdnXbfZxDNiyMhy
+
+PayPal: paypal.me/bostrot
+
 ## Hosting
 
 Get 10$ in credits when you sign up with <a href="https://m.do.co/c/863818fa5312">this code</a> on DigitalOcean. Which is worth 3 months of vServer.
