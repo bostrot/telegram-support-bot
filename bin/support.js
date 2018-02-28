@@ -17,7 +17,6 @@ var ticketIDs = []
 var ticketSent = false
 var cron = require("cron");
 var userInfo = ""
-var mysql = require("mysql")
 var ticketStatus = {}
 var exec = require("child_process").exec
 var cronJob
@@ -131,12 +130,18 @@ bot.command("start", ({ // on start reply with chat bot rules
   reply(startCommandText, html)
 })
 
+bot.command("id", ({
+  reply, from, chat
+}) => {
+  reply(from.id+ " " + chat.id)
+})
 bot.command("faq", (ctx) => { // faq
   ctx.reply(faqCommandText)
 })
 
 bot.command("root", (ctx) => { // admin dashboard can only be used by owner
-  if (ctx.from.id === owner_id) {
+  console.log("id "+ ctx.from.id)
+  if ((ctx.from.id).toString() === owner_id) {
     bot.telegram.sendMessage(staff_chat, "You will receive the logs when the bot crashes.", root)
     cronSession(ctx)
   }
@@ -156,7 +161,8 @@ const downloadPhotoMiddleware = (ctx, next) => { // download photos
 
 bot.command("open", (ctx) => { // display open tickets
   ctx.getChat().then(function(chat) {
-    if (chat.id === staff_chat) {
+    if ((chat.id).toString() === staff_chat) {
+      console.log("chatid", (chat.id).toString())
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins)
         if (admins.indexOf(ctx.from.id) > -1) {
@@ -169,7 +175,7 @@ bot.command("open", (ctx) => { // display open tickets
             }
           }
           setTimeout(function() {
-            ctx.reply("<b>Open Tickets:\n\n</b>" + openTickets, noSound)
+            bot.telegram.sendMessage(chat.id, "<b>Open Tickets:\n\n</b>" + openTickets, noSound)
           }, 10)
         }
       })
@@ -179,7 +185,7 @@ bot.command("open", (ctx) => { // display open tickets
 
 bot.command("close", (ctx) => { // close ticket
   ctx.getChat().then(function(chat) {
-    if (chat.id === staff_chat) {
+    if ((chat.id).toString() === staff_chat) {
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins)
         if (ctx.message.reply_to_message !== undefined && admins.indexOf(ctx.from.id) > -1) {
@@ -207,7 +213,7 @@ bot.on("photo", downloadPhotoMiddleware, (ctx, next) => { // send any received p
 
 bot.hears(/(.+)/, (ctx) => { // creates a ticket for users and let group admins in staff_chat reply to those
   ctx.getChat().then(function(chat) {
-    if (chat.id === staff_chat) {
+    if ((chat.id).toString() === staff_chat) {
       ctx.getChatAdministrators().then(function(admins) { // reply to users ticket
         admins = JSON.stringify(admins)
         if (ctx.message.reply_to_message !== undefined && admins.indexOf(ctx.from.id) > -1) {
@@ -226,7 +232,7 @@ bot.hears(/(.+)/, (ctx) => { // creates a ticket for users and let group admins 
           } catch (e) {}
         }
       }).catch(function(noAdmin) {
-
+        console.log("Error with admins: " + noAdmin)
       })
     } else if (chat.type === "private") { // creating ticket
       ticketID = ctx.message.from.id
@@ -235,7 +241,8 @@ bot.hears(/(.+)/, (ctx) => { // creates a ticket for users and let group admins 
       }
       ticketStatus[ticketID] = true
       if (ticketSent === false) {
-        ctx.reply("Thank you for contacting us. We will answer as soon as possible.")
+        console.log("ticketSent false")
+        bot.telegram.sendMessage(chat.id, "Thank you for contacting us. We will answer as soon as possible.")
         userInfo = ""
         userInfo += "</b> from " + ctx.message.from.first_name + " "
         userInfo += "@" + ctx.message.from.username + " Language: " + ctx.message.from.language_code + "\n\n"

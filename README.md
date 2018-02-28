@@ -42,22 +42,18 @@ Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot na
 
 ## Configuration
 
+You can get your ID with /id. The first number will be yours the second the one from the group you are in (if you are in one; including the minus).
+
 You need to set your bot token and chat ids in `bin/support.js`:
 
 ```js
 /* edit below */
-const bot = new Telegraf('BOT_TOKEN_SUPPORT_BOT') // support bot token
-var staff_chat = 'SUPPORT_STAFF_GROUP_ID' // telegram staff group chat id
-var owner_id = 'OWNER_ID' // telgram owner id
-var supported_bot = 'service_name' // service name of the supported bot
-var startCommandText = 'Welcome in our support chat! Ask your question here.'
-var faqCommandText = 'Check out our FAQ here: https://bitgram.pro/index.php/bitgram-faq'
-var con = mysql.createConnection({ // only needed if you want to get user info from a mysql database with /id command
-  host: 'HOST',
-  user: 'USR',
-  password: 'PWD',
-  database: 'DB'
-})
+const bot = new Telegraf("BOT_TOKEN_SUPPORT_BOT") // support bot
+var staff_chat = "SUPPORT_STAFF_GROUP_ID" // telegram staff group chat id
+var owner_id = "OWNER_ID" // telgram owner id
+var supported_bot = "service_name" // service name of the supported bot
+var startCommandText = "Welcome in our support chat! Ask your question here."
+var faqCommandText = "Check out our FAQ here: Address to your FAQ"
 /* edit end */
 ```
 
