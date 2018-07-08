@@ -53,7 +53,7 @@ bot.action("restart", (ctx) => { // restart other bot
   }
 })
 bot.action("log", (ctx) => { // send other bots log
-  if (ctx.from.id === owner_id) {
+  if (ctx.from.id == owner_id) {
     ex("journalctl -u " + supported_bot + " -b > /logs/log.txt", function(results) {
       ctx.replyWithDocument({
         source: "/logs/log.txt"
@@ -62,7 +62,7 @@ bot.action("log", (ctx) => { // send other bots log
   }
 })
 bot.action("update", (ctx) => { // update admin dasboard"s status
-  if (ctx.from.id === owner_id) {
+  if (ctx.from.id == owner_id) {
     var list = ""
     var status
     ex("service " + supported_bot + " status", function(results) {
@@ -74,7 +74,7 @@ bot.action("update", (ctx) => { // update admin dasboard"s status
   }
 })
 bot.action("stop", (ctx) => { // stop the bot
-  if (ctx.from.id === owner_id) {
+  if (ctx.from.id == owner_id) {
     ex("service " + supported_bot + " stop", function(results) {
       ctx.editMessageText("Bitgram stopped", root)
     })
@@ -141,7 +141,7 @@ bot.command("faq", (ctx) => { // faq
 
 bot.command("root", (ctx) => { // admin dashboard can only be used by owner
   console.log("id "+ ctx.from.id)
-  if ((ctx.from.id).toString() === owner_id) {
+  if ((ctx.from.id).toString() == owner_id) {
     bot.telegram.sendMessage(staff_chat, "You will receive the logs when the bot crashes.", root)
     cronSession(ctx)
   }
