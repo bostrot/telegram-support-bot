@@ -91,10 +91,8 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 
 You are welcome to contribute with pull requests, bug reports, ideas and donations.
 
-Bitcoin: 18MQaV4zHEf1EY3ZmuUjdnXbfZxDNiyMhy
+Bitcoin: [1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM](https://www.blockchain.com/btc/payment_request?address=1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM&currency=USD&nosavecurrency=true&message=Bostrot)
 
-PayPal: paypal.me/bostrot
+PayPal: [paypal.me/bostrot](https://paypal.me/bostrot)
 
-## Hosting
-
-Get 10$ in credits when you sign up with <a href="https://m.do.co/c/863818fa5312">this code</a> on DigitalOcean. Which is worth 3 months of vServer.
+Hosting: 2.50$ VPS at [vultr](https://www.vultr.com/?ref=7505919)
