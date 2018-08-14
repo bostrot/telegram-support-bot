@@ -23,20 +23,23 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 Install Node ( > 6.2 ) and npm ( > 5 ).
 
-```js
+Run it
+```bash
+git clone https://github.com/bostrot/telegram-support-bot.git
+cd telegram-support-bot
+npm i
+node bin/support.js
+```
+
+Or: via install script (this will create two autostart files for systemctl and enable both):
+
+```bash
 git clone https://github.com/bostrot/telegram-support-bot.git
 cd telegram-support-bot
 sudo bash setup
+sudo systemctl start YOUR_SUPPORT_BOT_SERVICE_NAME
 ```
 
-Without setup
-```js
-npm install telegraf
-npm install cron
-git clone https://github.com/bostrot/telegram-support-bot.git
-cd telegram-support-bot
-sudo bash setup 
-```
 Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot name (ex. mybot)
 `setup` will create two systemctl links in order that your bot will be automatically restarted when it crashes and runs in the background.
 
@@ -44,17 +47,17 @@ Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot na
 
 You can get your ID with /id. The first number will be yours the second the one from the group you are in (if you are in one; including the minus).
 
-You need to set your bot token and chat ids in `bin/support.js`:
+You need to set your bot token and chat ids in `config.js`:
 
 ```js
-/* edit below */
-const bot = new Telegraf("BOT_TOKEN_SUPPORT_BOT") // support bot
-var staff_chat = "SUPPORT_STAFF_GROUP_ID" // telegram staff group chat id
-var owner_id = "OWNER_ID" // telgram owner id
-var supported_bot = "service_name" // service name of the supported bot
-var startCommandText = "Welcome in our support chat! Ask your question here."
-var faqCommandText = "Check out our FAQ here: Address to your FAQ"
-/* edit end */
+module.exports = {
+    bot_token: "YOUR_BOT_TOKEN", // support bot token
+    staffchat_id: "SUPERGROUP_CHAT_ID",  // telegram staff group chat id eg. -123456789
+    owner_id: "YOUR_TELEGRAM_ID",
+    supported_bot: "service_name", // service name of the supported bot leave empty if you don't have one
+    startCommandText: "Welcome in our support chat! Ask your question here.",
+    faqCommandText: "Check out our FAQ here: Address to your FAQ",
+};
 ```
 
 ## Features
@@ -69,6 +72,8 @@ Currently the support chat offers these commands (staff commands):
 User commands:
 * `/start` - tells the user how to use this bot
 * `/faq` - shows the FAQ
+
+This you should only care about when you intend to "support" another bot e.g. salesbot with this. This would enable "ANTI-CRASH" and commands like start and stop. Remember to use this only when you have two bots.
 
 Admin/Owner commands:
 * `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.
