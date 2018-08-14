@@ -95,4 +95,4 @@ Bitcoin: [1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM](https://www.blockchain.com/btc/pay
 
 PayPal: [paypal.me/bostrot](https://paypal.me/bostrot)
 
-Hosting: 2.50$ VPS at [vultr](https://www.vultr.com/?ref=7505919)
+Hosting: [2.50$ VPS at vultr](https://www.vultr.com/?ref=7505919)
