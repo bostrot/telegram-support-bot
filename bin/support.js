@@ -156,7 +156,25 @@ const downloadPhotoMiddleware = (ctx, next) => { // download photos
     })
 }
 
-bot.command("open", (ctx) => { // display open tickets
+const downloadVideoMiddleware = (ctx, next) => { // download videos
+  return bot.telegram.getFileLink(ctx.message.video)
+    .then((link) => {
+      ctx.state.fileLink = link
+      return next()
+    })
+}
+
+const downloadDocumentMiddleware = (ctx, next) => { // download documents
+  console.log(ctx.message)
+  return bot.telegram.getFileLink(ctx.message.document)
+    .then((link) => {
+      ctx.state.fileLink = link
+      return next()
+    })
+}
+
+// display open tickets
+bot.command("open", (ctx) => { 
   ctx.getChat().then(function (chat) {
     if ((chat.id).toString() === config.staffchat_id) {
       console.log("chatid", (chat.id).toString())
@@ -180,7 +198,8 @@ bot.command("open", (ctx) => { // display open tickets
   })
 })
 
-bot.command("close", (ctx) => { // close ticket
+// close ticket
+bot.command("close", (ctx) => { 
   ctx.getChat().then(function (chat) {
     if ((chat.id).toString() === config.staffchat_id) {
       ctx.getChatAdministrators().then(function (admins) {
@@ -195,20 +214,23 @@ bot.command("close", (ctx) => { // close ticket
   })
 })
 
-bot.on("photo", downloadPhotoMiddleware, (ctx, next) => { // send any received photos to staff group
-  ctx.getChat().then(function (chat) {
-    if (chat.type === "private") {
-      cache.ticketID = ctx.message.from.id
-      userInfo = ""
-      userInfo += "</b> from " + ctx.message.from.first_name + " "
-      userInfo += "@" + ctx.message.from.username + " Language: " + ctx.message.from.language_code + "\n\n"
-      bot.telegram.sendMessage(config.staffchat_id, "<b>Ticket #" + cache.ticketID + userInfo + "see photo below.", cache.noSound)
-      bot.telegram.sendPhoto(config.staffchat_id, ctx.message.photo[0].file_id)
-    }
-  })
+// handle photo input
+bot.on("photo", downloadPhotoMiddleware, (ctx, next) => {
+  handler.photo(bot, ctx)
 })
 
-bot.hears(/(.+)/, (ctx) => handler(bot, ctx));
+// handle video input
+bot.on("video", downloadVideoMiddleware, (ctx, next) => {
+  handler.photo(bot, ctx)
+})
+
+// handle file input
+bot.on("document", downloadDocumentMiddleware, (ctx, next) => {
+  handler.document(bot, ctx)
+})
+
+
+bot.hears(/(.+)/, (ctx) => handler.ticket(bot, ctx));
 
 bot.startPolling()
 /*
