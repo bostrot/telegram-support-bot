@@ -2,7 +2,7 @@ module.exports = {
     ticketID: "",
     ticketIDs: [],
     ticketStatus: {},
-    ticketSent: false,
+    ticketSent: [],
     html: "",
     noSound: "",
 }
