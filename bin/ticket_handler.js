@@ -8,7 +8,7 @@ function ticketHandler(bot, ctx) {
             staffChat();
         } else if (chat.type === "private") {
             // create a ticket and send to staff
-            customerChat(chat);
+            customerChat(ctx, bot, chat);
         }
     })
 }
@@ -39,7 +39,7 @@ function staffChat() {
     })
 }
 
-function customerChat(chat) {
+function customerChat(ctx, bot, chat) {
     cache.tickedID = ctx.message.from.id
     if (cache.ticketIDs[cache.ticketID] === undefined) {
         cache.ticketIDs.push(cache.tickedID)
