@@ -1,8 +1,8 @@
 module.exports = {
-    ticketID: "",
-    ticketIDs: [],
-    ticketStatus: {},
-    ticketSent: [],
-    html: "",
-    noSound: "",
-}
+  ticketID: '',
+  ticketIDs: [],
+  ticketStatus: {},
+  ticketSent: [],
+  html: '',
+  noSound: '',
+};
