@@ -92,6 +92,7 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 
 [Telegraf bot framework](https://github.com/telegraf/telegraf) for building a bot
 
+
 ## Help
 
 You are welcome to contribute with pull requests, bug reports, ideas and donations. Join the forum if you have any general purpose questions: [bostrot.com](https://www.bostrot.com)
@@ -100,4 +101,4 @@ Bitcoin: [1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM](https://www.blockchain.com/btc/pay
 
 PayPal: [paypal.me/bostrot](https://paypal.me/bostrot)
 
-Hosting: [Get $50 free credit on Vultr](https://www.bostrot.com/?ref=hosting)
+Hosting: [Get $50 free VPS credit on Vultr](https://www.bostrot.com/?ref=hosting)
