@@ -280,7 +280,7 @@ bot.on('photo', downloadPhotoMiddleware, (ctx, next) => {
 
 // handle video input
 bot.on('video', downloadVideoMiddleware, (ctx, next) => {
-  handler.photo(bot, ctx);
+  handler.video(bot, ctx);
 });
 
 // handle file input
@@ -289,6 +289,11 @@ bot.on('document', downloadDocumentMiddleware, (ctx, next) => {
 });
 
 bot.hears(/(.+)/, (ctx) => handler.ticket(bot, ctx));
+
+// telegraf error handling
+bot.catch((err) => {
+  console.log('Error: ', err)
+})
 
 bot.startPolling();
 /*
