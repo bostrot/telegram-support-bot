@@ -24,11 +24,18 @@ function staffChat(ctx, bot) {
         ctx.message.reply_to_message !== undefined &&
         admins.indexOf(ctx.from.id) > -1
       ) {
+        // try whether a text or an image/video is replied to
         try {
           replyText = ctx.message.reply_to_message.text;
-          let userid = replyText.match(new RegExp('#' + '(.*)' + ' from'));
-          let name = replyText.match(new RegExp('from ' + '(.*)' + ' @'));
-          if (ctx.message.text === 'me') {
+          if (replyText === undefined) {
+            replyText = ctx.message.reply_to_message.caption;
+          }
+          let userid = replyText.match(new RegExp('#' + '(.*)' + ' ' + config.lang_from));
+          if (userid === null || userid === undefined) {
+            userid = replyText.match(new RegExp('#' + '(.*)' + '\n' + config.lang_from));
+          }
+          let name = replyText.match(new RegExp(config.lang_from + ' ' + '(.*)' + ' @'));
+          if (ctx.message.text !== undefined && ctx.message.text === 'me') {
             // accept ticket
             bot.telegram.sendMessage(
               config.staffchat_id,
@@ -76,7 +83,13 @@ function staffChat(ctx, bot) {
             );
           }
           cache.ticketSent[cache.tickedID] = undefined;
-        } catch (e) {}
+        } catch (e) {
+          console.log(e)
+          bot.telegram.sendMessage(
+            config.staffchat_id, 'An error occured, please report this to your admin: \n\n' + e,
+            cache.noSound
+          );
+        }
       }
     })
     .catch(function(noAdmin) {
@@ -224,7 +237,7 @@ function fowardHandler(ctx, callback) {
       userInfo +=
         '@' +
         ctx.message.from.username +
-        '\n' +
+        ' ' +
         config.lang_language +
         ': ' +
         ctx.message.from.language_code +

@@ -265,7 +265,7 @@ bot.command('close', (ctx) => {
           admins.indexOf(ctx.from.id) > -1
         ) {
           let replyText = ctx.message.reply_to_message.text;
-          let userid = replyText.match(new RegExp('#' + '(.*)' + ' from'));
+          let userid = replyText.match(new RegExp('#' + '(.*)' + ' ' + config.lang_from));
           cache.ticketStatus[userid[1]] = false;
         }
       });
