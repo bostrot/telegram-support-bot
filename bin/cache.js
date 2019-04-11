@@ -5,4 +5,5 @@ module.exports = {
   ticketSent: [],
   html: '',
   noSound: '',
+  markdown: '',
 };

@@ -20,6 +20,7 @@
     "node": ">=6.2.0"
   },
   "dependencies": {
+    "better-sqlite3": "^5.4.0",
     "cron": "^1.6.0",
     "debug": "^3.2.6",
     "node-fetch": "^2.3.0",
