@@ -31,7 +31,7 @@ npm i
 node bin/support.js
 ```
 
-Or: via install script (this will create two autostart files for systemctl and enable both):
+Or: via install script (this will create two autostart files for systemctl (bot and supported bot) and enable both):
 
 ```bash
 git clone https://github.com/bostrot/telegram-support-bot.git
@@ -68,6 +68,7 @@ Currently the support chat offers these commands (staff commands):
 * `/open` - lists all open tickets (messages where noone has replied yet)
 * `/close` - close a ticket manually (in case someone writes 'thank you')
 * `/id (userid)` - lists some stuff from the database about the user
+* `/ban` - ban a person from writing to your chat
 
 User commands:
 * `/start` - tells the user how to use this bot
