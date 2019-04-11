@@ -3,6 +3,7 @@ const {Extra} = Telegraf;
 const config = require('../config.js');
 const handler = require('./ticket_handler.js');
 let cache = require('./cache.js');
+var dbhandler = require('./dbhandler.js');
 
 const bot = new Telegraf(config.bot_token);
 
@@ -11,6 +12,7 @@ const exec = require('child_process').exec;
 let cronJob;
 
 cache.html = Extra.HTML(); // eslint-disable-line no-use-before-define
+cache.markdown = Extra.markdown();
 cache.noSound = Extra
       .HTML().notifications(false); // eslint-disable-line no-use-before-define
 
@@ -171,7 +173,7 @@ let ex = function execute(command, callback) {
 
 bot.command('start', ({ // on start reply with chat bot rules
   reply, from, chat}) => {
-  reply(config.startCommandText, cache.html);
+  reply(config.startCommandText, cache.html, cache.html);
 });
 
 bot.command('id', ({reply, from, chat}) => {
@@ -179,7 +181,7 @@ bot.command('id', ({reply, from, chat}) => {
 });
 bot.command('faq', (ctx) => {
   // faq
-  ctx.reply(config.faqCommandText);
+  ctx.reply(config.faqCommandText, cache.html);
 });
 
 bot.command('root', (ctx) => {
@@ -233,21 +235,26 @@ bot.command('open', (ctx) => {
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins);
         if (admins.indexOf(ctx.from.id) > -1) {
-          let openTickets = '';
-          for (let i in cache.ticketIDs) {
-            if (cache.ticketStatus[cache.ticketIDs[i]] === true) {
-              if (openTickets.indexOf(cache.ticketIDs[i]) === -1) {
-                openTickets += '<code>#' + cache.ticketIDs[i] + '</code>\n';
+
+          dbhandler.open(function(userList) {
+            console.log(userList);
+            let openTickets = '';
+
+            for (let i in userList) {
+              if (userList[i]['userid'] !== null && userList[i]['userid'] !== undefined) {
+                openTickets += '<code>#t' + userList[i]['userid'].toString() + '</code>\n';
               }
             }
-          }
-          setTimeout(function() {
-            bot.telegram.sendMessage(
-              chat.id,
-              '<b>Open Tickets:\n\n</b>' + openTickets,
-              cache.noSound
-            );
-          }, 10);
+            setTimeout(function() {
+              bot.telegram.sendMessage(
+                chat.id,
+                '<b>Open Tickets:\n\n</b>' + openTickets,
+                cache.noSound
+              );
+            }, 10);
+
+          });
+          
         }
       });
     }
@@ -265,8 +272,40 @@ bot.command('close', (ctx) => {
           admins.indexOf(ctx.from.id) > -1
         ) {
           let replyText = ctx.message.reply_to_message.text;
-          let userid = replyText.match(new RegExp('#' + '(.*)' + ' ' + config.lang_from));
-          cache.ticketStatus[userid[1]] = false;
+          let userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' + config.lang_from));
+          
+          dbhandler.add(userid[1], "closed")
+          bot.telegram.sendMessage(
+            chat.id,
+            'Ticket <code>#t'+userid[1]+'</code> closed',
+            cache.noSound
+          );
+        }
+      });
+    }
+  });
+});
+
+
+// ban user
+bot.command('ban', (ctx) => {
+  ctx.getChat().then(function(chat) {
+    if (chat.id.toString() === config.staffchat_id) {
+      ctx.getChatAdministrators().then(function(admins) {
+        admins = JSON.stringify(admins);
+        if (
+          ctx.message.reply_to_message !== undefined &&
+          admins.indexOf(ctx.from.id) > -1
+        ) {
+          let replyText = ctx.message.reply_to_message.text;
+          let userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' + config.lang_from));
+          
+          dbhandler.add(userid[1], "banned")
+          bot.telegram.sendMessage(
+            chat.id,
+            config.lang_usr_with_ticket + ' <code>#t'+userid[1]+'</code> ' + config.lang_banned,
+            cache.noSound
+          );
         }
       });
     }
