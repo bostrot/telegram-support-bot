@@ -10,14 +10,13 @@ function ticketHandler(bot, ctx) {
     } else if (chat.type === 'private') {
       // create a ticket and send to staff
       // check db for user status
-      dbhandler.check(ctx.message.from.id, function (user) {
-        console.log(user.status);
-        if (user.status == undefined)
-          dbhandler.add(ctx.message.from.id, "open");
-        if (user.status !== "banned") {
-          customerChat(ctx, bot, chat);
-        }
-      });
+        dbhandler.check(ctx.message.from.id, function (user) {
+          if (user == undefined || user.status == undefined) {
+            dbhandler.add(ctx.message.from.id, "open");
+          } else if (user.status !== "banned") {
+            customerChat(ctx, bot, chat);
+          }
+        });
     }
   });
 }
