@@ -13,6 +13,7 @@ function ticketHandler(bot, ctx) {
         dbhandler.check(ctx.message.from.id, function (user) {
           if (user == undefined || user.status == undefined) {
             dbhandler.add(ctx.message.from.id, "open");
+            customerChat(ctx, bot, chat);
           } else if (user.status !== "banned") {
             customerChat(ctx, bot, chat);
           }
