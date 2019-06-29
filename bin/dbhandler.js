@@ -1,5 +1,5 @@
 const Database = require('better-sqlite3');
-const db = new Database('bin/support.db', { /*verbose: console.log*/ }); // debugging
+const db = new Database(__dirname + '/support.db', { /* verbose: console.log */ }); // debugging
 
 var dbTable = db.prepare(`CREATE TABLE IF NOT EXISTS supportees (userid TEXT PRIMARY KEY, status TEXT);`);
 dbTable.run();
