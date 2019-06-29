@@ -21,17 +21,17 @@
   },
   "dependencies": {
     "better-sqlite3": "^5.4.0",
-    "cron": "^1.6.0",
+    "cron": "^1.7.1",
     "debug": "^3.2.6",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2.6.0",
     "sandwich-stream": "^1.0.0",
-    "telegraf": "^3.27.1",
+    "telegraf": "^3.30.1",
     "telegraf-session-sqlite": "^1.0.6"
   },
   "devDependencies": {
-    "eslint": "^5.13.0",
+    "eslint": "^5.16.0",
     "eslint-config-google": "^0.9.1",
-    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-node": "^6.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1"
