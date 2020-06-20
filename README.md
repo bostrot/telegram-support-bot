@@ -1,10 +1,12 @@
-# [telegram-support-bot](https://github.com/bostrot/telegram-support-bot)
-is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It let users create tickets which will be send to a staff group and can be answered by a reply.
 
-[![Bot API Version](https://img.shields.io/badge/Bot%20API-v3.1-f36caf.svg?style=flat-square)](https://core.telegram.org/bots/api)
+
+[![Bot API Version](https://img.shields.io/badge/Bot%20API-v4.8-f36caf.svg?style=flat-square)](https://core.telegram.org/bots/api)
 [![NPM Version](https://img.shields.io/npm/v/telegraf.svg?style=flat-square)](https://www.npmjs.com/)
 [![node](https://img.shields.io/node/v/telegraf.svg?style=flat-square)](https://www.npmjs.com/package/)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](http://standardjs.com/)
+
+# [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot)
+is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It let users create tickets which will be send to a staff group and can be answered by a reply.
 
 <table>
 <tr>
@@ -21,7 +23,7 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 ## Installation
 
-Install Node ( > 6.2 ) and npm ( > 5 ).
+Install Node ( > 8 ) and npm ( > 3.38.0 ).
 
 Run it
 ```bash
@@ -54,7 +56,6 @@ module.exports = {
     bot_token: "YOUR_BOT_TOKEN", // support bot token
     staffchat_id: "SUPERGROUP_CHAT_ID",  // telegram staff group chat id eg. -123456789
     owner_id: "YOUR_TELEGRAM_ID",
-    supported_bot: "service_name", // service name of the supported bot leave empty if you don't have one
     startCommandText: "Welcome in our support chat! Ask your question here.",
     faqCommandText: "Check out our FAQ here: Address to your FAQ",
 };
@@ -74,12 +75,19 @@ User commands:
 * `/start` - tells the user how to use this bot
 * `/faq` - shows the FAQ
 
+* File forwarding from and to user
+* Database for handling open and closed tickets
+* Restrict users
+* Simple anti spam system
+
+~~
 This you should only care about when you intend to "support" another bot e.g. salesbot with this. This would enable "ANTI-CRASH" and commands like start and stop. Remember to use this only when you have two bots.
 
 Admin/Owner commands:
-* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.
+* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`. 
+~~
 
-<img src="https://puu.sh/wywe5/a4c3cee0b7.png" width="400" height="400" />
+(Removed after commit 8dabfabdc18b39d11c48f022836d0c824e3adafb)
 
 ## Telegram token
 
@@ -99,9 +107,5 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 You can also ask this bot on Telegram: @bostrot_bot
 
 You are welcome to contribute with pull requests, bug reports, ideas and donations. Join the forum if you have any general purpose questions: [bostrot.com](https://www.bostrot.com)
-
-Bitcoin: [1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM](https://www.blockchain.com/btc/payment_request?address=1ECPWeTCq93F68BmgYjUgGSV11XuzSPSeM&currency=USD&nosavecurrency=true&message=Bostrot)
-
-PayPal: [paypal.me/bostrot](https://paypal.me/bostrot)
 
 Hosting: [Get $50 free VPS credit on Vultr](https://www.bostrot.com/?ref=hosting)
