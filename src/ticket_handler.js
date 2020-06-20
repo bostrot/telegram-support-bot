@@ -35,98 +35,87 @@ function ticketHandler(bot, ctx) {
  */
 function staffChat(ctx, bot) {
   // check whether person is an admin
-  ctx.getChatAdministrators()
-      .then(function(admins) {
-        admins = JSON.stringify(admins);
-        let replyText;
-        if (
-          ctx.message.reply_to_message !== undefined &&
-        admins.indexOf(ctx.from.id) > -1
-        ) {
-        // try whether a text or an image/video is replied to
-          try {
-            replyText = ctx.message.reply_to_message.text;
-            if (replyText === undefined) {
-              replyText = ctx.message.reply_to_message.caption;
-            }
-            let userid = replyText.match(new RegExp('#t' +
-                '(.*)' + ' ' + config.lang_from));
-            if (userid === null || userid === undefined) {
-              userid = replyText.match(new RegExp('#t' +
-                  '(.*)' + '\n' + config.lang_from));
-            }
-            const name = replyText.match(new RegExp(
-                config.lang_from + ' ' + '(.*)' + ' ' +
-            config.lang_language));
-            if (ctx.message.text !== undefined && ctx.message.text === 'me') {
-            // accept ticket
-              bot.telegram.sendMessage(
-                  config.staffchat_id,
-                  '<b>' +
-              config.lang_ticket +
-              ' #t' +
-              userid[1] +
-              '</b> ' +
-              config.lang_acceptedBy +
-              ' ' +
-              ctx.message.from.first_name +
-              ' -> /open',
-                  cache.noSound
-              );
-            } else {
-              cache.ticketStatus[userid[1]] = false;
-              bot.telegram.sendMessage(
-                  userid[1],
-                  config.lang_dear +
-              ' <b>' +
-              name[1] +
-              '</b>,\n\n' +
-              ctx.message.text +
-              '\n\n' +
-              config.lang_regards +
-              '\n' +
-              ctx.message.from.first_name,
-                  cache.html
-              );
-              bot.telegram.sendMessage(
-                  config.staffchat_id,
-                  config.lang_msg_sent +
-              ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
-                  cache.noSound
-              );
-              console.log(
-                  'Answer: ' +
-              config.lang_ticket +
-              ' #t' +
-              userid[1] +
-              ' ' +
-              config.lang_dear +
-              ' ' +
-              name[1] +
-              ' ' +
-              ctx.message.text +
-              ' ' +
-              config.lang_from +
-              ' ' +
-              ctx.message.from.first_name
-              );
-            }
-            cache.ticketSent[userid[1]] = undefined;
-            // close ticket
-            dbhandler.add(userid[1], 'closed');
-          } catch (e) {
-            console.log(e);
-            bot.telegram.sendMessage(
-                config.staffchat_id, `An error occured, please 
-                report this to your admin: \n\n` + e,
-                cache.noSound
-            );
-          }
-        }
-      })
-      .catch(function(noAdmin) {
-        console.log('Error with admins: ' + noAdmin);
-      });
+  if (!ctx.session.admin) {
+    return;
+  }
+  // try whether a text or an image/video is replied to
+  try {
+    if (ctx.message === undefined) {
+      return;
+    }
+    replyText = ctx.message.reply_to_message.text;
+    if (replyText === undefined) {
+      replyText = ctx.message.reply_to_message.caption;
+    }
+    let userid = replyText.match(new RegExp('#t' +
+        '(.*)' + ' ' + config.lang_from));
+    if (userid === null || userid === undefined) {
+      userid = replyText.match(new RegExp('#t' +
+          '(.*)' + '\n' + config.lang_from));
+    }
+    const name = replyText.match(new RegExp(
+        config.lang_from + ' ' + '(.*)' + ' ' +
+    config.lang_language));
+    if (ctx.message.text !== undefined && ctx.message.text === 'me') {
+      // accept ticket
+      bot.telegram.sendMessage(config.staffchat_id, '<b>' +
+      config.lang_ticket +
+      ' #t' +
+      userid[1] +
+      '</b> ' +
+      config.lang_acceptedBy +
+      ' ' +
+      ctx.message.from.first_name +
+      ' -> /open',
+      cache.noSound
+      );
+    } else {
+      cache.ticketStatus[userid[1]] = false;
+      bot.telegram.sendMessage(userid[1], config.lang_dear +
+      ' <b>' +
+      name[1] +
+      '</b>,\n\n' +
+      ctx.message.text +
+      '\n\n' +
+      config.lang_regards +
+      '\n' +
+      ctx.message.from.first_name,
+      cache.html
+      );
+      bot.telegram.sendMessage(
+          config.staffchat_id,
+          config.lang_msg_sent +
+      ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
+          cache.noSound
+      );
+      console.log(
+          'Answer: ' +
+      config.lang_ticket +
+      ' #t' +
+      userid[1] +
+      ' ' +
+      config.lang_dear +
+      ' ' +
+      name[1] +
+      ' ' +
+      ctx.message.text +
+      ' ' +
+      config.lang_from +
+      ' ' +
+      ctx.message.from.first_name
+      );
+    }
+    cache.ticketSent[userid[1]] = undefined;
+    // close ticket
+    dbhandler.add(userid[1], 'closed');
+  } catch (e) {
+    console.log(e);
+    bot.telegram.sendMessage(
+        config.staffchat_id, `An error occured, please 
+        report this to your admin: \n\n` + e,
+        cache.noSound
+    );
+  }
 }
 
 /**

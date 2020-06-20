@@ -4,6 +4,7 @@ const config = require('../config.js');
 const handler = require('./ticket_handler.js');
 const cache = require('./cache.js');
 const dbhandler = require('./dbhandler.js');
+const session = require('telegraf/session');
 
 const bot = new Telegraf(config.bot_token);
 
@@ -13,6 +14,31 @@ cache.markdown = Extra.markdown();
 cache.noSound = Extra
 // eslint-disable-next-line new-cap
     .HTML().notifications(false);
+
+bot.use(session());
+bot.use((ctx, next) => {
+  ctx.getChat().then(function(chat) {
+    if (chat.type === 'private') {
+      ctx.session.admin = false;
+    } else {
+      ctx.getChatAdministrators()
+          .then(function(admins) {
+            admins = JSON.stringify(admins);
+            if (
+              ctx.message.reply_to_message !== undefined &&
+              admins.indexOf(ctx.from.id) > -1
+            ) {
+              // admin
+              ctx.session.admin = true;
+            } else {
+              // no admin
+              ctx.session.admin = false;
+            }
+          });
+    }
+  });
+  return next();
+});
 
 // on start reply with chat bot rules
 bot.command('start', ({
