@@ -30,20 +30,9 @@ Run it
 git clone https://github.com/bostrot/telegram-support-bot.git
 cd telegram-support-bot
 npm i
-node src/support.js
+cp config-sample.js config.js
+npm run
 ```
-
-Or: via install script (this will create two autostart files for systemctl (bot and supported bot) and enable both):
-
-```bash
-git clone https://github.com/bostrot/telegram-support-bot.git
-cd telegram-support-bot
-sudo bash setup
-sudo systemctl start YOUR_SUPPORT_BOT_SERVICE_NAME
-```
-
-Enter the bot location (ex. /home/bots/mybot.js) when asked and then your bot name (ex. mybot)
-`setup` will create two systemctl links in order that your bot will be automatically restarted when it crashes and runs in the background.
 
 ## Configuration
 
