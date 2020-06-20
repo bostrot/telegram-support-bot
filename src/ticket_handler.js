@@ -40,6 +40,7 @@ function staffChat(ctx, bot) {
   }
   // try whether a text or an image/video is replied to
   try {
+    // replying to non-ticket
     if (ctx.message === undefined) {
       return;
     }
@@ -70,6 +71,10 @@ function staffChat(ctx, bot) {
       cache.noSound
       );
     } else {
+      // replying to non-ticket
+      if (userid === null) {
+        return;
+      }
       cache.ticketStatus[userid[1]] = false;
       bot.telegram.sendMessage(userid[1], config.lang_dear +
       ' <b>' +
