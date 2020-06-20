@@ -78,6 +78,13 @@ Admin/Owner commands:
 
 (Removed after commit 8dabfabdc18b39d11c48f022836d0c824e3adafb)
 
+## Docker
+
+```
+docker build -t bostrot/telegram-support-bot .
+docker-compose up -d
+```
+
 ## Telegram token
 
 To use the [Telegram Bot API](https://core.telegram.org/bots/api), 
