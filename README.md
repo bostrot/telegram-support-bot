@@ -6,7 +6,7 @@
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](http://standardjs.com/)
 
 # [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot)
-is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It let users create tickets which will be send to a staff group and can be answered by a reply.
+is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It lets users create tickets which will be send to a staff group and can be answered by a reply.
 
 <table>
 <tr>
@@ -64,17 +64,17 @@ User commands:
 * `/start` - tells the user how to use this bot
 * `/faq` - shows the FAQ
 
+Features:
 * File forwarding from and to user
 * Database for handling open and closed tickets
 * Restrict users
 * Simple anti spam system
 
-~~
-This you should only care about when you intend to "support" another bot e.g. salesbot with this. This would enable "ANTI-CRASH" and commands like start and stop. Remember to use this only when you have two bots.
+~~This you should only care about when you intend to "support" another bot e.g. salesbot with this. This would enable "ANTI-CRASH" and commands like start and stop. Remember to use this only when you have two bots.~~
 
-Admin/Owner commands:
-* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`. 
-~~
+~~Admin/Owner commands:~~
+~~* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.~~
+
 
 (Removed after commit 8dabfabdc18b39d11c48f022836d0c824e3adafb)
 
