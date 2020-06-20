@@ -1,55 +1,68 @@
 const config = require('../config.js');
 const cache = require('./cache.js');
-var dbhandler = require('./dbhandler.js')
+const dbhandler = require('./dbhandler.js');
 
+/**
+ * Decide whether to forward or stop the message.
+ * @param {bot} bot Bot object.
+ * @param {context} ctx Bot context.
+ */
 function ticketHandler(bot, ctx) {
-  ctx.getChat().then(function (chat) {
+  ctx.getChat().then(function(chat) {
     if (chat.id.toString() === config.staffchat_id) {
       // let staff handle that
       staffChat(ctx, bot, chat);
     } else if (chat.type === 'private') {
       // create a ticket and send to staff
       // check db for user status
-        dbhandler.check(ctx.message.from.id, function (user) {
-          if (user == undefined || user.status == undefined || user.status == "closed")  {
-            dbhandler.add(ctx.message.from.id, "open");
-            customerChat(ctx, bot, chat);
-          } else if (user.status !== "banned") {
-            customerChat(ctx, bot, chat);
-          }
-        });
+      dbhandler.check(ctx.message.from.id, function(user) {
+        if (user == undefined || user.status == undefined ||
+            user.status == 'closed') {
+          dbhandler.add(ctx.message.from.id, 'open');
+          customerChat(ctx, bot, chat);
+        } else if (user.status !== 'banned') {
+          customerChat(ctx, bot, chat);
+        }
+      });
     }
   });
 }
 
-// reply to tickets in staff chat
+/**
+ * Reply to tickets in staff chat.
+ * @param {context} ctx Bot context.
+ * @param {bot} bot Bot object.
+ */
 function staffChat(ctx, bot) {
   // check whether person is an admin
   ctx.getChatAdministrators()
-    .then(function (admins) {
-      admins = JSON.stringify(admins);
-      let replyText;
-      if (
-        ctx.message.reply_to_message !== undefined &&
+      .then(function(admins) {
+        admins = JSON.stringify(admins);
+        let replyText;
+        if (
+          ctx.message.reply_to_message !== undefined &&
         admins.indexOf(ctx.from.id) > -1
-      ) {
+        ) {
         // try whether a text or an image/video is replied to
-        try {
-          replyText = ctx.message.reply_to_message.text;
-          if (replyText === undefined) {
-            replyText = ctx.message.reply_to_message.caption;
-          }
-          let userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' + config.lang_from));
-          if (userid === null || userid === undefined) {
-            userid = replyText.match(new RegExp('#t' + '(.*)' + '\n' + config.lang_from));
-          }
-          let name = replyText.match(new RegExp(config.lang_from + ' ' + '(.*)' + ' ' 
-            + config.lang_language));
-          if (ctx.message.text !== undefined && ctx.message.text === 'me') {
+          try {
+            replyText = ctx.message.reply_to_message.text;
+            if (replyText === undefined) {
+              replyText = ctx.message.reply_to_message.caption;
+            }
+            let userid = replyText.match(new RegExp('#t' +
+                '(.*)' + ' ' + config.lang_from));
+            if (userid === null || userid === undefined) {
+              userid = replyText.match(new RegExp('#t' +
+                  '(.*)' + '\n' + config.lang_from));
+            }
+            const name = replyText.match(new RegExp(
+                config.lang_from + ' ' + '(.*)' + ' ' +
+            config.lang_language));
+            if (ctx.message.text !== undefined && ctx.message.text === 'me') {
             // accept ticket
-            bot.telegram.sendMessage(
-              config.staffchat_id,
-              '<b>' +
+              bot.telegram.sendMessage(
+                  config.staffchat_id,
+                  '<b>' +
               config.lang_ticket +
               ' #t' +
               userid[1] +
@@ -58,13 +71,13 @@ function staffChat(ctx, bot) {
               ' ' +
               ctx.message.from.first_name +
               ' -> /open',
-              cache.noSound
-            );
-          } else {
-            cache.ticketStatus[userid[1]] = false;
-            bot.telegram.sendMessage(
-              userid[1],
-              config.lang_dear +
+                  cache.noSound
+              );
+            } else {
+              cache.ticketStatus[userid[1]] = false;
+              bot.telegram.sendMessage(
+                  userid[1],
+                  config.lang_dear +
               ' <b>' +
               name[1] +
               '</b>,\n\n' +
@@ -73,16 +86,16 @@ function staffChat(ctx, bot) {
               config.lang_regards +
               '\n' +
               ctx.message.from.first_name,
-              cache.html
-            );
-            bot.telegram.sendMessage(
-              config.staffchat_id,
-              config.lang_msg_sent +
+                  cache.html
+              );
+              bot.telegram.sendMessage(
+                  config.staffchat_id,
+                  config.lang_msg_sent +
               ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
-              cache.noSound
-            );
-            console.log(
-              'Answer: ' +
+                  cache.noSound
+              );
+              console.log(
+                  'Answer: ' +
               config.lang_ticket +
               ' #t' +
               userid[1] +
@@ -96,25 +109,32 @@ function staffChat(ctx, bot) {
               config.lang_from +
               ' ' +
               ctx.message.from.first_name
+              );
+            }
+            cache.ticketSent[userid[1]] = undefined;
+            // close ticket
+            dbhandler.add(userid[1], 'closed');
+          } catch (e) {
+            console.log(e);
+            bot.telegram.sendMessage(
+                config.staffchat_id, `An error occured, please 
+                report this to your admin: \n\n` + e,
+                cache.noSound
             );
           }
-          cache.ticketSent[userid[1]] = undefined;
-          // close ticket
-          dbhandler.add(userid[1], "closed");
-        } catch (e) {
-          console.log(e)
-          bot.telegram.sendMessage(
-            config.staffchat_id, 'An error occured, please report this to your admin: \n\n' + e,
-            cache.noSound
-          );
         }
-      }
-    })
-    .catch(function (noAdmin) {
-      console.log('Error with admins: ' + noAdmin);
-    });
+      })
+      .catch(function(noAdmin) {
+        console.log('Error with admins: ' + noAdmin);
+      });
 }
 
+/**
+ * Ticket handling and spam protection.
+ * @param {context} ctx Bot context.
+ * @param {bot} bot Bot object.
+ * @param {chat} chat Bot chat.
+ */
 function customerChat(ctx, bot, chat) {
   cache.tickedID = ctx.message.from.id;
   if (cache.ticketIDs[cache.ticketID] === undefined) {
@@ -133,48 +153,53 @@ function customerChat(ctx, bot, chat) {
   if (cache.ticketSent[cache.tickedID] === undefined) {
     bot.telegram.sendMessage(chat.id, config.lang_contactMessage, cache.html);
     bot.telegram.sendMessage(
-      config.staffchat_id,
-      '' +
+        config.staffchat_id,
+        '' +
       config.lang_ticket +
       ' #t' +
       cache.tickedID +
       userInfo +
       ctx.message.text,
-      cache.html
+        cache.html
     );
     // wait 5 minutes before this message appears again and do not
     // send notificatoin sounds in that time to avoid spam
-    setTimeout(function () {
+    setTimeout(function() {
       cache.ticketSent[cache.tickedID] = undefined;
     }, config.spam_time);
     cache.ticketSent[cache.tickedID] = 0;
   } else if (cache.ticketSent[cache.tickedID] < 4) {
     cache.ticketSent[cache.tickedID]++;
     bot.telegram.sendMessage(
-      config.staffchat_id,
-      config.lang_ticket +
+        config.staffchat_id,
+        config.lang_ticket +
       ' #t' +
       cache.tickedID +
       userInfo +
       ctx.message.text,
-      cache.html
+        cache.html
     );
   } else if (cache.ticketSent[cache.tickedID] === 4) {
     cache.ticketSent[cache.tickedID]++;
     bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, cache.html);
   }
   console.log(
-    'Ticket: ' +
+      'Ticket: ' +
     ' #t' +
     cache.tickedID +
     userInfo.replace('\n\n', ': ')
-    .replace('<a href="tg://user?id='+cache.tickedID+'">', '').replace('</a>', '') +
+        .replace('<a href="tg://user?id='+cache.tickedID+'">', '').replace('</a>', '') +
     ctx.message.text
   );
 }
 
+/**
+ * Forward video files to staff.
+ * @param {bot} bot Bot object.
+ * @param {context} ctx Bot context.
+ */
 function videoHandler(bot, ctx) {
-  forwardFile(bot, ctx, function (userInfo) {
+  forwardFile(bot, ctx, function(userInfo) {
     bot.telegram.sendVideo(config.staffchat_id, ctx.message.video.file_id, {
       caption: config.lang_ticket +
         ': #t' +
@@ -187,8 +212,13 @@ function videoHandler(bot, ctx) {
   });
 }
 
+/**
+ * Forward photo files to staff.
+ * @param {bot} bot Bot object.
+ * @param {context} ctx Bot context.
+ */
 function photoHandler(bot, ctx) {
-  forwardFile(bot, ctx, function (userInfo) {
+  forwardFile(bot, ctx, function(userInfo) {
     bot.telegram.sendPhoto(config.staffchat_id, ctx.message.photo[0].file_id, {
       caption: config.lang_ticket +
         ': #t' +
@@ -201,37 +231,48 @@ function photoHandler(bot, ctx) {
   });
 }
 
+/**
+ * Forward document files to staff.
+ * @param {bot} bot Bot object.
+ * @param {context} ctx Bot context.
+ */
 function documentHandler(bot, ctx) {
-  forwardFile(bot, ctx, function (userInfo) {
+  forwardFile(bot, ctx, function(userInfo) {
     bot.telegram.sendDocument(
-      config.staffchat_id,
-      ctx.message.document.file_id, {
-        caption: config.lang_ticket +
+        config.staffchat_id,
+        ctx.message.document.file_id, {
+          caption: config.lang_ticket +
           ': #t' +
           cache.ticketID +
           '\n' +
           userInfo +
           (ctx.message.caption || ''),
-      }
+        }
     );
   });
 }
 
+/**
+ * Forward general files to staff.
+ * @param {bot} bot Bot object.
+ * @param {context} ctx Bot context.
+ * @param {callback} callback Bot callback.
+ */
 function forwardFile(bot, ctx, callback) {
   if (cache.ticketSent[cache.tickedID] === undefined) {
-    fowardHandler(ctx, function (userInfo) {
+    fowardHandler(ctx, function(userInfo) {
       callback(userInfo);
     });
     // wait 5 minutes before this message appears again and do not
     // send notificatoin sounds in that time to avoid spam
-    setTimeout(function () {
+    setTimeout(function() {
       cache.ticketSent[cache.tickedID] = undefined;
     }, config.spam_time);
     cache.ticketSent[cache.tickedID] = 0;
   } else if (cache.ticketSent[cache.tickedID] < 5) {
     cache.ticketSent[cache.tickedID]++;
     // TODO: add cache.noSound property for silent notifications
-    fowardHandler(ctx, function (userInfo) {
+    fowardHandler(ctx, function(userInfo) {
       callback(userInfo);
     });
   } else if (cache.ticketSent[cache.tickedID] === 5) {
@@ -240,8 +281,13 @@ function forwardFile(bot, ctx, callback) {
   }
 }
 
+/**
+ * Handle all forwards.
+ * @param {context} ctx Bot context.
+ * @param {callback} callback Bot callback.
+ */
 function fowardHandler(ctx, callback) {
-  ctx.getChat().then(function (chat) {
+  ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
       userInfo = '';

@@ -3,7 +3,6 @@ module.exports = {
   bot_token: 'YOUR_BOT_TOKEN', // support bot token
   staffchat_id: 'SUPERGROUP_CHAT_ID', // eg. -123456789
   owner_id: 'YOUR_TELEGRAM_ID',
-  supported_bot: 'service_name', // service name of the supported bot
   spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
 
   // customize your language

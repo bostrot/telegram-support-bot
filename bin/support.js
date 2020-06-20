@@ -2,176 +2,20 @@ const Telegraf = require('telegraf');
 const {Extra} = Telegraf;
 const config = require('../config.js');
 const handler = require('./ticket_handler.js');
-let cache = require('./cache.js');
-var dbhandler = require('./dbhandler.js');
+const cache = require('./cache.js');
+const dbhandler = require('./dbhandler.js');
 
 const bot = new Telegraf(config.bot_token);
 
-const cron = require('cron');
-const exec = require('child_process').exec;
-let cronJob;
-
-cache.html = Extra.HTML(); // eslint-disable-line no-use-before-define
+// eslint-disable-next-line new-cap
+cache.html = Extra.HTML();
 cache.markdown = Extra.markdown();
 cache.noSound = Extra
-      .HTML().notifications(false); // eslint-disable-line no-use-before-define
+// eslint-disable-next-line new-cap
+    .HTML().notifications(false);
 
-const root = Extra.HTML().markup(( // eslint-disable-line no-use-before-define
-  m // inline keyboard for admin dashboard
-) =>
-  m.inlineKeyboard([
-    m.callbackButton('🔄 Update', 'update'),
-    m.callbackButton('📖 Log', 'log'),
-    m.callbackButton('♻️ Restart', 'restart'),
-    m.callbackButton('🚫 Stop', 'stop'),
-  ])
-);
-
-bot.action('restart', (ctx) => {
-  // restart other bot
-  if (ctx.from.id === config.owner_id) {
-    ex('service ' + config.supported_bot + ' restart', function(results) {
-      setTimeout(function() {
-        ex('service ' + config.supported_bot + ' status', function(results) {
-          if (cronJob !== undefined) {
-            status = cronJob.running;
-          }
-          ctx.editMessageText(
-            'Current status:\n' + results + '\nCron running: restart',
-            root
-          );
-        });
-      }, 2000);
-    });
-    if (cronJob !== undefined) {
-      if (cronJob.running === false) {
-        cronJob.start();
-      }
-    }
-  }
-});
-bot.action('log', (ctx) => {
-  // send other bots log
-  if (ctx.from.id == config.owner_id) {
-    ex(
-      'journalctl -u ' + config.supported_bot + ' -b > /logs/log.txt',
-      function(results) {
-        ctx.replyWithDocument({
-          source: '/logs/log.txt',
-        });
-      }
-    );
-  }
-});
-bot.action('update', (ctx) => {
-  // update admin dasboard"s status
-  if (ctx.from.id == config.owner_id) {
-    let status;
-    ex('service ' + config.supported_bot + ' status', function(results) {
-      if (cronJob !== undefined) {
-        status = cronJob.running;
-      }
-      ctx.editMessageText(
-        'Current status:\n' + results + '\nCron running: ' + status,
-        root
-      );
-    });
-  }
-});
-bot.action('stop', (ctx) => {
-  // stop the bot
-  if (ctx.from.id == config.owner_id) {
-    ex('service ' + config.supported_bot + ' stop', function(results) {
-      ctx.editMessageText('Bitgram stopped', root);
-    });
-    if (cronJob !== undefined) {
-      if (cronJob.running === true) {
-        cronJob.stop();
-      }
-    }
-  }
-});
-
-let cronSession = function(ctx) {
-  // check every 5 seconds if other bot is down, if it"s inactive restart it
-  console.log('Session started.\n');
-  cronJob = cron.job(
-    '*/5 * * * * *',
-    function() {
-      // 5 seconds
-      ex('systemctl is-active ' + config.supported_bot + '', function(results) {
-        if (results.indexOf('failed') > -1) {
-          // restart on failed
-          ex(
-            'journalctl -u ' +
-              config.supported_bot +
-              ' -b > /var/www/cache.html/' +
-              config.supported_bot +
-              '/logs/log.txt',
-            function(results) {
-              ctx.replyWithDocument({
-                source:
-                  '/var/www/cache.html/' +
-                  config.supported_bot +
-                  '/logs/log.txt',
-              });
-            }
-          );
-          ex('service ' + config.supported_bot + ' start', function(results) {
-            bot.telegram.sendMessage(
-              config.staffchat_id,
-              'Restarted bot. See log.',
-              cache.html
-            );
-          });
-        }
-        if (results.indexOf('inactive') > -1) {
-          // restart on inactive
-          ex(
-            'journalctl -u ' +
-              config.supported_bot +
-              ' -b > /var/www/cache.html/' +
-              config.supported_bot +
-              '/logs/log.txt',
-            function(results) {
-              ctx.replyWithDocument({
-                source:
-                  '/var/www/cache.html/' +
-                  config.supported_bot +
-                  '/logs/log.txt',
-              });
-            }
-          );
-          ex('service ' + config.supported_bot + ' start', function(results) {
-            bot.telegram.sendMessage(
-              config.staffchat_id,
-              'Restarted bot. See log.',
-              cache.html
-            );
-          });
-        }
-        results = null;
-      });
-    },
-    function() {
-      bot.telegram.sendMessage(
-        config.staffchat_id,
-        'Stopped cron job.',
-        cache.html
-      );
-    }
-  );
-  cronJob.start();
-};
-
-let ex = function execute(command, callback) {
-  // execute command
-  exec(command, function(error, stdout, stderr) {
-    callback(stdout);
-  });
-};
-
-bot.command('start', ({ // on start reply with chat bot rules
+// on start reply with chat bot rules
+bot.command('start', ({
   reply, from, chat}) => {
   reply(config.startCommandText, cache.html, cache.html);
 });
@@ -179,47 +23,34 @@ bot.command('start', ({ // on start reply with chat bot rules
 bot.command('id', ({reply, from, chat}) => {
   reply(from.id + ' ' + chat.id);
 });
+
 bot.command('faq', (ctx) => {
-  // faq
   ctx.reply(config.faqCommandText, cache.html);
 });
 
-bot.command('root', (ctx) => {
-  // admin dashboard can only be used by owner
-  console.log('id ' + ctx.from.id);
-  if (ctx.from.id.toString() == config.owner_id) {
-    bot.telegram.sendMessage(
-      config.staffchat_id,
-      'You will receive the logs when the bot crashes.',
-      root
-    );
-    cronSession(ctx);
-  }
-});
-
+// enable for groups (get own username)
 bot.telegram.getMe().then((botInfo) => {
-  // enable for groups (get own username)
   bot.options.username = botInfo.username;
 });
 
+// download photos
 const downloadPhotoMiddleware = (ctx, next) => {
-  // download photos
   return bot.telegram.getFileLink(ctx.message.photo[0]).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
+// download videos
 const downloadVideoMiddleware = (ctx, next) => {
-  // download videos
   return bot.telegram.getFileLink(ctx.message.video).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
+// download documents
 const downloadDocumentMiddleware = (ctx, next) => {
-  // download documents
   console.log(ctx.message);
   return bot.telegram.getFileLink(ctx.message.document).then((link) => {
     ctx.state.fileLink = link;
@@ -235,26 +66,25 @@ bot.command('open', (ctx) => {
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins);
         if (admins.indexOf(ctx.from.id) > -1) {
-
           dbhandler.open(function(userList) {
             console.log(userList);
             let openTickets = '';
 
-            for (let i in userList) {
-              if (userList[i]['userid'] !== null && userList[i]['userid'] !== undefined) {
-                openTickets += '<code>#t' + userList[i]['userid'].toString() + '</code>\n';
+            for (const i in userList) {
+              if (userList[i]['userid'] !== null &&
+                  userList[i]['userid'] !== undefined) {
+                openTickets += '<code>#t' + userList[i]['userid']
+                    .toString() + '</code>\n';
               }
             }
             setTimeout(function() {
               bot.telegram.sendMessage(
-                chat.id,
-                '<b>Open Tickets:\n\n</b>' + openTickets,
-                cache.noSound
+                  chat.id,
+                  '<b>Open Tickets:\n\n</b>' + openTickets,
+                  cache.noSound
               );
             }, 10);
-
           });
-          
         }
       });
     }
@@ -271,14 +101,15 @@ bot.command('close', (ctx) => {
           ctx.message.reply_to_message !== undefined &&
           admins.indexOf(ctx.from.id) > -1
         ) {
-          let replyText = ctx.message.reply_to_message.text;
-          let userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' + config.lang_from));
-          
-          dbhandler.add(userid[1], "closed")
+          const replyText = ctx.message.reply_to_message.text;
+          const userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' +
+              config.lang_from));
+
+          dbhandler.add(userid[1], 'closed');
           bot.telegram.sendMessage(
-            chat.id,
-            'Ticket <code>#t'+userid[1]+'</code> closed',
-            cache.noSound
+              chat.id,
+              'Ticket <code>#t'+userid[1]+'</code> closed',
+              cache.noSound
           );
         }
       });
@@ -297,14 +128,16 @@ bot.command('ban', (ctx) => {
           ctx.message.reply_to_message !== undefined &&
           admins.indexOf(ctx.from.id) > -1
         ) {
-          let replyText = ctx.message.reply_to_message.text;
-          let userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' + config.lang_from));
-          
-          dbhandler.add(userid[1], "banned")
+          const replyText = ctx.message.reply_to_message.text;
+          const userid = replyText.match(new RegExp('#t' + '(.*)' +
+              ' ' + config.lang_from));
+
+          dbhandler.add(userid[1], 'banned');
           bot.telegram.sendMessage(
-            chat.id,
-            config.lang_usr_with_ticket + ' <code>#t'+userid[1]+'</code> ' + config.lang_banned,
-            cache.noSound
+              chat.id,
+              config.lang_usr_with_ticket + ' <code>#t'+userid[1]+
+                  '</code> ' + config.lang_banned,
+              cache.noSound
           );
         }
       });
@@ -331,8 +164,8 @@ bot.hears(/(.+)/, (ctx) => handler.ticket(bot, ctx));
 
 // telegraf error handling
 bot.catch((err) => {
-  console.log('Error: ', err)
-})
+  console.log('Error: ', err);
+});
 
 bot.startPolling();
 /*
