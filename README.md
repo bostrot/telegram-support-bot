@@ -28,7 +28,7 @@ Run it
 git clone https://github.com/bostrot/telegram-support-bot.git
 cd telegram-support-bot
 npm i
-node bin/support.js
+node src/support.js
 ```
 
 Or: via install script (this will create two autostart files for systemctl (bot and supported bot) and enable both):

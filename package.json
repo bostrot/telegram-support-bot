@@ -12,9 +12,9 @@
   "bugs": {
     "url": "https://github.com/bostrot/telegram-support-bot/issues"
   },
-  "main": "bin/support.js",
+  "main": "src/support.js",
   "scripts": {
-    "start": "node bin/support.js"
+    "start": "node src/support.js"
   },
   "engines": {
     "node": ">=6.2.0"
