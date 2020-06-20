@@ -189,65 +189,63 @@ function customerChat(ctx, bot, chat) {
 
 /**
  * Forward video files to staff.
+ * @param {string} type document, photo, video.
  * @param {bot} bot Bot object.
  * @param {context} ctx Bot context.
  */
-function videoHandler(bot, ctx) {
+function fileHandler(type, bot, ctx) {
+  // replying to non-ticket
+  let userid;
+  if (ctx.message !== undefined && ctx.message.reply_to_message !== undefined) {
+    replyText = ctx.message.reply_to_message.text;
+    if (replyText === undefined) {
+      replyText = ctx.message.reply_to_message.caption;
+    }
+    userid = replyText.match(new RegExp('#t' +
+        '(.*)' + ' ' + config.lang_from));
+    if (userid === null || userid === undefined) {
+      userid = replyText.match(new RegExp('#t' +
+          '(.*)' + '\n' + config.lang_from));
+    }
+  }
   forwardFile(bot, ctx, function(userInfo) {
-    bot.telegram.sendVideo(config.staffchat_id, ctx.message.video.file_id, {
-      caption: config.lang_ticket +
-        ': #t' +
-        cache.ticketID +
-        '\n' +
-        userInfo +
-        '\n' +
-        (ctx.message.caption || ''),
-    });
+    let receiverId = config.staffchat_id;
+    let captionText = config.lang_ticket +
+      ': #t' +
+      cache.ticketID +
+      '\n' +
+      userInfo +
+      '\n' +
+      (ctx.message.caption || '');
+    if (ctx.session.admin && userInfo === undefined) {
+      receiverId = userid[1];
+      captionText = (ctx.message.caption || '');
+    }
+    switch (type) {
+      case 'document':
+        bot.telegram.sendDocument(
+            receiverId,
+            ctx.message.document.file_id, {
+              caption: captionText,
+            }
+        );
+        break;
+      case 'photo':
+        bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
+          caption: captionText,
+        });
+        break;
+      case 'video':
+        bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
+          caption: captionText,
+        });
+        break;
+    }
   });
 }
 
 /**
- * Forward photo files to staff.
- * @param {bot} bot Bot object.
- * @param {context} ctx Bot context.
- */
-function photoHandler(bot, ctx) {
-  forwardFile(bot, ctx, function(userInfo) {
-    bot.telegram.sendPhoto(config.staffchat_id, ctx.message.photo[0].file_id, {
-      caption: config.lang_ticket +
-        ': #t' +
-        cache.ticketID +
-        '\n' +
-        userInfo +
-        '\n' +
-        (ctx.message.caption || ''),
-    });
-  });
-}
-
-/**
- * Forward document files to staff.
- * @param {bot} bot Bot object.
- * @param {context} ctx Bot context.
- */
-function documentHandler(bot, ctx) {
-  forwardFile(bot, ctx, function(userInfo) {
-    bot.telegram.sendDocument(
-        config.staffchat_id,
-        ctx.message.document.file_id, {
-          caption: config.lang_ticket +
-          ': #t' +
-          cache.ticketID +
-          '\n' +
-          userInfo +
-          (ctx.message.caption || ''),
-        }
-    );
-  });
-}
-
-/**
- * Forward general files to staff.
+ * Handle caching for sent files.
  * @param {bot} bot Bot object.
  * @param {context} ctx Bot context.
  * @param {callback} callback Bot callback.
@@ -276,7 +274,7 @@ function forwardFile(bot, ctx, callback) {
 }
 
 /**
- * Handle all forwards.
+ * Check if msg comes from user or admin.
  * @param {context} ctx Bot context.
  * @param {callback} callback Bot callback.
  */
@@ -295,13 +293,13 @@ function fowardHandler(ctx, callback) {
         ctx.message.from.language_code +
         '\n\n';
       callback(userInfo);
+    } else {
+      callback();
     }
   });
 }
 
 module.exports = {
   ticket: ticketHandler,
-  photo: photoHandler,
-  video: videoHandler,
-  document: documentHandler,
+  file: fileHandler,
 };

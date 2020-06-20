@@ -173,17 +173,17 @@ bot.command('ban', (ctx) => {
 
 // handle photo input
 bot.on('photo', downloadPhotoMiddleware, (ctx, next) => {
-  handler.photo(bot, ctx);
+  handler.file('photo', bot, ctx);
 });
 
 // handle video input
 bot.on('video', downloadVideoMiddleware, (ctx, next) => {
-  handler.video(bot, ctx);
+  handler.file('video', bot, ctx);
 });
 
 // handle file input
 bot.on('document', downloadDocumentMiddleware, (ctx, next) => {
-  handler.document(bot, ctx);
+  handler.file('document', bot, ctx);
 });
 
 bot.hears(/(.+)/, (ctx) => handler.ticket(bot, ctx));
