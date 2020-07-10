@@ -17,10 +17,10 @@ cache.noSound = Extra
 
 bot.use(session());
 bot.use((ctx, next) => {
-  console.log("checking....")
   ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
       ctx.session.admin = false;
+      return next();
     } else {
       ctx.getChatAdministrators()
           .then(function(admins) {
