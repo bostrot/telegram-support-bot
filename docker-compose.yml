@@ -2,3 +2,5 @@ version: '3'
 services:
   telegram-support-bot:
     image: "bostrot/telegram-support-bot"
+    container_name: supportbot_telegram
+    restart: unless-stopped

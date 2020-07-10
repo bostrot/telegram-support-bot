@@ -40,6 +40,7 @@ function staffChat(ctx, bot) {
   }
   // try whether a text or an image/video is replied to
   try {
+    console.log(ctx.message);
     // replying to non-ticket
     if (ctx.message === undefined) {
       return;

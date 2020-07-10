@@ -17,6 +17,7 @@ cache.noSound = Extra
 
 bot.use(session());
 bot.use((ctx, next) => {
+  console.log("checking....")
   ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
       ctx.session.admin = false;
@@ -34,10 +35,10 @@ bot.use((ctx, next) => {
               // no admin
               ctx.session.admin = false;
             }
+            return next();
           });
     }
   });
-  return next();
 });
 
 // on start reply with chat bot rules
