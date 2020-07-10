@@ -10,8 +10,8 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 <table>
 <tr>
-<th><img src="https://puu.sh/wyvPd/8dde465527.jpg" /></th>
-<th><img src="https://puu.sh/wyvxD/35a3b70290.jpg" /></th>
+<th><img src="https://i.imgur.com/du5KZ1C.jpg" /></th>
+<th><img src="https://i.imgur.com/N2002b0.jpg" /></th>
 </tr>
 </table>
 
