@@ -8,6 +8,7 @@ module.exports = {
   // customize your language
   startCommandText: 'Welcome in our support chat! Ask your question here.',
   faqCommandText: 'Check out our FAQ here: <a href="http://linktoyourfaq">linktoyourfaq.com</a>',
+  helpCommandText: '<b>Available commands:</b>\n/help\n/faq\n/id',
   lang_contactMessage:
     `Thank you for contacting us. We will answer as soon as possible.`,
   lang_blockedSpam:
