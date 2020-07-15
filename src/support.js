@@ -55,6 +55,10 @@ bot.command('faq', (ctx) => {
   ctx.reply(config.faqCommandText, cache.html);
 });
 
+bot.command('help', (ctx) => {
+  ctx.reply(config.helpCommandText, cache.html);
+});
+
 // enable for groups (get own username)
 bot.telegram.getMe().then((botInfo) => {
   bot.options.username = botInfo.username;

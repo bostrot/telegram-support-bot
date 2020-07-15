@@ -4,3 +4,5 @@ services:
     image: "bostrot/telegram-support-bot"
     container_name: supportbot_telegram
     restart: unless-stopped
+    volumes:
+      - ${PWD}/config.js:/telegram-support-bot/config.js

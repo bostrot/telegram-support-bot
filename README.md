@@ -57,11 +57,12 @@ When a user sends a message to the support chat it will create a ticket which wi
 Currently the support chat offers these commands (staff commands):
 * `/open` - lists all open tickets (messages where noone has replied yet)
 * `/close` - close a ticket manually (in case someone writes 'thank you')
-* `/id (userid)` - lists some stuff from the database about the user
+* `/id` - returns your telegram id and the group chat id (1234567 -1234567890)
 * `/ban` - ban a person from writing to your chat
 
 User commands:
 * `/start` - tells the user how to use this bot
+* `/help` - an overview over the commands or some explanation for the user
 * `/faq` - shows the FAQ
 
 Features:
