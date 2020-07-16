@@ -6,3 +6,4 @@ services:
     restart: unless-stopped
     volumes:
       - ${PWD}/config.js:/telegram-support-bot/config.js
+      - ${PWD}/src/support.db:/telegram-support-bot/src/support.db
