@@ -93,19 +93,17 @@ const downloadDocumentMiddleware = (ctx, next) => {
 bot.command('open', (ctx) => {
   ctx.getChat().then(function(chat) {
     if (chat.id.toString() === config.staffchat_id) {
-      console.log('chatid', chat.id.toString());
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins);
         if (admins.indexOf(ctx.from.id) > -1) {
           dbhandler.open(function(userList) {
-            console.log(userList);
             let openTickets = '';
-
             for (const i in userList) {
               if (userList[i]['userid'] !== null &&
                   userList[i]['userid'] !== undefined) {
-                openTickets += '<code>#t' + userList[i]['userid']
-                    .toString() + '</code>\n';
+                openTickets += '#T' + userList[i]['id']
+                    .toString().padStart(6, '0')
+                    .toString() + '\n';
               }
             }
             setTimeout(function() {
@@ -132,16 +130,20 @@ bot.command('close', (ctx) => {
           ctx.message.reply_to_message !== undefined &&
           admins.indexOf(ctx.from.id) > -1
         ) {
-          const replyText = ctx.message.reply_to_message.text;
-          const userid = replyText.match(new RegExp('#t' + '(.*)' + ' ' +
+          let replyText = ctx.message.reply_to_message.text;
+          if (replyText == undefined) {
+            replyText = ctx.message.reply_to_message.caption;
+          }
+          const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
               config.lang_from));
-
-          dbhandler.add(userid[1], 'closed');
-          bot.telegram.sendMessage(
-              chat.id,
-              'Ticket <code>#t'+userid[1]+'</code> closed',
-              cache.noSound
-          );
+          dbhandler.check(userid[1], function(ticket) {
+            dbhandler.add(ticket.userid, 'closed');
+            bot.telegram.sendMessage(
+                chat.id,
+                'Ticket #T'+ticket.id.toString().padStart(6, '0')+' closed',
+                cache.noSound
+            );
+          });
         }
       });
     }
