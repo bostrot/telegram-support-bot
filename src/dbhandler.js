@@ -4,18 +4,23 @@ const db = new Database(__dirname + '/support.db', {
 
 const dbTable = db.prepare(
     `CREATE TABLE IF NOT EXISTS supportees
-    (userid TEXT PRIMARY KEY, status TEXT);`);
+    (id INTEGER PRIMARY KEY AUTOINCREMENT, userid TEXT, status TEXT);`);
 dbTable.run();
 
 exports.check = function(userid, callback) {
-  const searchDB = db.prepare('select * from supportees where userid = ' +
-        userid).get();
+  const searchDB = db.prepare(
+      `select * from supportees where userid = ${userid} or id = ${userid}`).get();
   callback(searchDB);
 };
 
 exports.add = function(userid, status) {
-  db.prepare(`INSERT or REPLACE INTO supportees VALUES ('`+
-        userid+`', '`+status+`')`).run();
+  if (status == 'closed') {
+    db.prepare(`DELETE FROM supportees WHERE userid = ${userid}`).run();
+  } else {
+    db.prepare(
+        `INSERT or REPLACE INTO supportees (userid, status) VALUES ('${userid}', '${status}')`)
+        .run();
+  }
 };
 
 exports.open = function(callback) {

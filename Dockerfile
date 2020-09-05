@@ -6,6 +6,8 @@ RUN apt-get update && \
 
 COPY ./ telegram-support-bot
 RUN cd telegram-support-bot/ && \
-    npm i
+    npm i && \
+    npm i -g nodemon
 
-CMD ["node", "/telegram-support-bot/src/support.js"]
+#CMD ["node", "/telegram-support-bot/src/support.js"]
+CMD ["nodemon", "/telegram-support-bot/src/support.js"]

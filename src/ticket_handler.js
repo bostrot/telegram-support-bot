@@ -48,76 +48,81 @@ function staffChat(ctx, bot) {
     if (replyText === undefined) {
       replyText = ctx.message.reply_to_message.caption;
     }
-    let userid = replyText.match(new RegExp('#t' +
+
+    let userid = replyText.match(new RegExp('#T' +
         '(.*)' + ' ' + config.lang_from));
     if (userid === null || userid === undefined) {
-      userid = replyText.match(new RegExp('#t' +
+      userid = replyText.match(new RegExp('#T' +
           '(.*)' + '\n' + config.lang_from));
     }
-    const name = replyText.match(new RegExp(
-        config.lang_from + ' ' + '(.*)' + ' ' +
-    config.lang_language));
-    if (ctx.message.text !== undefined && ctx.message.text === 'me') {
-      // accept ticket
-      bot.telegram.sendMessage(config.staffchat_id, '<b>' +
-      config.lang_ticket +
-      ' #t' +
-      userid[1] +
-      '</b> ' +
-      config.lang_acceptedBy +
-      ' ' +
-      ctx.message.from.first_name +
-      ' -> /open',
-      cache.noSound
-      );
-    } else {
-      // replying to non-ticket
-      if (userid === null) {
-        return;
+
+    dbhandler.check(userid[1], function(ticket) {
+      const name = replyText.match(new RegExp(
+          config.lang_from + ' ' + '(.*)' + ' ' +
+      config.lang_language));
+      if (ctx.message.text !== undefined && ctx.message.text === 'me') {
+        // accept ticket
+        // Get Ticket ID from DB
+        bot.telegram.sendMessage(config.staffchat_id, '<b>' +
+          config.lang_ticket +
+          ' #T' +
+          user.id.toString().padStart(6, '0') +
+          '</b> ' +
+          config.lang_acceptedBy +
+          ' ' +
+          ctx.message.from.first_name +
+          ' -> /open',
+        cache.noSound
+        );
+      } else {
+        // replying to non-ticket
+        if (userid === null) {
+          return;
+        }
+        cache.ticketStatus[userid[1]] = false;
+        bot.telegram.sendMessage(ticket.userid, config.lang_dear +
+          ' <b>' +
+          name[1] +
+          '</b>,\n\n' +
+          ctx.message.text +
+          '\n\n' +
+          config.lang_regards +
+          '\n' +
+          ctx.message.from.first_name,
+        cache.html
+        );
+        bot.telegram.sendMessage(
+            config.staffchat_id,
+            config.lang_msg_sent +
+          ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
+            cache.noSound
+        );
+        console.log(
+            'Answer: ' +
+          config.lang_ticket +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0') +
+          ' ' +
+          config.lang_dear +
+          ' ' +
+          name[1] +
+          ' ' +
+          ctx.message.text +
+          ' ' +
+          config.lang_from +
+          ' ' +
+          ctx.message.from.first_name
+        );
       }
-      cache.ticketStatus[userid[1]] = false;
-      bot.telegram.sendMessage(userid[1], config.lang_dear +
-      ' <b>' +
-      name[1] +
-      '</b>,\n\n' +
-      ctx.message.text +
-      '\n\n' +
-      config.lang_regards +
-      '\n' +
-      ctx.message.from.first_name,
-      cache.html
-      );
-      bot.telegram.sendMessage(
-          config.staffchat_id,
-          config.lang_msg_sent +
-      ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
-          cache.noSound
-      );
-      console.log(
-          'Answer: ' +
-      config.lang_ticket +
-      ' #t' +
-      userid[1] +
-      ' ' +
-      config.lang_dear +
-      ' ' +
-      name[1] +
-      ' ' +
-      ctx.message.text +
-      ' ' +
-      config.lang_from +
-      ' ' +
-      ctx.message.from.first_name
-      );
-    }
-    cache.ticketSent[userid[1]] = undefined;
-    // close ticket
-    dbhandler.add(userid[1], 'closed');
+      cache.ticketSent[userid[1]] = undefined;
+      // close ticket
+      dbhandler.add(userid[1], 'closed');
+    });
   } catch (e) {
     console.log(e);
     bot.telegram.sendMessage(
         config.staffchat_id, `An error occured, please 
-        report this to your admin: \n\n` + e,
+          report this to your admin: \n\n` + e,
         cache.noSound
     );
   }
@@ -145,17 +150,21 @@ function customerChat(ctx, bot, chat) {
     ctx.message.from.language_code +
     '\n\n';
   if (cache.ticketSent[cache.tickedID] === undefined) {
+    // Get Ticket ID from DB
     bot.telegram.sendMessage(chat.id, config.lang_contactMessage, cache.html);
-    bot.telegram.sendMessage(
-        config.staffchat_id,
-        '' +
-      config.lang_ticket +
-      ' #t' +
-      cache.tickedID +
-      userInfo +
-      ctx.message.text,
-        cache.html
-    );
+    // Get Ticket ID from DB
+    dbhandler.check(chat.id, function(ticket) {
+      bot.telegram.sendMessage(
+          config.staffchat_id,
+          '' +
+        config.lang_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        userInfo +
+        ctx.message.text,
+          cache.html
+      );
+    });
     // wait 5 minutes before this message appears again and do not
     // send notificatoin sounds in that time to avoid spam
     setTimeout(function() {
@@ -164,27 +173,31 @@ function customerChat(ctx, bot, chat) {
     cache.ticketSent[cache.tickedID] = 0;
   } else if (cache.ticketSent[cache.tickedID] < 4) {
     cache.ticketSent[cache.tickedID]++;
-    bot.telegram.sendMessage(
-        config.staffchat_id,
-        config.lang_ticket +
-      ' #t' +
-      cache.tickedID +
-      userInfo +
-      ctx.message.text,
-        cache.html
-    );
+    dbhandler.check(cache.tickedID, function(ticket) {
+      bot.telegram.sendMessage(
+          config.staffchat_id,
+          config.lang_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        userInfo +
+        ctx.message.text,
+          cache.html
+      );
+    });
   } else if (cache.ticketSent[cache.tickedID] === 4) {
     cache.ticketSent[cache.tickedID]++;
     bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, cache.html);
   }
-  console.log(
-      'Ticket: ' +
-    ' #t' +
-    cache.tickedID +
+  dbhandler.check(cache.tickedID, function(ticket) {
+    console.log(
+        `Ticket: ` +
+    ' #T' +
+    ticket.id.toString().padStart(6, '0') +
     userInfo.replace('\n\n', ': ')
         .replace('<a href="tg://user?id='+cache.tickedID+'">', '').replace('</a>', '') +
     ctx.message.text
-  );
+    );
+  });
 }
 
 /**
@@ -201,46 +214,50 @@ function fileHandler(type, bot, ctx) {
     if (replyText === undefined) {
       replyText = ctx.message.reply_to_message.caption;
     }
-    userid = replyText.match(new RegExp('#t' +
+    userid = replyText.match(new RegExp('#T' +
         '(.*)' + ' ' + config.lang_from));
     if (userid === null || userid === undefined) {
-      userid = replyText.match(new RegExp('#t' +
+      userid = replyText.match(new RegExp('#T' +
           '(.*)' + '\n' + config.lang_from));
     }
   }
   forwardFile(bot, ctx, function(userInfo) {
     let receiverId = config.staffchat_id;
-    let captionText = config.lang_ticket +
-      ': #t' +
-      cache.ticketID +
-      '\n' +
+    console.log(ctx.message.chat.id);
+    dbhandler.check(ctx.message.chat.id, function(ticket) {
+      console.log(ticket);
+      let captionText = config.lang_ticket +
+      ' #T' +
+      ticket.id.toString().padStart(6, '0') +
+      ' ' +
       userInfo +
       '\n' +
       (ctx.message.caption || '');
-    if (ctx.session.admin && userInfo === undefined) {
-      receiverId = userid[1];
-      captionText = (ctx.message.caption || '');
-    }
-    switch (type) {
-      case 'document':
-        bot.telegram.sendDocument(
-            receiverId,
-            ctx.message.document.file_id, {
-              caption: captionText,
-            }
-        );
-        break;
-      case 'photo':
-        bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
-          caption: captionText,
-        });
-        break;
-      case 'video':
-        bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
-          caption: captionText,
-        });
-        break;
-    }
+      if (ctx.session.admin && userInfo === undefined) {
+        receiverId = userid[1];
+        captionText = (ctx.message.caption || '');
+      }
+      switch (type) {
+        case 'document':
+          bot.telegram.sendDocument(
+              receiverId,
+              ctx.message.document.file_id, {
+                caption: captionText,
+              }
+          );
+          break;
+        case 'photo':
+          bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
+            caption: captionText,
+          });
+          break;
+        case 'video':
+          bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
+            caption: captionText,
+          });
+          break;
+      }
+    });
   });
 }
 
@@ -251,26 +268,36 @@ function fileHandler(type, bot, ctx) {
  * @param {callback} callback Bot callback.
  */
 function forwardFile(bot, ctx, callback) {
-  if (cache.ticketSent[cache.tickedID] === undefined) {
-    fowardHandler(ctx, function(userInfo) {
-      callback(userInfo);
-    });
-    // wait 5 minutes before this message appears again and do not
-    // send notificatoin sounds in that time to avoid spam
-    setTimeout(function() {
-      cache.ticketSent[cache.tickedID] = undefined;
-    }, config.spam_time);
-    cache.ticketSent[cache.tickedID] = 0;
-  } else if (cache.ticketSent[cache.tickedID] < 5) {
-    cache.ticketSent[cache.tickedID]++;
-    // TODO: add cache.noSound property for silent notifications
-    fowardHandler(ctx, function(userInfo) {
-      callback(userInfo);
-    });
-  } else if (cache.ticketSent[cache.tickedID] === 5) {
-    cache.ticketSent[cache.tickedID]++;
-    bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, cache.html);
-  }
+  dbhandler.check(ctx.message.from.id, function(user) {
+    let ok = false;
+    if (user == undefined || user.status == undefined ||
+        user.status == 'closed') {
+      dbhandler.add(ctx.message.from.id, 'open');
+      ok = true;
+    }
+    if (ok || user !== undefined && user.status !== 'banned') {
+      if (cache.ticketSent[cache.tickedID] === undefined) {
+        fowardHandler(ctx, function(userInfo) {
+          callback(userInfo);
+        });
+        // wait 5 minutes before this message appears again and do not
+        // send notificatoin sounds in that time to avoid spam
+        setTimeout(function() {
+          cache.ticketSent[cache.tickedID] = undefined;
+        }, config.spam_time);
+        cache.ticketSent[cache.tickedID] = 0;
+      } else if (cache.ticketSent[cache.tickedID] < 5) {
+        cache.ticketSent[cache.tickedID]++;
+        // TODO: add cache.noSound property for silent notifications
+        fowardHandler(ctx, function(userInfo) {
+          callback(userInfo);
+        });
+      } else if (cache.ticketSent[cache.tickedID] === 5) {
+        cache.ticketSent[cache.tickedID]++;
+        bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, cache.html);
+      }
+    }
+  });
 }
 
 /**
