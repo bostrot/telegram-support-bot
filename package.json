@@ -23,7 +23,7 @@
     "better-sqlite3": "^7.1.0",
     "cron": "^1.8.2",
     "debug": "^4.1.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "sandwich-stream": "^2.0.2",
     "telegraf": "^3.38.0",
     "telegraf-session-sqlite": "^1.0.6"
