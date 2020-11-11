@@ -23,9 +23,10 @@
     "better-sqlite3": "^7.1.0",
     "cron": "^1.8.2",
     "debug": "^4.1.1",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "sandwich-stream": "^2.0.2",
     "telegraf": "^3.38.0",
+    "telegraf-experiments": "^1.1.0",
     "telegraf-session-sqlite": "^1.0.6"
   },
   "devDependencies": {
@@ -34,7 +35,8 @@
     "eslint-plugin-import": "^2.21.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint-plugin-standard": "^4.0.1",
+    "mocha": "^8.1.3"
   },
   "keywords": [
     "telegram-support-bot",

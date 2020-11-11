@@ -1,4 +1,4 @@
-const config = require('../config.js');
+const config = require('../config/config.js');
 const cache = require('./cache.js');
 const dbhandler = require('./dbhandler.js');
 
