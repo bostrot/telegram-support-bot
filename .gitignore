@@ -65,3 +65,4 @@ typings/
 .env
 test/testing.js
 test/support.test.js
+config/support.db.old

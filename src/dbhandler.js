@@ -16,9 +16,13 @@ exports.check = function(userid, callback) {
 exports.add = function(userid, status) {
   if (status == 'closed') {
     db.prepare(`DELETE FROM supportees WHERE userid = ${userid}`).run();
-  } else {
+  } else if (status == 'open') {
     db.prepare(
         `INSERT or REPLACE INTO supportees (userid, status) VALUES ('${userid}', '${status}')`)
+        .run();
+  } else if (status = 'banned') {
+    db.prepare(
+        `UPDATE supportees SET status='banned' WHERE userid='${userid}' or id='${userid}'`)
         .run();
   }
 };
