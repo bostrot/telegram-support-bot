@@ -1,4 +1,4 @@
-const config = require('../config/config.js');
+const config = require(__dirname + '/../config/config.js');
 const cache = require('./cache.js');
 const dbhandler = require('./dbhandler.js');
 
@@ -209,7 +209,7 @@ function customerChat(ctx, bot, chat) {
 function fileHandler(type, bot, ctx) {
   // replying to non-ticket
   let userid;
-  if (ctx.message !== undefined && ctx.message.reply_to_message !== undefined) {
+  if (ctx.message !== undefined && ctx.message.reply_to_message !== undefined && ctx.session.admin) {
     replyText = ctx.message.reply_to_message.text;
     if (replyText === undefined) {
       replyText = ctx.message.reply_to_message.caption;
@@ -223,8 +223,12 @@ function fileHandler(type, bot, ctx) {
   }
   forwardFile(bot, ctx, function(userInfo) {
     let receiverId = config.staffchat_id;
-    console.log(ctx.message.chat.id);
-    dbhandler.check(ctx.message.chat.id, function(ticket) {
+    let msgId = ctx.message.chat.id;
+    // if admin
+    if (ctx.session.admin && userInfo === undefined) {
+      msgId = userid[1];
+    }
+    dbhandler.check(msgId, function(ticket) {
       console.log(ticket);
       let captionText = config.lang_ticket +
       ' #T' +
@@ -234,7 +238,7 @@ function fileHandler(type, bot, ctx) {
       '\n' +
       (ctx.message.caption || '');
       if (ctx.session.admin && userInfo === undefined) {
-        receiverId = userid[1];
+        receiverId = ticket.userid;
         captionText = (ctx.message.caption || '');
       }
       switch (type) {
@@ -258,6 +262,8 @@ function fileHandler(type, bot, ctx) {
           break;
       }
     });
+
+    
   });
 }
 
