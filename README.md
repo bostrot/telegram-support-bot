@@ -31,7 +31,7 @@ git clone https://github.com/bostrot/telegram-support-bot.git
 cd telegram-support-bot
 npm i
 cp config-sample.js config.js
-npm run
+npm run start
 ```
 
 ## Configuration
