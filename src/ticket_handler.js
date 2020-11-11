@@ -262,8 +262,6 @@ function fileHandler(type, bot, ctx) {
           break;
       }
     });
-
-    
   });
 }
 

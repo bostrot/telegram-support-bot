@@ -8,6 +8,46 @@ const session = require('telegraf/session');
 
 const bot = new Telegraf(config.bot_token);
 
+// overload logging to file
+const fs = require('fs');
+const util = require('util');
+const debugFile = __dirname + '/../config/debug.log';
+const logStdout = process.stdout;
+
+console.log = function(d) {
+  logStdout.write(util.format(d) + '\n');
+
+  fs.appendFile(debugFile,
+      util.format(d) + '\n', 'utf8',
+      function(err) {
+        if (err) throw err;
+      });
+};
+
+// catch uncaught exceptions to log
+process.on('uncaughtException', (err) => {
+  console.log('=== UNHANDLED ERROR ===');
+  fs.appendFile(debugFile,
+      err.stack + '\n', 'utf8',
+      function(err) {
+        if (err) throw err;
+      });
+  console.error('Error: ', err);
+  process.exit(1);
+});
+
+
+// catch uncaught rejections to log
+process.on('unhandledRejection', (err, p) => {
+  console.log('=== UNHANDLED REJECTION ===');
+  fs.appendFile(debugFile,
+      err.stack + '\n', 'utf8',
+      function(err) {
+        if (err) throw err;
+      });
+  console.dir(err);
+});
+
 // eslint-disable-next-line new-cap
 cache.html = Extra.HTML();
 cache.markdown = Extra.markdown();
@@ -93,6 +133,7 @@ const downloadDocumentMiddleware = (ctx, next) => {
 bot.command('open', (ctx) => {
   ctx.getChat().then(function(chat) {
     if (chat.id.toString() === config.staffchat_id) {
+      // check if admin
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins);
         if (admins.indexOf(ctx.from.id) > -1) {
@@ -124,6 +165,7 @@ bot.command('open', (ctx) => {
 bot.command('close', (ctx) => {
   ctx.getChat().then(function(chat) {
     if (chat.id.toString() === config.staffchat_id) {
+      // check if admin
       ctx.getChatAdministrators().then(function(admins) {
         admins = JSON.stringify(admins);
         if (
@@ -136,6 +178,7 @@ bot.command('close', (ctx) => {
           }
           const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
               config.lang_from));
+          // get userid from ticketid
           dbhandler.check(userid[1], function(ticket) {
             dbhandler.add(ticket.userid, 'closed');
             bot.telegram.sendMessage(
@@ -150,7 +193,6 @@ bot.command('close', (ctx) => {
   });
 });
 
-
 // ban user
 bot.command('ban', (ctx) => {
   ctx.getChat().then(function(chat) {
@@ -162,16 +204,20 @@ bot.command('ban', (ctx) => {
           admins.indexOf(ctx.from.id) > -1
         ) {
           const replyText = ctx.message.reply_to_message.text;
-          const userid = replyText.match(new RegExp('#t' + '(.*)' +
+          const userid = replyText.match(new RegExp('#T' + '(.*)' +
               ' ' + config.lang_from));
 
-          dbhandler.add(userid[1], 'banned');
-          bot.telegram.sendMessage(
-              chat.id,
-              config.lang_usr_with_ticket + ' <code>#t'+userid[1]+
-                  '</code> ' + config.lang_banned,
-              cache.noSound
-          );
+          // get userid from ticketid
+          dbhandler.check(userid[1], function(ticket) {
+            dbhandler.add(ticket.userid, 'banned');
+            bot.telegram.sendMessage(
+                chat.id,
+                config.lang_usr_with_ticket + ' #T'+
+                ticket.id.toString().padStart(6, '0')+
+                    ' ' + config.lang_banned,
+                cache.noSound
+            );
+          });
         }
       });
     }
