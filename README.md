@@ -101,8 +101,6 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 
 ## Help
 
-You can also ask this bot on Telegram: @bostrot_bot
-
 You are welcome to contribute with pull requests, bug reports, ideas and donations. Join the forum if you have any general purpose questions: [bostrot.com](https://www.bostrot.com)
 
-Hosting: [Get $50 free VPS credit on Vultr](https://www.bostrot.com/?ref=hosting)
+Hit me up for a custom hosting solution or other help on Telegram [@bostrot_bot](http://t.me/bostrot_bot)
