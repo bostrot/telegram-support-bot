@@ -1,5 +1,5 @@
 const Database = require('better-sqlite3');
-const db = new Database(__dirname + '../config/support.db', {
+const db = new Database(__dirname + '/../config/support.db', {
   /* verbose: console.log */}); // debugging
 
 const dbTable = db.prepare(

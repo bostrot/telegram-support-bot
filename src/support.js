@@ -1,6 +1,6 @@
 const Telegraf = require('telegraf');
 const {Extra} = Telegraf;
-const config = require('../config/config.js');
+const config = require(__dirname + '/../config/config.js');
 const handler = require('./ticket_handler.js');
 const cache = require('./cache.js');
 const dbhandler = require('./dbhandler.js');
