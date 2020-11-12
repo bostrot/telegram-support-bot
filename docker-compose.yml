@@ -1,8 +1,8 @@
 version: '3'
 services:
-  telegram-support-bot:
-    build: .
-    container_name: supportbot_telegram
+  supportbot:
+    # build: .
+    image: "bostrot/telgram-support-bot"
     restart: unless-stopped
     volumes:
       - ${PWD}/config:/telegram-support-bot/config

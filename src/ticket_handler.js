@@ -76,7 +76,7 @@ function staffChat(ctx, bot) {
         );
       } else {
         // replying to non-ticket
-        if (userid === null) {
+        if (userid === null || ticket == undefined) {
           return;
         }
         cache.ticketStatus[userid[1]] = false;
