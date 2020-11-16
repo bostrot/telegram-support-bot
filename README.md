@@ -30,7 +30,7 @@ Run it
 git clone https://github.com/bostrot/telegram-support-bot.git
 cd telegram-support-bot
 npm i
-cp config-sample.js config.js
+cp config/config-sample.js config/config.js
 npm run start
 ```
 
@@ -71,20 +71,23 @@ Features:
 * Restrict users
 * Simple anti spam system
 
-~~This you should only care about when you intend to "support" another bot e.g. salesbot with this. This would enable "ANTI-CRASH" and commands like start and stop. Remember to use this only when you have two bots.~~
-
-~~Admin/Owner commands:~~
-~~* `/root` - Starts the listener and prevents the bot from crashing (restarts it and sends the log into the staff chat); Also this will open up a dashboard where the admin/owner can control the bot with following `Update`, `Restart`, `Log`, `Stop`.~~
-
-
-(Removed after commit 8dabfabdc18b39d11c48f022836d0c824e3adafb)
-
 ## Docker
+
+via docker-compose:
+```
+docker-compose up -d
+```
+
+or build:
 
 ```
 docker build -t bostrot/telegram-support-bot .
-docker-compose up -d
+docker run bostrot/telegram-support-bot -v /path/to/config_dir:/telegram-support-bot/config
 ```
+
+## Update to v1.0.1
+
+Backup and delete the database file (src/support.db) and move config.js to folder config. Then just start it normally.
 
 ## Telegram token
 
