@@ -58,74 +58,33 @@ function staffChat(ctx, bot) {
       const name = replyText.match(new RegExp(
           config.lang_from + ' ' + '(.*)' + ' ' +
       config.lang_language));
-      if (ctx.message.text !== undefined && ctx.message.text === 'me') {
-        // accept ticket
-        // Get Ticket ID from DB
-        bot.telegram.sendMessage(config.staffchat_id, '<b>' +
-          config.lang_ticket +
-          ' #T' +
-          user.id.toString().padStart(6, '0') +
-          '</b> ' +
-          config.lang_acceptedBy +
-          ' ' +
-          ctx.message.from.first_name +
-          ' -> /open',
-        cache.noSound
-        );
-        // Send to specific group
-        if (ctx.session.group !== undefined) {
-          bot.telegram.sendMessage(ctx.session.group, '<b>' +
-          config.lang_ticket +
-          ' #T' +
-          user.id.toString().padStart(6, '0') +
-          '</b> ' +
-          config.lang_acceptedBy +
-          ' ' +
-          ctx.message.from.first_name +
-          ' -> /open',
-          cache.noSound
-          );
-        }
-      } else {
         // replying to non-ticket
-        if (userid === null || ticket == undefined) {
-          return;
-        }
-        cache.ticketStatus[userid[1]] = false;
-        bot.telegram.sendMessage(ticket.userid, config.lang_dear +
-          ' <b>' +
-          name[1] +
-          '</b>,\n\n' +
-          ctx.message.text +
-          '\n\n' +
-          config.lang_regards +
-          '\n' +
-          ctx.message.from.first_name,
-        cache.html
-        );
-        bot.telegram.sendMessage(
-            ctx.chat.id,
-            config.lang_msg_sent + ' ' +
-            name[1],
-            cache.noSound
-        );
-        console.log(
-            'Answer: ' +
-          config.lang_ticket +
-          ' #T' +
-          ticket.id.toString().padStart(6, '0') +
-          ' ' +
-          config.lang_dear +
-          ' ' +
-          name[1] +
-          ' ' +
-          ctx.message.text +
-          ' ' +
-          config.lang_from +
-          ' ' +
-          ctx.message.from.first_name
-        );
+      if (userid === null || ticket == undefined) {
+        return;
       }
+      cache.ticketStatus[userid[1]] = false;
+
+      bot.telegram.sendMessage(ticket.userid,
+          `${config.lang_dear}<b> `+
+          `${name[1]}</b>,\n\n`+
+          `${ctx.message.text}\n\n`+
+          `${config.lang_regards}\n`+
+          `${ctx.message.from.first_name}`,
+          cache.html
+      );
+      bot.telegram.sendMessage(ctx.chat.id,
+          `${config.lang_msg_sent} ${name[1]}`,
+          cache.noSound
+      );
+      console.log(
+          `Answer: ${config.lang_ticket} `+
+          `#T${ticket.id.toString().padStart(6, '0')}`+
+          `${config.lang_dear}`+
+          `${name[1]}`+
+          `${ctx.message.text}`+
+          `${config.lang_from}`+
+          `${ctx.message.from.first_name}`
+      );
       cache.ticketSent[userid[1]] = undefined;
       // close ticket
       dbhandler.add(userid[1], 'closed');
@@ -134,7 +93,7 @@ function staffChat(ctx, bot) {
     console.log(e);
     bot.telegram.sendMessage(
         config.staffchat_id, `An error occured, please 
-          report this to your admin: \n\n` + e,
+          report this to your admin: \n\n ${e}`,
         cache.noSound
     );
   }
@@ -152,40 +111,27 @@ function customerChat(ctx, bot, chat) {
     cache.ticketIDs.push(cache.tickedID);
   }
   cache.ticketStatus[cache.tickedID] = true;
-  userInfo = '';
-  userInfo +=
-    ' ' + config.lang_from + ' <a href="tg://user?id=' + cache.tickedID + '">' +
-    ctx.message.from.first_name + '</a>' + ' ';
-  userInfo +=
-    config.lang_language +
-    ': ' +
-    ctx.message.from.language_code +
-    '\n\n';
   if (cache.ticketSent[cache.tickedID] === undefined) {
     // Get Ticket ID from DB
     bot.telegram.sendMessage(chat.id, config.lang_contactMessage, cache.html);
     // Get Ticket ID from DB
     dbhandler.check(chat.id, function(ticket) {
-      bot.telegram.sendMessage(
-          config.staffchat_id,
-          '' +
-        config.lang_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        userInfo +
-        ctx.message.text,
+      bot.telegram.sendMessage(config.staffchat_id,
+          `${config.lang_ticket} #T${ticket.id.toString().padStart(6, '0')} `+
+          `${config.lang_from} <a href="tg://user?id=${cache.tickedID}">` +
+          `${ctx.message.from.first_name}</a> ${config.lang_language}: `+
+          `${ctx.message.from.language_code}\n\n` +
+          `${ctx.message.text}`,
           cache.html
       );
       if (ctx.session.group !== undefined) {
         bot.telegram.sendMessage(
             ctx.session.group,
-            '' +
-        config.lang_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') + ' ' + config.lang_from + ' ' +
-        ctx.message.from.first_name + ' ' + config.lang_language + ': ' +
-        ctx.message.from.language_code + '\n\n' +
-        ctx.message.text,
+            `${config.lang_ticket} ` +
+            `#T${ticket.id.toString().padStart(6, '0')} ${config.lang_from} ` +
+            `${ctx.message.from.first_name} ${config.lang_language}: ` +
+            `${ctx.message.from.language_code}\n\n` +
+            `${ctx.message.text}`,
             cache.html
         );
       }
@@ -199,23 +145,22 @@ function customerChat(ctx, bot, chat) {
   } else if (cache.ticketSent[cache.tickedID] < 4) {
     cache.ticketSent[cache.tickedID]++;
     dbhandler.check(cache.tickedID, function(ticket) {
-      bot.telegram.sendMessage(
-          config.staffchat_id,
-          config.lang_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        userInfo +
-        ctx.message.text,
+      bot.telegram.sendMessage(config.staffchat_id,
+          `00008${config.lang_ticket} ` +
+          `#T${ticket.id.toString().padStart(6, '0')} ${config.lang_from} ` +
+          `${ctx.message.from.first_name} ${config.lang_language}: ` +
+          `ctx.message.from.language_code\n\n` +
+          `${ctx.message.text}`,
           cache.html
       );
       if (ctx.session.group !== undefined) {
         bot.telegram.sendMessage(
             ctx.session.group,
-            config.lang_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        userInfo +
-        ctx.message.text,
+            `00008${config.lang_ticket} ` +
+            `#T${ticket.id.toString().padStart(6, '0')} ${config.lang_from} ` +
+            `${ctx.message.from.first_name} ${config.lang_language}: ` +
+            `ctx.message.from.language_code\n\n` +
+            `${ctx.message.text}`,
             cache.html
         );
       }
@@ -226,12 +171,11 @@ function customerChat(ctx, bot, chat) {
   }
   dbhandler.check(cache.tickedID, function(ticket) {
     console.log(
-        `Ticket: ` +
-    ' #T' +
-    ticket.id.toString().padStart(6, '0') +
-    userInfo.replace('\n\n', ': ')
-        .replace('<a href="tg://user?id='+cache.tickedID+'">', '').replace('</a>', '') +
-    ctx.message.text
+        `00008${config.lang_ticket} ` +
+        `#T${ticket.id.toString().padStart(6, '0')} ${config.lang_from} ` +
+        `${ctx.message.from.first_name} ${config.lang_language}: ` +
+        `ctx.message.from.language_code\n\n` +
+        `${ctx.message.text}`
     );
   });
 }
@@ -367,16 +311,18 @@ function fowardHandler(ctx, callback) {
   ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
-      userInfo = '';
-      userInfo += config.lang_from + ' ' + ctx.message.from.first_name + ' ';
-      userInfo +=
-        '@' +
-        ctx.message.from.username +
-        ' ' +
-        config.lang_language +
-        ': ' +
-        ctx.message.from.language_code +
-        '\n\n';
+      userInfo =
+        `${config.lang_from} ${ctx.message.from.first_name} ` +
+        `${config.lang_language}: ` +
+        `${ctx.message.from.language_code}\n\n`;
+
+      if (ctx.session.group === undefined) {
+        userInfo =
+            `${config.lang_from} ${ctx.message.from.first_name} ` +
+            `@${ctx.message.from.username} ` +
+            `${config.lang_language}: ` +
+            `${ctx.message.from.language_code}\n\n`;
+      }
       callback(userInfo);
     } else {
       callback();
