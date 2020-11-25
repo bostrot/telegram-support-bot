@@ -13,10 +13,8 @@ const fs = require('fs');
 const util = require('util');
 const debugFile = __dirname + '/../config/debug.log';
 const logStdout = process.stdout;
-
 console.log = function(d) {
   logStdout.write(util.format(d) + '\n');
-
   fs.appendFile(debugFile,
       util.format(d) + '\n', 'utf8',
       function(err) {
@@ -48,36 +46,56 @@ process.on('unhandledRejection', (err, p) => {
   console.dir(err);
 });
 
+const checkRights = function(ctx) {
+  return new Promise(function(resolve, reject) {
+    // Is staff group
+    if (ctx.chat.id.toString() === config.staffchat_id ||
+    ctx.chat.id.toString().indexOf(config.groups.toString()) > -1) {
+    // Is admin
+      ctx.getChatAdministrators().then(function(admins) {
+        admins = JSON.stringify(admins);
+        if (admins.indexOf(ctx.from.id) > -1) {
+          console.log('Permission granted for ' + ctx.from.username);
+          resolve(true);
+        }
+      });
+    } else resolve(false);
+  });
+};
+
+// Keyboard
+const replyKeyboard = function(keys) {
+  return {
+    reply_markup: {
+      keyboard: keys,
+    },
+  };
+};
+
+// Keyboard
+const removeKeyboard = function(keys) {
+  return {
+    reply_markup: {
+      remove_keyboard: true,
+    },
+  };
+};
+
 // eslint-disable-next-line new-cap
 cache.html = Extra.HTML();
 cache.markdown = Extra.markdown();
-cache.noSound = Extra
 // eslint-disable-next-line new-cap
-    .HTML().notifications(false);
+cache.noSound = Extra.HTML().notifications(false);
 
 bot.use(session());
+
+// Define user permission
 bot.use((ctx, next) => {
-  ctx.getChat().then(function(chat) {
-    if (chat.type === 'private') {
-      ctx.session.admin = false;
-      return next();
-    } else {
-      ctx.getChatAdministrators()
-          .then(function(admins) {
-            admins = JSON.stringify(admins);
-            if (
-              ctx.message.reply_to_message !== undefined &&
-              admins.indexOf(ctx.from.id) > -1
-            ) {
-              // admin
-              ctx.session.admin = true;
-            } else {
-              // no admin
-              ctx.session.admin = false;
-            }
-            return next();
-          });
-    }
+  ctx.session.admin = false;
+  checkRights(ctx).then((access) => {
+    if (access) ctx.session.admin = true;
+  }).finally((a) => {
+    return next();
   });
 });
 
@@ -85,6 +103,35 @@ bot.use((ctx, next) => {
 bot.command('start', ({
   reply, from, chat}) => {
   reply(config.startCommandText, cache.html, cache.html);
+});
+
+const keys = [];
+// Get categories from config file
+for (const i in config.categories) {
+  if (i !== undefined) {
+    keys.push([config.categories[i]]);
+    const subKeys = [];
+    // Get subcategories
+    for (const j in config.subCategories[i]) {
+      if (j !== undefined) {
+        subKeys.push([config.subCategories[i][j]]);
+        // Create subcategory button events
+        bot.hears(config.subCategories[i][j], (ctx) => {
+          ctx.reply(config.subCategories[i][j], removeKeyboard());
+          // Set subgroup
+          ctx.session.group = config.groups[i][j];
+        });
+      }
+    }
+    // Create subcategory buttons
+    bot.hears(config.categories[i], (ctx) => {
+      ctx.reply(config.categories[i], replyKeyboard(subKeys));
+    });
+  }
+}
+
+bot.command('test', (ctx, next) => {
+  ctx.reply('test', replyKeyboard(keys));
 });
 
 bot.command('id', ({reply, from, chat}) => {
@@ -131,96 +178,64 @@ const downloadDocumentMiddleware = (ctx, next) => {
 
 // display open tickets
 bot.command('open', (ctx) => {
-  ctx.getChat().then(function(chat) {
-    if (chat.id.toString() === config.staffchat_id) {
-      // check if admin
-      ctx.getChatAdministrators().then(function(admins) {
-        admins = JSON.stringify(admins);
-        if (admins.indexOf(ctx.from.id) > -1) {
-          dbhandler.open(function(userList) {
-            let openTickets = '';
-            for (const i in userList) {
-              if (userList[i]['userid'] !== null &&
-                  userList[i]['userid'] !== undefined) {
-                openTickets += '#T' + userList[i]['id']
-                    .toString().padStart(6, '0')
-                    .toString() + '\n';
-              }
-            }
-            setTimeout(function() {
-              bot.telegram.sendMessage(
-                  chat.id,
-                  '<b>Open Tickets:\n\n</b>' + openTickets,
-                  cache.noSound
-              );
-            }, 10);
-          });
-        }
-      });
+  if (!ctx.session.admin) return;
+  dbhandler.open(function(userList) {
+    let openTickets = '';
+    for (const i in userList) {
+      if (userList[i]['userid'] !== null &&
+                    userList[i]['userid'] !== undefined) {
+        openTickets += '#T' + userList[i]['id']
+            .toString().padStart(6, '0')
+            .toString() + '\n';
+      }
     }
+    setTimeout(function() {
+      bot.telegram.sendMessage(
+          ctx.chat.id,
+          '<b>Open Tickets:\n\n</b>' + openTickets,
+          cache.noSound
+      );
+    }, 10);
   });
 });
 
 // close ticket
 bot.command('close', (ctx) => {
-  ctx.getChat().then(function(chat) {
-    if (chat.id.toString() === config.staffchat_id) {
-      // check if admin
-      ctx.getChatAdministrators().then(function(admins) {
-        admins = JSON.stringify(admins);
-        if (
-          ctx.message.reply_to_message !== undefined &&
-          admins.indexOf(ctx.from.id) > -1
-        ) {
-          let replyText = ctx.message.reply_to_message.text;
-          if (replyText == undefined) {
-            replyText = ctx.message.reply_to_message.caption;
-          }
-          const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
+  if (!ctx.session.admin) return;
+  let replyText = ctx.message.reply_to_message.text;
+  if (replyText == undefined) {
+    replyText = ctx.message.reply_to_message.caption;
+  }
+  const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
               config.lang_from));
-          // get userid from ticketid
-          dbhandler.check(userid[1], function(ticket) {
-            dbhandler.add(ticket.userid, 'closed');
-            bot.telegram.sendMessage(
-                chat.id,
-                'Ticket #T'+ticket.id.toString().padStart(6, '0')+' closed',
-                cache.noSound
-            );
-          });
-        }
-      });
-    }
+  // get userid from ticketid
+  dbhandler.check(userid[1], function(ticket) {
+    dbhandler.add(ticket.userid, 'closed');
+    bot.telegram.sendMessage(
+        chat.id,
+        'Ticket #T'+ticket.id.toString().padStart(6, '0')+' closed',
+        cache.noSound
+    );
   });
 });
 
 // ban user
 bot.command('ban', (ctx) => {
-  ctx.getChat().then(function(chat) {
-    if (chat.id.toString() === config.staffchat_id) {
-      ctx.getChatAdministrators().then(function(admins) {
-        admins = JSON.stringify(admins);
-        if (
-          ctx.message.reply_to_message !== undefined &&
-          admins.indexOf(ctx.from.id) > -1
-        ) {
-          const replyText = ctx.message.reply_to_message.text;
-          const userid = replyText.match(new RegExp('#T' + '(.*)' +
+  if (!ctx.session.admin) return;
+  const replyText = ctx.message.reply_to_message.text;
+  const userid = replyText.match(new RegExp('#T' + '(.*)' +
               ' ' + config.lang_from));
 
-          // get userid from ticketid
-          dbhandler.check(userid[1], function(ticket) {
-            dbhandler.add(ticket.userid, 'banned');
-            bot.telegram.sendMessage(
-                chat.id,
-                config.lang_usr_with_ticket + ' #T'+
+  // get userid from ticketid
+  dbhandler.check(userid[1], function(ticket) {
+    dbhandler.add(ticket.userid, 'banned');
+    bot.telegram.sendMessage(
+        chat.id,
+        config.lang_usr_with_ticket + ' #T'+
                 ticket.id.toString().padStart(6, '0')+
                     ' ' + config.lang_banned,
-                cache.noSound
-            );
-          });
-        }
-      });
-    }
+        cache.noSound
+    );
   });
 });
 
@@ -246,7 +261,7 @@ bot.catch((err) => {
   console.log('Error: ', err);
 });
 
-bot.startPolling();
+bot.launch();
 /*
 If you receive Error: 409: Conflict: can't use getUpdates method while
 webhook is active, comment bot.startPolling() out, remove // of the following

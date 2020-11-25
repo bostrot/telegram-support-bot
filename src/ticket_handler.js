@@ -8,24 +8,22 @@ const dbhandler = require('./dbhandler.js');
  * @param {context} ctx Bot context.
  */
 function ticketHandler(bot, ctx) {
-  ctx.getChat().then(function(chat) {
-    if (chat.id.toString() === config.staffchat_id) {
-      // let staff handle that
-      staffChat(ctx, bot, chat);
-    } else if (chat.type === 'private') {
-      // create a ticket and send to staff
-      // check db for user status
-      dbhandler.check(ctx.message.from.id, function(user) {
-        if (user == undefined || user.status == undefined ||
+  if (ctx.chat.type === 'private') {
+    // create a ticket and send to staff
+    // check db for user status
+    dbhandler.check(ctx.message.from.id, function(user) {
+      if (user == undefined || user.status == undefined ||
             user.status == 'closed') {
-          dbhandler.add(ctx.message.from.id, 'open');
-          customerChat(ctx, bot, chat);
-        } else if (user.status !== 'banned') {
-          customerChat(ctx, bot, chat);
-        }
-      });
-    }
-  });
+        dbhandler.add(ctx.message.from.id, 'open');
+        // TODO: implement type asking
+        // customerChat(ctx, bot, chat);
+      } else if (user.status !== 'banned') {
+        customerChat(ctx, bot, ctx.chat);
+      }
+    });
+  } else {
+    staffChat(ctx, bot, ctx.chat);
+  }
 }
 
 /**
@@ -74,6 +72,20 @@ function staffChat(ctx, bot) {
           ' -> /open',
         cache.noSound
         );
+        // Send to specific group
+        if (ctx.session.group !== undefined) {
+          bot.telegram.sendMessage(ctx.session.group, '<b>' +
+          config.lang_ticket +
+          ' #T' +
+          user.id.toString().padStart(6, '0') +
+          '</b> ' +
+          config.lang_acceptedBy +
+          ' ' +
+          ctx.message.from.first_name +
+          ' -> /open',
+          cache.noSound
+          );
+        }
       } else {
         // replying to non-ticket
         if (userid === null || ticket == undefined) {
@@ -92,9 +104,9 @@ function staffChat(ctx, bot) {
         cache.html
         );
         bot.telegram.sendMessage(
-            config.staffchat_id,
-            config.lang_msg_sent +
-          ' <a href="tg://user?id=' + userid[1] + '">' + name[1] + '</a>',
+            ctx.chat.id,
+            config.lang_msg_sent + ' ' +
+            name[1],
             cache.noSound
         );
         console.log(
@@ -164,6 +176,19 @@ function customerChat(ctx, bot, chat) {
         ctx.message.text,
           cache.html
       );
+      if (ctx.session.group !== undefined) {
+        bot.telegram.sendMessage(
+            ctx.session.group,
+            '' +
+        config.lang_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') + ' ' + config.lang_from + ' ' +
+        ctx.message.from.first_name + ' ' + config.lang_language + ': ' +
+        ctx.message.from.language_code + '\n\n' +
+        ctx.message.text,
+            cache.html
+        );
+      }
     });
     // wait 5 minutes before this message appears again and do not
     // send notificatoin sounds in that time to avoid spam
@@ -183,6 +208,17 @@ function customerChat(ctx, bot, chat) {
         ctx.message.text,
           cache.html
       );
+      if (ctx.session.group !== undefined) {
+        bot.telegram.sendMessage(
+            ctx.session.group,
+            config.lang_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        userInfo +
+        ctx.message.text,
+            cache.html
+        );
+      }
     });
   } else if (cache.ticketSent[cache.tickedID] === 4) {
     cache.ticketSent[cache.tickedID]++;
@@ -249,16 +285,34 @@ function fileHandler(type, bot, ctx) {
                 caption: captionText,
               }
           );
+          if (ctx.session.group !== undefined) {
+            bot.telegram.sendDocument(
+                ctx.session.group,
+                ctx.message.document.file_id, {
+                  caption: captionText,
+                }
+            );
+          }
           break;
         case 'photo':
           bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
             caption: captionText,
           });
+          if (ctx.session.group !== undefined) {
+            bot.telegram.sendPhoto(ctx.session.group, ctx.message.photo[0].file_id, {
+              caption: captionText,
+            });
+          }
           break;
         case 'video':
           bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
             caption: captionText,
           });
+          if (ctx.session.group !== undefined) {
+            bot.telegram.sendVideo(ctx.session.group, ctx.message.video.file_id, {
+              caption: captionText,
+            });
+          }
           break;
       }
     });
