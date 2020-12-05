@@ -1,7 +1,7 @@
-const db = require('./db');
-const config = require('../config/config');
-const staff = require('./staff');
-const users = require('./users');
+import * as db from './db';
+import config from '../config/config';
+import * as staff from './staff';
+import * as users from './users';
 
 /**
  * Text handler
@@ -38,22 +38,22 @@ function ticketHandler(bot, ctx) {
       if (user == undefined || user.status == undefined ||
            user.status == 'closed') {
         if (ctx.session.group !== undefined) {
-          dbhandler.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
+          db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
         } else {
-          db.add(ctx.message.from.id, 'open');
+          db.add(ctx.message.from.id, 'open', undefined);
         }
         // TODO: implement type asking
         // customerChat(ctx, bot, chat);
       } else if (user.status !== 'banned') {
-        users.chat(ctx, bot, ctx.chat);
+        users.chat(ctx, bot, ctx.message.chat);
       }
     });
   } else {
-    staff.chat(ctx, bot, ctx.chat);
+    staff.chat(ctx, bot);
   }
 }
 
-module.exports = {
+export {
   handleText,
   ticketHandler,
 };

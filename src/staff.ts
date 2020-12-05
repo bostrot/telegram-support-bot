@@ -1,6 +1,7 @@
-const config = require('../config/config');
+import config from '../config/config';
+import cache from './cache';
 const {Extra} = require('telegraf');
-const db = require('./db');
+import * as db from './db';
 
 /** Message template helper
  * @param {String} name
@@ -36,6 +37,7 @@ function privateReply(bot, ctx) {
  * @param {bot} bot Bot object.
  */
 function chat(ctx, bot) {
+  let replyText = '';
   // check whether person is an admin
   if (!ctx.session.admin) {
     return;
@@ -82,7 +84,7 @@ function chat(ctx, bot) {
       console.log(`Answer: `+ ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
       // close ticket
-      db.add(userid[1], 'closed');
+      db.add(userid[1], 'closed', undefined);
     });
   } catch (e) {
     console.log(e);
@@ -95,7 +97,7 @@ function chat(ctx, bot) {
   }
 }
 
-module.exports = {
+export {
   privateReply,
   chat,
 };

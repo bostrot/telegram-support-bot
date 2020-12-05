@@ -1,6 +1,6 @@
-const db = require('./db');
-const cache = require('./cache');
-const config = require('../config/config');
+import * as db from './db';
+import cache from './cache';
+import config from '../config/config';
 const {Extra} = require('telegraf');
 
 /** Message template helper
@@ -12,7 +12,7 @@ const {Extra} = require('telegraf');
 function ticketMsg(ticket, message, anon = true) {
   let link = '';
   if (!anon) {
-    link = `tg://user?id=${cache.tickedID}`;
+    link = `tg://user?id=${cache.ticketID}`;
   }
   return `${config.lang_ticket} ` +
           `#T${ticket.toString().padStart(6, '0')} ${config.lang_from} ` +
@@ -29,12 +29,12 @@ function ticketMsg(ticket, message, anon = true) {
  * @param {chat} chat Bot chat.
  */
 function chat(ctx, bot, chat) {
-  cache.tickedID = ctx.message.from.id;
+  cache.ticketID = ctx.message.from.id;
   if (cache.ticketIDs[cache.ticketID] === undefined) {
-    cache.ticketIDs.push(cache.tickedID);
+    cache.ticketIDs.push(cache.ticketID);
   }
-  cache.ticketStatus[cache.tickedID] = true;
-  if (cache.ticketSent[cache.tickedID] === undefined) {
+  cache.ticketStatus[cache.ticketID] = true;
+  if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
     // eslint-disable-next-line new-cap
     bot.telegram.sendMessage(chat.id, config.lang_contactMessage, Extra.HTML());
@@ -67,12 +67,12 @@ function chat(ctx, bot, chat) {
     // wait 5 minutes before this message appears again and do not
     // send notificatoin sounds in that time to avoid spam
     setTimeout(function() {
-      cache.ticketSent[cache.tickedID] = undefined;
+      cache.ticketSent[cache.ticketID] = undefined;
     }, config.spam_time);
-    cache.ticketSent[cache.tickedID] = 0;
-  } else if (cache.ticketSent[cache.tickedID] < 4) {
-    cache.ticketSent[cache.tickedID]++;
-    db.check(cache.tickedID, function(ticket) {
+    cache.ticketSent[cache.ticketID] = 0;
+  } else if (cache.ticketSent[cache.ticketID] < 4) {
+    cache.ticketSent[cache.ticketID]++;
+    db.check(cache.ticketID, function(ticket) {
       bot.telegram.sendMessage(config.staffchat_id,
           ticketMsg(ticket.id, ctx.message),
           // eslint-disable-next-line new-cap
@@ -87,16 +87,16 @@ function chat(ctx, bot, chat) {
         );
       }
     });
-  } else if (cache.ticketSent[cache.tickedID] === 4) {
-    cache.ticketSent[cache.tickedID]++;
+  } else if (cache.ticketSent[cache.ticketID] === 4) {
+    cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
     bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, Extra.HTML());
   }
-  db.check(cache.tickedID, function(ticket) {
+  db.check(cache.ticketID, function(ticket) {
     console.log(ticketMsg(ticket.id, ctx.message));
   });
 }
 
-module.exports = {
+export {
   chat,
 };

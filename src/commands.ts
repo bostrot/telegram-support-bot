@@ -1,5 +1,6 @@
-const db = require('./db');
-const {Extra} = require('telegraf');
+import * as db from './db';
+const {Extra} = require('@telegraf');
+import config from '../config/config';
 
 /**
  * Display open tickets
@@ -36,8 +37,8 @@ function closeCommand(ctx) {
   const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
                 config.lang_from));
     // get userid from ticketid
-  dbhandler.check(userid[1], function(ticket) {
-    dbhandler.add(ticket.userid, 'closed');
+  db.check(userid[1], function(ticket) {
+    db.add(ticket.userid, 'closed', undefined);
     ctx.reply(
         'Ticket #T'+ticket.id.toString().padStart(6, '0')+' closed',
         // eslint-disable-next-line new-cap
@@ -48,9 +49,10 @@ function closeCommand(ctx) {
 
 /**
  * Ban user
+ * @param {Object} bot
  * @param {Object} ctx
  */
-function banCommand(ctx) {
+function banCommand(bot, ctx) {
   if (!ctx.session.admin) return;
   const replyText = ctx.message.reply_to_message.text;
   const userid = replyText.match(new RegExp('#T' + '(.*)' +
@@ -58,9 +60,9 @@ function banCommand(ctx) {
 
   // get userid from ticketid
   db.check(userid[1], function(ticket) {
-    db.add(ticket.userid, 'banned');
+    db.add(ticket.userid, 'banned', undefined);
     bot.telegram.sendMessage(
-        chat.id,
+        ctx.chat.id,
         config.lang_usr_with_ticket + ' #T'+
                   ticket.id.toString().padStart(6, '0')+
                       ' ' + config.lang_banned,
@@ -70,7 +72,7 @@ function banCommand(ctx) {
   });
 };
 
-module.exports = {
+export {
   banCommand,
   openCommand,
   closeCommand,

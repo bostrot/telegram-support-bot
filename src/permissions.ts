@@ -64,12 +64,12 @@ function checkPermissions(ctx, next, config) {
   ctx.session.admin = false;
   checkRights(ctx, config).then((access) => {
     if (access) ctx.session.admin = true;
-  }).finally((a) => {
+  }).finally(() => {
     return next();
   });
 };
 
-module.exports = {
+export {
   checkRights,
   currentSession,
   checkPermissions,

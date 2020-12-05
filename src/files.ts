@@ -1,3 +1,7 @@
+import * as db from './db';
+import config from '../config/config';
+import cache from './cache';
+const {Extra} = require('telegraf');
 
 /**
  * Forward video files to staff.
@@ -8,6 +12,7 @@
 function fileHandler(type, bot, ctx) {
   // replying to non-ticket
   let userid;
+  let replyText;
   if (ctx.message !== undefined &&
     ctx.message.reply_to_message !== undefined && ctx.session.admin) {
     replyText = ctx.message.reply_to_message.text;
@@ -28,7 +33,7 @@ function fileHandler(type, bot, ctx) {
     if (ctx.session.admin && userInfo === undefined) {
       msgId = userid[1];
     }
-    dbhandler.check(msgId, function(ticket) {
+    db.check(msgId, function(ticket) {
       let captionText = config.lang_ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
@@ -91,34 +96,34 @@ function fileHandler(type, bot, ctx) {
  * @param {callback} callback Bot callback.
  */
 function forwardFile(bot, ctx, callback) {
-  dbhandler.check(ctx.message.from.id, function(user) {
+  db.check(ctx.message.from.id, function(user) {
     let ok = false;
     if (user == undefined || user.status == undefined ||
           user.status == 'closed') {
-      dbhandler.add(ctx.message.from.id, 'open');
+      db.add(ctx.message.from.id, 'open', undefined);
       ok = true;
     }
     if (ok || user !== undefined && user.status !== 'banned') {
-      if (cache.ticketSent[cache.tickedID] === undefined) {
+      if (cache.ticketSent[cache.ticketID] === undefined) {
         fowardHandler(ctx, function(userInfo) {
           callback(userInfo);
         });
         // wait 5 minutes before this message appears again and do not
         // send notificatoin sounds in that time to avoid spam
         setTimeout(function() {
-          cache.ticketSent[cache.tickedID] = undefined;
+          cache.ticketSent[cache.ticketID] = undefined;
         }, config.spam_time);
-        cache.ticketSent[cache.tickedID] = 0;
-      } else if (cache.ticketSent[cache.tickedID] < 5) {
-        cache.ticketSent[cache.tickedID]++;
+        cache.ticketSent[cache.ticketID] = 0;
+      } else if (cache.ticketSent[cache.ticketID] < 5) {
+        cache.ticketSent[cache.ticketID]++;
         // TODO: add Extra.HTML().notifications(false)
         // property for silent notifications
         fowardHandler(ctx, function(userInfo) {
           callback(userInfo);
         });
-      } else if (cache.ticketSent[cache.tickedID] === 5) {
-        cache.ticketSent[cache.tickedID]++;
-        bot.telegram.sendMessage(chat.id,
+      } else if (cache.ticketSent[cache.ticketID] === 5) {
+        cache.ticketSent[cache.ticketID]++;
+        bot.telegram.sendMessage(ctx.chat.id,
             // eslint-disable-next-line new-cap
             config.lang_blockedSpam, Extra.HTML());
       }
@@ -132,6 +137,7 @@ function forwardFile(bot, ctx, callback) {
  * @param {callback} callback Bot callback.
  */
 function fowardHandler(ctx, callback) {
+  let userInfo;
   ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
@@ -154,7 +160,7 @@ function fowardHandler(ctx, callback) {
   });
 }
 
-module.exports = {
+export {
   fileHandler,
   forwardFile,
   fowardHandler,

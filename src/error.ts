@@ -1,6 +1,6 @@
-const fs = require('fs');
-const util = require('util');
-const debugFile = __dirname + '/../config/debug.log';
+import * as fs from 'fs';
+import * as util from 'util';
+const debugFile = '../config/debug.log';
 const logStdout = process.stdout;
 
 // overload logging to file
@@ -30,7 +30,7 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err, p) => {
   console.log('=== UNHANDLED REJECTION ===');
   fs.appendFile(debugFile,
-      err.stack + '\n', 'utf8',
+      err + '\n', 'utf8',
       function(err) {
         if (err) throw err;
       });

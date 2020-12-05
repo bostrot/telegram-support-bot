@@ -1,5 +1,5 @@
-const db = require('./db');
-const config = require('../config/config');
+import * as db from './db';
+import config from '../config/config';
 
 /**
  * Helper function for reply keyboard
@@ -110,7 +110,7 @@ function callbackQuery(bot, ctx) {
   ctx.answerCbQuery('Instructions were sent to you in private chat.');
 };
 
-module.exports = {
+export {
   callbackQuery,
   initInline,
   replyKeyboard,

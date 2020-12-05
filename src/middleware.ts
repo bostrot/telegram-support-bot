@@ -1,5 +1,5 @@
 // download photos
-const downloadPhotoMiddleware = (ctx, next) => {
+const downloadPhotoMiddleware = (bot, ctx, next) => {
   return bot.telegram.getFileLink(ctx.message.photo[0]).then((link) => {
     ctx.state.fileLink = link;
     return next();
@@ -7,7 +7,7 @@ const downloadPhotoMiddleware = (ctx, next) => {
 };
 
 // download videos
-const downloadVideoMiddleware = (ctx, next) => {
+const downloadVideoMiddleware = (bot, ctx, next) => {
   return bot.telegram.getFileLink(ctx.message.video).then((link) => {
     ctx.state.fileLink = link;
     return next();
@@ -15,14 +15,14 @@ const downloadVideoMiddleware = (ctx, next) => {
 };
 
 // download documents
-const downloadDocumentMiddleware = (ctx, next) => {
+const downloadDocumentMiddleware = (bot, ctx, next) => {
   return bot.telegram.getFileLink(ctx.message.document).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
-module.exports = {
+export {
   downloadPhotoMiddleware,
   downloadVideoMiddleware,
   downloadDocumentMiddleware,
