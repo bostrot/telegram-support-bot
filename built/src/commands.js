@@ -1,6 +1,9 @@
-import * as db from './db';
-const { Extra } = require('@telegraf');
-import config from '../config/config';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.closeCommand = exports.openCommand = exports.banCommand = void 0;
+const db = require("./db");
+const { Extra } = require('telegraf');
+const config_1 = require("../config/config");
 /**
  * Display open tickets
  * @param {Object} ctx
@@ -23,6 +26,7 @@ function openCommand(ctx) {
         Extra.HTML().notifications(false));
     }, (ctx.session.groupAdmin));
 }
+exports.openCommand = openCommand;
 ;
 /**
  * Close ticket
@@ -36,7 +40,7 @@ function closeCommand(ctx) {
         replyText = ctx.message.reply_to_message.caption;
     }
     const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
-        config.lang_from));
+        config_1.default.lang_from));
     // get userid from ticketid
     db.check(userid[1], function (ticket) {
         db.add(ticket.userid, 'closed', undefined);
@@ -45,6 +49,7 @@ function closeCommand(ctx) {
         Extra.HTML().notifications(false));
     });
 }
+exports.closeCommand = closeCommand;
 ;
 /**
  * Ban user
@@ -56,16 +61,16 @@ function banCommand(bot, ctx) {
         return;
     const replyText = ctx.message.reply_to_message.text;
     const userid = replyText.match(new RegExp('#T' + '(.*)' +
-        ' ' + config.lang_from));
+        ' ' + config_1.default.lang_from));
     // get userid from ticketid
     db.check(userid[1], function (ticket) {
         db.add(ticket.userid, 'banned', undefined);
-        bot.telegram.sendMessage(ctx.chat.id, config.lang_usr_with_ticket + ' #T' +
+        bot.telegram.sendMessage(ctx.chat.id, config_1.default.lang_usr_with_ticket + ' #T' +
             ticket.id.toString().padStart(6, '0') +
-            ' ' + config.lang_banned, 
+            ' ' + config_1.default.lang_banned, 
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
     });
 }
+exports.banCommand = banCommand;
 ;
-export { banCommand, openCommand, closeCommand, };

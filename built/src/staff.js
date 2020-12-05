@@ -1,7 +1,10 @@
-import config from '../config/config';
-import cache from './cache';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.chat = exports.privateReply = void 0;
+const config_1 = require("../config/config");
+const cache_1 = require("./cache");
 const { Extra } = require('telegraf');
-import * as db from './db';
+const db = require("./db");
 /** Message template helper
  * @param {String} name
  * @param {Object} message
@@ -9,10 +12,10 @@ import * as db from './db';
  * @return {String} text
  */
 function ticketMsg(name, message) {
-    return `${config.lang_dear} <b>` +
+    return `${config_1.default.lang_dear} <b>` +
         `${name}</b>,\n\n` +
         `${message.text}\n\n` +
-        `${config.lang_regards}\n` +
+        `${config_1.default.lang_regards}\n` +
         `${message.from.first_name}`;
 }
 /**
@@ -27,6 +30,7 @@ function privateReply(bot, ctx) {
     // eslint-disable-next-line new-cap
     ctx.message), Extra.HTML());
 }
+exports.privateReply = privateReply;
 /**
  * Reply to tickets in staff chat.
  * @param {context} ctx Bot context.
@@ -50,37 +54,37 @@ function chat(ctx, bot) {
             replyText = ctx.message.reply_to_message.caption;
         }
         let userid = replyText.match(new RegExp('#T' +
-            '(.*)' + ' ' + config.lang_from));
+            '(.*)' + ' ' + config_1.default.lang_from));
         if (userid === null || userid === undefined) {
             userid = replyText.match(new RegExp('#T' +
-                '(.*)' + '\n' + config.lang_from));
+                '(.*)' + '\n' + config_1.default.lang_from));
         }
         db.check(userid[1], function (ticket) {
-            const name = replyText.match(new RegExp(config.lang_from + ' ' + '(.*)' + ' ' +
-                config.lang_language));
+            const name = replyText.match(new RegExp(config_1.default.lang_from + ' ' + '(.*)' + ' ' +
+                config_1.default.lang_language));
             // replying to non-ticket
             if (userid === null || ticket == undefined) {
                 return;
             }
-            cache.ticketStatus[userid[1]] = false;
+            cache_1.default.ticketStatus[userid[1]] = false;
             bot.telegram.sendMessage(ticket.userid, ticketMsg(name[1], ctx.message), 
             // eslint-disable-next-line new-cap
             Extra.HTML());
-            bot.telegram.sendMessage(ctx.chat.id, `${config.lang_msg_sent} ${name[1]}`, 
+            bot.telegram.sendMessage(ctx.chat.id, `${config_1.default.lang_msg_sent} ${name[1]}`, 
             // eslint-disable-next-line new-cap
             Extra.HTML().notifications(false));
             console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
-            cache.ticketSent[userid[1]] = undefined;
+            cache_1.default.ticketSent[userid[1]] = undefined;
             // close ticket
             db.add(userid[1], 'closed', undefined);
         });
     }
     catch (e) {
         console.log(e);
-        bot.telegram.sendMessage(config.staffchat_id, `An error occured, please 
+        bot.telegram.sendMessage(config_1.default.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`, 
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
     }
 }
-export { privateReply, chat, };
+exports.chat = chat;

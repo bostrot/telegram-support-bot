@@ -1,5 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.check = exports.add = exports.open = void 0;
 const Database = require('better-sqlite3');
-const db = new Database('../config/support.db', {
+const db = new Database('./config/support.db', {
 /* verbose: console.log */ }); // debugging
 try {
     db.prepare(`ALTER TABLE supportees ADD category TEXT;`).run();
@@ -13,6 +16,7 @@ const check = function (userid, callback) {
         `${userid} or id = ${userid}`).get();
     callback(searchDB);
 };
+exports.check = check;
 const add = function (userid, status, category) {
     if (status == 'closed') {
         db.prepare(`DELETE FROM supportees WHERE userid = ${userid}`).run();
@@ -29,6 +33,7 @@ const add = function (userid, status, category) {
             .run();
     }
 };
+exports.add = add;
 const open = function (callback, category) {
     console.log(`select * from supportees where status = 'open' ` +
         `and category ${(category ? ` = '${category}'` : 'is NULL')}`);
@@ -36,4 +41,4 @@ const open = function (callback, category) {
         `and category ${(category ? `= '${category}'` : 'is NULL')}`).all();
     callback(searchDB);
 };
-export { open, add, check, };
+exports.open = open;

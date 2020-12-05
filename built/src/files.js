@@ -1,6 +1,9 @@
-import * as db from './db';
-import config from '../config/config';
-import cache from './cache';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.fowardHandler = exports.forwardFile = exports.fileHandler = void 0;
+const db = require("./db");
+const config_1 = require("../config/config");
+const cache_1 = require("./cache");
 const { Extra } = require('telegraf');
 /**
  * Forward video files to staff.
@@ -19,21 +22,21 @@ function fileHandler(type, bot, ctx) {
             replyText = ctx.message.reply_to_message.caption;
         }
         userid = replyText.match(new RegExp('#T' +
-            '(.*)' + ' ' + config.lang_from));
+            '(.*)' + ' ' + config_1.default.lang_from));
         if (userid === null || userid === undefined) {
             userid = replyText.match(new RegExp('#T' +
-                '(.*)' + '\n' + config.lang_from));
+                '(.*)' + '\n' + config_1.default.lang_from));
         }
     }
     forwardFile(bot, ctx, function (userInfo) {
-        let receiverId = config.staffchat_id;
+        let receiverId = config_1.default.staffchat_id;
         let msgId = ctx.message.chat.id;
         // if admin
         if (ctx.session.admin && userInfo === undefined) {
             msgId = userid[1];
         }
         db.check(msgId, function (ticket) {
-            let captionText = config.lang_ticket +
+            let captionText = config_1.default.lang_ticket +
                 ' #T' +
                 ticket.id.toString().padStart(6, '0') +
                 ' ' +
@@ -79,6 +82,7 @@ function fileHandler(type, bot, ctx) {
         });
     });
 }
+exports.fileHandler = fileHandler;
 /**
  * Handle caching for sent files.
  * @param {bot} bot Bot object.
@@ -94,34 +98,35 @@ function forwardFile(bot, ctx, callback) {
             ok = true;
         }
         if (ok || user !== undefined && user.status !== 'banned') {
-            if (cache.ticketSent[cache.ticketID] === undefined) {
+            if (cache_1.default.ticketSent[cache_1.default.ticketID] === undefined) {
                 fowardHandler(ctx, function (userInfo) {
                     callback(userInfo);
                 });
                 // wait 5 minutes before this message appears again and do not
                 // send notificatoin sounds in that time to avoid spam
                 setTimeout(function () {
-                    cache.ticketSent[cache.ticketID] = undefined;
-                }, config.spam_time);
-                cache.ticketSent[cache.ticketID] = 0;
+                    cache_1.default.ticketSent[cache_1.default.ticketID] = undefined;
+                }, config_1.default.spam_time);
+                cache_1.default.ticketSent[cache_1.default.ticketID] = 0;
             }
-            else if (cache.ticketSent[cache.ticketID] < 5) {
-                cache.ticketSent[cache.ticketID]++;
+            else if (cache_1.default.ticketSent[cache_1.default.ticketID] < 5) {
+                cache_1.default.ticketSent[cache_1.default.ticketID]++;
                 // TODO: add Extra.HTML().notifications(false)
                 // property for silent notifications
                 fowardHandler(ctx, function (userInfo) {
                     callback(userInfo);
                 });
             }
-            else if (cache.ticketSent[cache.ticketID] === 5) {
-                cache.ticketSent[cache.ticketID]++;
+            else if (cache_1.default.ticketSent[cache_1.default.ticketID] === 5) {
+                cache_1.default.ticketSent[cache_1.default.ticketID]++;
                 bot.telegram.sendMessage(ctx.chat.id, 
                 // eslint-disable-next-line new-cap
-                config.lang_blockedSpam, Extra.HTML());
+                config_1.default.lang_blockedSpam, Extra.HTML());
             }
         }
     });
 }
+exports.forwardFile = forwardFile;
 /**
  * Check if msg comes from user or admin.
  * @param {context} ctx Bot context.
@@ -131,16 +136,16 @@ function fowardHandler(ctx, callback) {
     let userInfo;
     ctx.getChat().then(function (chat) {
         if (chat.type === 'private') {
-            cache.ticketID = ctx.message.from.id;
+            cache_1.default.ticketID = ctx.message.from.id;
             userInfo =
-                `${config.lang_from} ${ctx.message.from.first_name} ` +
-                    `${config.lang_language}: ` +
+                `${config_1.default.lang_from} ${ctx.message.from.first_name} ` +
+                    `${config_1.default.lang_language}: ` +
                     `${ctx.message.from.language_code}\n\n`;
             if (ctx.session.group === undefined) {
                 userInfo =
-                    `${config.lang_from} ${ctx.message.from.first_name} ` +
+                    `${config_1.default.lang_from} ${ctx.message.from.first_name} ` +
                         `@${ctx.message.from.username} ` +
-                        `${config.lang_language}: ` +
+                        `${config_1.default.lang_language}: ` +
                         `${ctx.message.from.language_code}\n\n`;
             }
             callback(userInfo);
@@ -150,4 +155,4 @@ function fowardHandler(ctx, callback) {
         }
     });
 }
-export { fileHandler, forwardFile, fowardHandler, };
+exports.fowardHandler = fowardHandler;

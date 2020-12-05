@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 let cache = {
     ticketID: '',
     ticketIDs: [],
@@ -7,4 +9,4 @@ let cache = {
     noSound: '',
     markdown: '',
 };
-export default cache;
+exports.default = cache;

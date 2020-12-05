@@ -1,5 +1,8 @@
-import * as db from './db';
-import config from '../config/config';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.removeKeyboard = exports.replyKeyboard = exports.initInline = exports.callbackQuery = void 0;
+const db = require("./db");
+const config_1 = require("../config/config");
 /**
  * Helper function for reply keyboard
  * @param {Array} keys
@@ -12,6 +15,7 @@ function replyKeyboard(keys) {
         },
     };
 }
+exports.replyKeyboard = replyKeyboard;
 ;
 /**
  * Helper function to remove keyboard
@@ -24,6 +28,7 @@ function removeKeyboard() {
         },
     };
 }
+exports.removeKeyboard = removeKeyboard;
 ;
 /**
  * Initialize categories from config
@@ -61,6 +66,7 @@ function initInline(bot, config) {
     }
     return keys;
 }
+exports.initInline = initInline;
 ;
 /**
  * Callback query handler
@@ -82,7 +88,7 @@ function callbackQuery(bot, ctx) {
             ticketid: ctx.callbackQuery.data,
             userid: ticket.userid,
         };
-        bot.telegram.sendMessage(ctx.callbackQuery.from.id, `${config.lang_ticket} ` +
+        bot.telegram.sendMessage(ctx.callbackQuery.from.id, `${config_1.default.lang_ticket} ` +
             `#T${ticket.id.toString().padStart(6, '0')}` +
             `\n\n` +
             `Private Chat opened with customer.`, {
@@ -102,5 +108,5 @@ function callbackQuery(bot, ctx) {
     });
     ctx.answerCbQuery('Instructions were sent to you in private chat.');
 }
+exports.callbackQuery = callbackQuery;
 ;
-export { callbackQuery, initInline, replyKeyboard, removeKeyboard, };

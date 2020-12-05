@@ -1,6 +1,7 @@
 # Config file
 config.js
 support.db
+built/
 
 # Logs
 logs

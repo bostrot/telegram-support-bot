@@ -1,3 +1,6 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.checkPermissions = exports.currentSession = exports.checkRights = void 0;
 const session = require('telegraf/session');
 /**
  * Check permissions of group and admin
@@ -35,6 +38,7 @@ function checkRights(ctx, config) {
             resolve(false);
     });
 }
+exports.checkRights = checkRights;
 ;
 /**
  * Adds session middleware
@@ -57,6 +61,7 @@ function currentSession() {
         },
     });
 }
+exports.currentSession = currentSession;
 ;
 /**
  * Define user permission
@@ -73,5 +78,5 @@ function checkPermissions(ctx, next, config) {
         return next();
     });
 }
+exports.checkPermissions = checkPermissions;
 ;
-export { checkRights, currentSession, checkPermissions, };

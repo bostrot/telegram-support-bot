@@ -1,5 +1,7 @@
-import * as fs from 'fs';
-import * as util from 'util';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs = require("fs");
+const util = require("util");
 const debugFile = '../config/debug.log';
 const logStdout = process.stdout;
 // overload logging to file
