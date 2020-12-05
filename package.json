@@ -12,16 +12,17 @@
   "bugs": {
     "url": "https://github.com/bostrot/telegram-support-bot/issues"
   },
-  "main": "src/support.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/support.js",
-    "debug": "nodemon src/support.js"
+    "start": "node index.js",
+    "debug": "nodemon --inspect index.js"
   },
   "engines": {
     "node": ">=6.2.0"
   },
   "dependencies": {
     "better-sqlite3": "^7.1.0",
+    "chalk": "^4.1.0",
     "cron": "^1.8.2",
     "debug": "^4.1.1",
     "node-fetch": "^2.6.1",

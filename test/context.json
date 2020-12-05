@@ -1,0 +1,349 @@
+{
+    "tg": {
+        "token": "",
+        "options": {
+            "apiRoot": "https://api.telegram.org",
+            "webhookReply": true,
+            "agent": {
+                "_events": {},
+                "_eventsCount": 1,
+                "defaultPort": 443,
+                "protocol": "https:",
+                "options": {
+                    "keepAliveMsecs": 10000,
+                    "keepAlive": true,
+                    "path": null
+                },
+                "requests": {},
+                "sockets": {
+                    "api.telegram.org:443::::::::::::::::::": [
+                        {
+                            "_tlsOptions": {
+                                "pipe": false,
+                                "secureContext": {
+                                    "context": {}
+                                },
+                                "isServer": false,
+                                "requestCert": true,
+                                "rejectUnauthorized": true
+                            },
+                            "_secureEstablished": true,
+                            "_securePending": false,
+                            "_newSessionPending": false,
+                            "_controlReleased": true,
+                            "_SNICallback": null,
+                            "servername": "api.telegram.org",
+                            "alpnProtocol": false,
+                            "authorized": true,
+                            "authorizationError": null,
+                            "encrypted": true,
+                            "_events": {
+                                "close": [
+                                    null,
+                                    null,
+                                    null
+                                ]
+                            },
+                            "_eventsCount": 7,
+                            "connecting": false,
+                            "_hadError": false,
+                            "_handle": {
+                                "_parent": {
+                                    "reading": true,
+                                    "onread": null,
+                                    "onconnection": null
+                                },
+                                "_secureContext": {
+                                    "context": {}
+                                },
+                                "reading": true
+                            },
+                            "_parent": null,
+                            "_host": "api.telegram.org",
+                            "_readableState": {
+                                "objectMode": false,
+                                "highWaterMark": 16384,
+                                "buffer": {
+                                    "head": null,
+                                    "tail": null,
+                                    "length": 0
+                                },
+                                "length": 0,
+                                "pipes": null,
+                                "pipesCount": 0,
+                                "flowing": true,
+                                "ended": false,
+                                "endEmitted": false,
+                                "reading": true,
+                                "sync": false,
+                                "needReadable": true,
+                                "emittedReadable": false,
+                                "readableListening": false,
+                                "resumeScheduled": false,
+                                "paused": false,
+                                "emitClose": false,
+                                "autoDestroy": false,
+                                "destroyed": false,
+                                "defaultEncoding": "utf8",
+                                "awaitDrain": 0,
+                                "readingMore": false,
+                                "decoder": null,
+                                "encoding": null
+                            },
+                            "readable": true,
+                            "_writableState": {
+                                "objectMode": false,
+                                "highWaterMark": 16384,
+                                "finalCalled": false,
+                                "needDrain": false,
+                                "ending": false,
+                                "ended": false,
+                                "finished": false,
+                                "destroyed": false,
+                                "decodeStrings": false,
+                                "defaultEncoding": "utf8",
+                                "length": 0,
+                                "writing": false,
+                                "corked": 0,
+                                "sync": false,
+                                "bufferProcessing": false,
+                                "writecb": null,
+                                "writelen": 0,
+                                "bufferedRequest": null,
+                                "lastBufferedRequest": null,
+                                "pendingcb": 0,
+                                "prefinished": false,
+                                "errorEmitted": false,
+                                "emitClose": false,
+                                "autoDestroy": false,
+                                "bufferedRequestCount": 0,
+                                "corkedRequestsFree": {
+                                    "next": {
+                                        "next": null,
+                                        "entry": null
+                                    },
+                                    "entry": null
+                                }
+                            },
+                            "writable": true,
+                            "allowHalfOpen": false,
+                            "_sockname": null,
+                            "_pendingData": null,
+                            "_pendingEncoding": "",
+                            "_server": null,
+                            "ssl": {
+                                "_parent": {
+                                    "reading": true,
+                                    "onread": null,
+                                    "onconnection": null
+                                },
+                                "_secureContext": {
+                                    "context": {}
+                                },
+                                "reading": true
+                            },
+                            "_requestCert": true,
+                            "_rejectUnauthorized": true,
+                            "parser": null,
+                            "_httpMessage": null
+                        }
+                    ]
+                },
+                "freeSockets": {
+                    "api.telegram.org:443::::::::::::::::::": [
+                        {
+                            "_tlsOptions": {
+                                "pipe": false,
+                                "secureContext": {
+                                    "context": {}
+                                },
+                                "isServer": false,
+                                "requestCert": true,
+                                "rejectUnauthorized": true
+                            },
+                            "_secureEstablished": true,
+                            "_securePending": false,
+                            "_newSessionPending": false,
+                            "_controlReleased": true,
+                            "_SNICallback": null,
+                            "servername": "api.telegram.org",
+                            "alpnProtocol": false,
+                            "authorized": true,
+                            "authorizationError": null,
+                            "encrypted": true,
+                            "_events": {
+                                "close": [
+                                    null,
+                                    null,
+                                    null
+                                ]
+                            },
+                            "_eventsCount": 7,
+                            "connecting": false,
+                            "_hadError": false,
+                            "_handle": {
+                                "_parent": {
+                                    "reading": true,
+                                    "onread": null,
+                                    "onconnection": null
+                                },
+                                "_secureContext": {
+                                    "context": {}
+                                },
+                                "reading": true
+                            },
+                            "_parent": null,
+                            "_host": "api.telegram.org",
+                            "_readableState": {
+                                "objectMode": false,
+                                "highWaterMark": 16384,
+                                "buffer": {
+                                    "head": null,
+                                    "tail": null,
+                                    "length": 0
+                                },
+                                "length": 0,
+                                "pipes": null,
+                                "pipesCount": 0,
+                                "flowing": true,
+                                "ended": false,
+                                "endEmitted": false,
+                                "reading": true,
+                                "sync": false,
+                                "needReadable": true,
+                                "emittedReadable": false,
+                                "readableListening": false,
+                                "resumeScheduled": false,
+                                "paused": false,
+                                "emitClose": false,
+                                "autoDestroy": false,
+                                "destroyed": false,
+                                "defaultEncoding": "utf8",
+                                "awaitDrain": 0,
+                                "readingMore": false,
+                                "decoder": null,
+                                "encoding": null
+                            },
+                            "readable": true,
+                            "_writableState": {
+                                "objectMode": false,
+                                "highWaterMark": 16384,
+                                "finalCalled": false,
+                                "needDrain": false,
+                                "ending": false,
+                                "ended": false,
+                                "finished": false,
+                                "destroyed": false,
+                                "decodeStrings": false,
+                                "defaultEncoding": "utf8",
+                                "length": 0,
+                                "writing": false,
+                                "corked": 0,
+                                "sync": false,
+                                "bufferProcessing": false,
+                                "writecb": null,
+                                "writelen": 0,
+                                "bufferedRequest": null,
+                                "lastBufferedRequest": null,
+                                "pendingcb": 0,
+                                "prefinished": false,
+                                "errorEmitted": false,
+                                "emitClose": false,
+                                "autoDestroy": false,
+                                "bufferedRequestCount": 0,
+                                "corkedRequestsFree": {
+                                    "next": {
+                                        "next": null,
+                                        "entry": null
+                                    },
+                                    "entry": null
+                                }
+                            },
+                            "writable": true,
+                            "allowHalfOpen": false,
+                            "_sockname": null,
+                            "_pendingData": null,
+                            "_pendingEncoding": "",
+                            "_server": null,
+                            "ssl": {
+                                "_parent": {
+                                    "reading": true,
+                                    "onread": null,
+                                    "onconnection": null
+                                },
+                                "_secureContext": {
+                                    "context": {}
+                                },
+                                "reading": true
+                            },
+                            "_requestCert": true,
+                            "_rejectUnauthorized": true,
+                            "parser": null,
+                            "_httpMessage": null
+                        }
+                    ]
+                },
+                "keepAliveMsecs": 10000,
+                "keepAlive": true,
+                "maxSockets": null,
+                "maxFreeSockets": 256,
+                "maxCachedSessions": 100,
+                "_sessionCache": {
+                    "map": {
+                        "api.telegram.org:443::::::::::::::::::": {
+                            "type": "Buffer",
+                            "data": []
+                        }
+                    },
+                    "list": [
+                        "api.telegram.org:443::::::::::::::::::"
+                    ]
+                }
+            }
+        }
+    },
+    "update": {
+        "update_id": 63362387,
+        "message": {
+            "message_id": 617,
+            "from": {
+                "id": 1070638307,
+                "is_bot": false,
+                "first_name": "Eric",
+                "username": "bostrot",
+                "language_code": "en"
+            },
+            "chat": {
+                "id": 1070638307,
+                "first_name": "Eric",
+                "username": "bostrot",
+                "type": "private"
+            },
+            "date": 1606322181,
+            "text": "fsdf sd"
+        }
+    },
+    "options": {
+        "retryAfter": 1,
+        "handlerTimeout": 0,
+        "username": "orderstuff_bot"
+    },
+    "updateType": "message",
+    "updateSubTypes": [
+        "text"
+    ],
+    "contextState": {},
+    "botInfo": {
+        "id": 1451979767,
+        "is_bot": true,
+        "first_name": "Service Bot",
+        "username": "orderstuff_bot",
+        "can_join_groups": true,
+        "can_read_all_group_messages": true,
+        "supports_inline_queries": false
+    },
+    "match": [
+        "fsdf sd",
+        "fsdf sd"
+    ]
+}
