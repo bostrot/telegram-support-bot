@@ -14,10 +14,10 @@ function ticketMsg(ticket, message, anon = true) {
   if (!anon) {
     link = `tg://user?id=${cache.ticketID}`;
   }
-  return `${config.lang_ticket} ` +
-          `#T${ticket.toString().padStart(6, '0')} ${config.lang_from} ` +
+  return `${config.language.ticket} ` +
+          `#T${ticket.toString().padStart(6, '0')} ${config.language.from} ` +
           `<a href="${link}">` +
-          `${message.from.first_name}</a> ${config.lang_language}: ` +
+          `${message.from.first_name}</a> ${config.language.language}: ` +
           `${message.from.language_code}\n\n` +
           `${message.text}`;
 }
@@ -37,7 +37,7 @@ function chat(ctx, bot, chat) {
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
     // eslint-disable-next-line new-cap
-    bot.telegram.sendMessage(chat.id, config.lang_contactMessage, Extra.HTML());
+    bot.telegram.sendMessage(chat.id, config.language.contactMessage, Extra.HTML());
     // Get Ticket ID from DB
     db.check(chat.id, function(ticket) {
       bot.telegram.sendMessage(config.staffchat_id,
@@ -56,7 +56,7 @@ function chat(ctx, bot, chat) {
                 inline_keyboard: [
                   [
                     {
-                      'text': 'Reply in private',
+                      'text': config.language.replyPrivate,
                       'callback_data': ticket.id.toString().padStart(6, '0')}],
                 ],
               },
@@ -90,7 +90,7 @@ function chat(ctx, bot, chat) {
   } else if (cache.ticketSent[cache.ticketID] === 4) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
-    bot.telegram.sendMessage(chat.id, config.lang_blockedSpam, Extra.HTML());
+    bot.telegram.sendMessage(chat.id, config.language.blockedSpam, Extra.HTML());
   }
   db.check(cache.ticketID, function(ticket) {
     console.log(ticketMsg(ticket.id, ctx.message));

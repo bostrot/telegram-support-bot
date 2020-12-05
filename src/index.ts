@@ -28,11 +28,11 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 bot.command('open', (ctx) => commands.openCommand(ctx));
 bot.command('close', (ctx) => commands.closeCommand(ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
-bot.command('start', (ctx) =>
-  ctx.reply('Services', inline.replyKeyboard(keys)));
+bot.command('start', (ctx) => ctx.reply(config.language.startCommandText) &&
+  ctx.reply(config.language.services, inline.replyKeyboard(keys)));
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
-bot.command('faq', (ctx) => ctx.reply(config.faqCommandText, Extra.HTML()));
-bot.command('help', (ctx) => ctx.reply(config.helpCommandText, Extra.HTML()));
+bot.command('faq', (ctx) => ctx.reply(config.language.faqCommandText, Extra.HTML()));
+bot.command('help', (ctx) => ctx.reply(config.language.helpCommandText, Extra.HTML()));
 
 bot.on('callback_query', (ctx) => inline.callbackQuery(bot, ctx));
 bot.on('photo', middleware.downloadPhotoMiddleware, (ctx) =>

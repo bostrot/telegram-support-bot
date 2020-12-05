@@ -16,7 +16,7 @@ function handleText(bot, ctx, keys) {
       .indexOf(ctx.message.text) > -1)) {
     if (!ctx.session.admin && config.categories &&
     !ctx.session.group) {
-      ctx.reply('Services', {
+      ctx.reply(config.language.services, {
         reply_markup: {
           keyboard: keys,
         },

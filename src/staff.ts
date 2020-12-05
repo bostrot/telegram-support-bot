@@ -10,10 +10,10 @@ import * as db from './db';
  * @return {String} text
  */
 function ticketMsg(name, message) {
-  return `${config.lang_dear} <b>`+
+  return `${config.language.dear} <b>`+
     `${name}</b>,\n\n`+
     `${message.text}\n\n`+
-    `${config.lang_regards}\n`+
+    `${config.language.regards}\n`+
     `${message.from.first_name}`;
 }
 
@@ -26,7 +26,7 @@ function privateReply(bot, ctx) {
   ctx.session.mode = '';
   ctx.session.mode = 'private_reply';
   bot.telegram.sendMessage(
-      ctx.session.modeData.userid, ticketMsg(' customer',
+      ctx.session.modeData.userid, ticketMsg(` ${config.language.customer}`,
       // eslint-disable-next-line new-cap
           ctx.message), Extra.HTML());
 }
@@ -55,16 +55,16 @@ function chat(ctx, bot) {
     }
 
     let userid = replyText.match(new RegExp('#T' +
-        '(.*)' + ' ' + config.lang_from));
+        '(.*)' + ' ' + config.language.from));
     if (userid === null || userid === undefined) {
       userid = replyText.match(new RegExp('#T' +
-          '(.*)' + '\n' + config.lang_from));
+          '(.*)' + '\n' + config.language.from));
     }
 
     db.check(userid[1], function(ticket) {
       const name = replyText.match(new RegExp(
-          config.lang_from + ' ' + '(.*)' + ' ' +
-      config.lang_language));
+          config.language.from + ' ' + '(.*)' + ' ' +
+      config.language.language));
         // replying to non-ticket
       if (userid === null || ticket == undefined) {
         return;
@@ -77,7 +77,7 @@ function chat(ctx, bot) {
           Extra.HTML()
       );
       bot.telegram.sendMessage(ctx.chat.id,
-          `${config.lang_msg_sent} ${name[1]}`,
+          `${config.language.msg_sent} ${name[1]}`,
           // eslint-disable-next-line new-cap
           Extra.HTML().notifications(false)
       );

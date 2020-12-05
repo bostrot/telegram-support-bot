@@ -18,7 +18,7 @@ function openCommand(ctx) {
             .toString() + '\n';
       }
     }
-    ctx.reply('<b>Open Tickets:\n\n</b>' + openTickets,
+    ctx.reply(`<b>${config.language.openTickets}\n\n</b> ${openTickets}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
   }, (ctx.session.groupAdmin));
@@ -35,12 +35,12 @@ function closeCommand(ctx) {
     replyText = ctx.message.reply_to_message.caption;
   }
   const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
-                config.lang_from));
+                config.language.from));
     // get userid from ticketid
   db.check(userid[1], function(ticket) {
     db.add(ticket.userid, 'closed', undefined);
     ctx.reply(
-        'Ticket #T'+ticket.id.toString().padStart(6, '0')+' closed',
+        config.language.ticket+ticket.id.toString().padStart(6, '0')+` ${config.language.closed}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false)
     );
@@ -56,16 +56,16 @@ function banCommand(bot, ctx) {
   if (!ctx.session.admin) return;
   const replyText = ctx.message.reply_to_message.text;
   const userid = replyText.match(new RegExp('#T' + '(.*)' +
-                ' ' + config.lang_from));
+                ' ' + config.language.from));
 
   // get userid from ticketid
   db.check(userid[1], function(ticket) {
     db.add(ticket.userid, 'banned', undefined);
     bot.telegram.sendMessage(
         ctx.chat.id,
-        config.lang_usr_with_ticket + ' #T'+
+        config.language.usr_with_ticket + ' #T'+
                   ticket.id.toString().padStart(6, '0')+
-                      ' ' + config.lang_banned,
+                      ' ' + config.language.banned,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false)
     );

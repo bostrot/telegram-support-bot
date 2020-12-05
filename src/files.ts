@@ -20,10 +20,10 @@ function fileHandler(type, bot, ctx) {
       replyText = ctx.message.reply_to_message.caption;
     }
     userid = replyText.match(new RegExp('#T' +
-          '(.*)' + ' ' + config.lang_from));
+          '(.*)' + ' ' + config.language.from));
     if (userid === null || userid === undefined) {
       userid = replyText.match(new RegExp('#T' +
-            '(.*)' + '\n' + config.lang_from));
+            '(.*)' + '\n' + config.language.from));
     }
   }
   forwardFile(bot, ctx, function(userInfo) {
@@ -34,7 +34,7 @@ function fileHandler(type, bot, ctx) {
       msgId = userid[1];
     }
     db.check(msgId, function(ticket) {
-      let captionText = config.lang_ticket +
+      let captionText = config.language.ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
         ' ' +
@@ -125,7 +125,7 @@ function forwardFile(bot, ctx, callback) {
         cache.ticketSent[cache.ticketID]++;
         bot.telegram.sendMessage(ctx.chat.id,
             // eslint-disable-next-line new-cap
-            config.lang_blockedSpam, Extra.HTML());
+            config.language.blockedSpam, Extra.HTML());
       }
     }
   });
@@ -142,15 +142,15 @@ function fowardHandler(ctx, callback) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
       userInfo =
-          `${config.lang_from} ${ctx.message.from.first_name} ` +
-          `${config.lang_language}: ` +
+          `${config.language.from} ${ctx.message.from.first_name} ` +
+          `${config.language.language}: ` +
           `${ctx.message.from.language_code}\n\n`;
 
       if (ctx.session.group === undefined) {
         userInfo =
-              `${config.lang_from} ${ctx.message.from.first_name} ` +
+              `${config.language.from} ${ctx.message.from.first_name} ` +
               `@${ctx.message.from.username} ` +
-              `${config.lang_language}: ` +
+              `${config.language.language}: ` +
               `${ctx.message.from.language_code}\n\n`;
       }
       callback(userInfo);

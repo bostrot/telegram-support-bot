@@ -103,11 +103,11 @@ const tests = function (bot) {
     // Automated response sent
     assert.strictEqual(receivedMsgs[1], 'Message sent to user Eric');
     console.log(chalk.green('Ticket acknowledge passed'));
-    assert.strictEqual(receivedMsgs[2], config.lang_contactMessage);
+    assert.strictEqual(receivedMsgs[2], config.language.contactMessage);
     console.log(chalk.green('Ticket sent passed'));
     // Ticket sent to group
     assert.ok(receivedMsgs[3].toString().indexOf(context.update.message.text) > -1 &&
-      receivedMsgs[3].toString().indexOf(config.lang_ticket) > -1);
+      receivedMsgs[3].toString().indexOf(config.language.ticket) > -1);
     console.log(chalk.green('Ticket sent to staff passed'));
     process.exit(0);
   }, 3000)

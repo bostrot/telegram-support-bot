@@ -6,23 +6,34 @@ module.exports = {
   'spam_time': 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
 
   // customize your language
-  'startCommandText': 'Welcome in our support chat! Ask your question here.',
-  'faqCommandText': 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
-  'helpCommandText': '<b>Available commands:</b>\n/help\n/faq\n/id',
-  'lang_contactMessage':
-    'Thank you for contacting us. We will answer as soon as possible.',
-  'lang_blockedSpam':
-  'You sent quite a number of questions in the last while.' +
-  'Please calm down and wait until staff reviews them.',
-  'lang_ticket': 'Ticket',
-  'lang_acceptedBy': 'was accepted by',
-  'lang_dear': 'Dear',
-  'lang_regards': 'Best regards,',
-  'lang_from': 'from',
-  'lang_language': 'Language',
-  'lang_msg_sent': 'Message sent to user',
-  'lang_usr_with_ticket': 'User with ticket',
-  'lang_banned': 'banned',
+  'lang': {
+    'startCommandText': 'Welcome in our support chat! Ask your question here.',
+    'faqCommandText': 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
+    'helpCommandText': '<b>Available commands:</b>\n/help\n/faq\n/id',
+    'contactMessage': 'Thank you for contacting us. We will answer as soon as possible.',
+    'blockedSpam': 'You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them.',
+    'ticket': 'Ticket',
+    'closed': 'closed',
+    'acceptedBy': 'was accepted by',
+    'dear': 'Dear',
+    'regards': 'Best regards,',
+    'from': 'from',
+    'language': 'Language',
+    'msg_sent': 'Message sent to user',
+    'usr_with_ticket': 'User with ticket',
+    'banned': 'banned',
+    'replyPrivate': 'Reply in private',
+    'services': 'Select a service from the list below',
+    'customer': 'customer',
+    'msgForwarding': 'You messages will now be forwarded to vendors of the group: ',
+    'back': 'Go back',
+    'whatSubCategory': 'Which subcategory describes your needs the best? ',
+    'prvChatEnded': 'Private chat ended.',
+    'prvChatOpened': 'Private Chat opened with customer.',
+    'prvChatEnd': 'End Private chat',
+    'instructionsSent': 'Instructions were sent to you in private chat.',
+    'openTickets': 'Open Tickets',
+  },
 
   'categories':
     [
