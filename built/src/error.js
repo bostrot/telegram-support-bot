@@ -31,3 +31,4 @@ process.on('unhandledRejection', (err, p) => {
     });
     console.dir(err);
 });
+//# sourceMappingURL=error.js.map

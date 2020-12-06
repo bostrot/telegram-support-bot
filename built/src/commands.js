@@ -21,7 +21,7 @@ function openCommand(ctx) {
                     .toString() + '\n';
             }
         }
-        ctx.reply('<b>Open Tickets:\n\n</b>' + openTickets, 
+        ctx.reply(`<b>${config_1.default.language.openTickets}\n\n</b> ${openTickets}`, 
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
     }, (ctx.session.groupAdmin));
@@ -40,11 +40,11 @@ function closeCommand(ctx) {
         replyText = ctx.message.reply_to_message.caption;
     }
     const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
-        config_1.default.lang_from));
+        config_1.default.language.from));
     // get userid from ticketid
     db.check(userid[1], function (ticket) {
         db.add(ticket.userid, 'closed', undefined);
-        ctx.reply('Ticket #T' + ticket.id.toString().padStart(6, '0') + ' closed', 
+        ctx.reply(config_1.default.language.ticket + ticket.id.toString().padStart(6, '0') + ` ${config_1.default.language.closed}`, 
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
     });
@@ -61,16 +61,17 @@ function banCommand(bot, ctx) {
         return;
     const replyText = ctx.message.reply_to_message.text;
     const userid = replyText.match(new RegExp('#T' + '(.*)' +
-        ' ' + config_1.default.lang_from));
+        ' ' + config_1.default.language.from));
     // get userid from ticketid
     db.check(userid[1], function (ticket) {
         db.add(ticket.userid, 'banned', undefined);
-        bot.telegram.sendMessage(ctx.chat.id, config_1.default.lang_usr_with_ticket + ' #T' +
+        bot.telegram.sendMessage(ctx.chat.id, config_1.default.language.usr_with_ticket + ' #T' +
             ticket.id.toString().padStart(6, '0') +
-            ' ' + config_1.default.lang_banned, 
+            ' ' + config_1.default.language.banned, 
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
     });
 }
 exports.banCommand = banCommand;
 ;
+//# sourceMappingURL=commands.js.map

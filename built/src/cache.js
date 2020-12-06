@@ -10,3 +10,4 @@ let cache = {
     markdown: '',
 };
 exports.default = cache;
+//# sourceMappingURL=cache.js.map

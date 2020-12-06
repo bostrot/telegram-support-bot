@@ -22,10 +22,10 @@ function fileHandler(type, bot, ctx) {
             replyText = ctx.message.reply_to_message.caption;
         }
         userid = replyText.match(new RegExp('#T' +
-            '(.*)' + ' ' + config_1.default.lang_from));
+            '(.*)' + ' ' + config_1.default.language.from));
         if (userid === null || userid === undefined) {
             userid = replyText.match(new RegExp('#T' +
-                '(.*)' + '\n' + config_1.default.lang_from));
+                '(.*)' + '\n' + config_1.default.language.from));
         }
     }
     forwardFile(bot, ctx, function (userInfo) {
@@ -36,7 +36,7 @@ function fileHandler(type, bot, ctx) {
             msgId = userid[1];
         }
         db.check(msgId, function (ticket) {
-            let captionText = config_1.default.lang_ticket +
+            let captionText = config_1.default.language.ticket +
                 ' #T' +
                 ticket.id.toString().padStart(6, '0') +
                 ' ' +
@@ -121,7 +121,7 @@ function forwardFile(bot, ctx, callback) {
                 cache_1.default.ticketSent[cache_1.default.ticketID]++;
                 bot.telegram.sendMessage(ctx.chat.id, 
                 // eslint-disable-next-line new-cap
-                config_1.default.lang_blockedSpam, Extra.HTML());
+                config_1.default.language.blockedSpam, Extra.HTML());
             }
         }
     });
@@ -138,14 +138,14 @@ function fowardHandler(ctx, callback) {
         if (chat.type === 'private') {
             cache_1.default.ticketID = ctx.message.from.id;
             userInfo =
-                `${config_1.default.lang_from} ${ctx.message.from.first_name} ` +
-                    `${config_1.default.lang_language}: ` +
+                `${config_1.default.language.from} ${ctx.message.from.first_name} ` +
+                    `${config_1.default.language.language}: ` +
                     `${ctx.message.from.language_code}\n\n`;
             if (ctx.session.group === undefined) {
                 userInfo =
-                    `${config_1.default.lang_from} ${ctx.message.from.first_name} ` +
+                    `${config_1.default.language.from} ${ctx.message.from.first_name} ` +
                         `@${ctx.message.from.username} ` +
-                        `${config_1.default.lang_language}: ` +
+                        `${config_1.default.language.language}: ` +
                         `${ctx.message.from.language_code}\n\n`;
             }
             callback(userInfo);
@@ -156,3 +156,4 @@ function fowardHandler(ctx, callback) {
     });
 }
 exports.fowardHandler = fowardHandler;
+//# sourceMappingURL=files.js.map

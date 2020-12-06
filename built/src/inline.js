@@ -49,18 +49,18 @@ function initInline(bot, config) {
                     subKeys.push([config.categories[i].subgroups[j].name]);
                     // Create subcategory button events
                     bot.hears(config.categories[i].subgroups[j].name, (ctx) => {
-                        ctx.reply('You messages will now be forwarded to vendors of the group: ' +
+                        ctx.reply(config.language.msgForwarding +
                             config.categories[i].subgroups[j].name, removeKeyboard());
                         // Set subgroup
                         ctx.session.group = config.categories[i].subgroups[j].group_id;
                         ctx.session.groupCategory = config.categories[i].subgroups[j].name;
                     });
-                    subKeys.push(['Go back']);
+                    subKeys.push([config.language.back]);
                 }
             }
             // Create subcategory buttons
             bot.hears(config.categories[i].name, (ctx) => {
-                ctx.reply('Which subcategory describes your needs the best? ', replyKeyboard(subKeys));
+                ctx.reply(config.language.whatSubCategory, replyKeyboard(subKeys));
             });
         }
     }
@@ -78,7 +78,7 @@ function callbackQuery(bot, ctx) {
     if (ctx.callbackQuery.data === 'R') {
         ctx.session.mode = undefined;
         ctx.session.modeData = undefined;
-        ctx.reply('Private chat ended.');
+        ctx.reply(config_1.default.language.prvChatEnded);
         return;
     }
     // Get Ticket ID from DB
@@ -88,17 +88,17 @@ function callbackQuery(bot, ctx) {
             ticketid: ctx.callbackQuery.data,
             userid: ticket.userid,
         };
-        bot.telegram.sendMessage(ctx.callbackQuery.from.id, `${config_1.default.lang_ticket} ` +
+        bot.telegram.sendMessage(ctx.callbackQuery.from.id, `${config_1.default.language.ticket} ` +
             `#T${ticket.id.toString().padStart(6, '0')}` +
             `\n\n` +
-            `Private Chat opened with customer.`, {
+            config_1.default.language.prvChatOpened, {
             parse_mode: 'html',
             reply_markup: {
                 html: '',
                 inline_keyboard: [
                     [
                         {
-                            'text': 'End Private chat',
+                            'text': config_1.default.language.prvChatEnd,
                             'callback_data': 'R',
                         },
                     ],
@@ -106,7 +106,8 @@ function callbackQuery(bot, ctx) {
             },
         });
     });
-    ctx.answerCbQuery('Instructions were sent to you in private chat.');
+    ctx.answerCbQuery(config_1.default.language.instructionsSent);
 }
 exports.callbackQuery = callbackQuery;
 ;
+//# sourceMappingURL=inline.js.map

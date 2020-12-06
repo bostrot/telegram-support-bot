@@ -14,8 +14,8 @@ const bot = new Telegraf(config.bot_token);
 
 const testing = false;
 if (testing) {
-  // import {tests} = require('../tests/testing');
-  // tests(bot);
+  const {tests} = require('../tests/testing');
+  tests(bot);
 }
 
 bot.use(permissions.currentSession());
@@ -35,14 +35,14 @@ bot.command('faq', (ctx) => ctx.reply(config.language.faqCommandText, Extra.HTML
 bot.command('help', (ctx) => ctx.reply(config.language.helpCommandText, Extra.HTML()));
 
 bot.on('callback_query', (ctx) => inline.callbackQuery(bot, ctx));
-bot.on('photo', middleware.downloadPhotoMiddleware, (ctx) =>
-  files.fileHandler('photo', bot, ctx));
-bot.on('video', middleware.downloadVideoMiddleware, (ctx) =>
-  files.fileHandler('video', bot, ctx));
-bot.on('document', middleware.downloadDocumentMiddleware, (ctx) =>
-  files.fileHandler('document', bot, ctx));
+bot.on('photo', (ctx) => middleware.downloadPhotoMiddleware(bot, ctx, () => 
+  files.fileHandler('photo', bot, ctx)));
+bot.on('video', (ctx) => middleware.downloadVideoMiddleware(bot, ctx, () => 
+  files.fileHandler('video', bot, ctx)));
+bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () => 
+  files.fileHandler('document', bot, ctx)));
 
-bot.hears('Go back', (ctx) => ctx.reply('Service', inline.replyKeyboard(keys)));
+bot.hears('Go back', (ctx) => ctx.reply(config.language.services, inline.replyKeyboard(keys)));
 bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
 bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 

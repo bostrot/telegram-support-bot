@@ -12,10 +12,10 @@ const db = require("./db");
  * @return {String} text
  */
 function ticketMsg(name, message) {
-    return `${config_1.default.lang_dear} <b>` +
+    return `${config_1.default.language.dear} <b>` +
         `${name}</b>,\n\n` +
         `${message.text}\n\n` +
-        `${config_1.default.lang_regards}\n` +
+        `${config_1.default.language.regards}\n` +
         `${message.from.first_name}`;
 }
 /**
@@ -26,7 +26,7 @@ function ticketMsg(name, message) {
 function privateReply(bot, ctx) {
     ctx.session.mode = '';
     ctx.session.mode = 'private_reply';
-    bot.telegram.sendMessage(ctx.session.modeData.userid, ticketMsg(' customer', 
+    bot.telegram.sendMessage(ctx.session.modeData.userid, ticketMsg(` ${config_1.default.language.customer}`, 
     // eslint-disable-next-line new-cap
     ctx.message), Extra.HTML());
 }
@@ -54,14 +54,14 @@ function chat(ctx, bot) {
             replyText = ctx.message.reply_to_message.caption;
         }
         let userid = replyText.match(new RegExp('#T' +
-            '(.*)' + ' ' + config_1.default.lang_from));
+            '(.*)' + ' ' + config_1.default.language.from));
         if (userid === null || userid === undefined) {
             userid = replyText.match(new RegExp('#T' +
-                '(.*)' + '\n' + config_1.default.lang_from));
+                '(.*)' + '\n' + config_1.default.language.from));
         }
         db.check(userid[1], function (ticket) {
-            const name = replyText.match(new RegExp(config_1.default.lang_from + ' ' + '(.*)' + ' ' +
-                config_1.default.lang_language));
+            const name = replyText.match(new RegExp(config_1.default.language.from + ' ' + '(.*)' + ' ' +
+                config_1.default.language.language));
             // replying to non-ticket
             if (userid === null || ticket == undefined) {
                 return;
@@ -70,7 +70,7 @@ function chat(ctx, bot) {
             bot.telegram.sendMessage(ticket.userid, ticketMsg(name[1], ctx.message), 
             // eslint-disable-next-line new-cap
             Extra.HTML());
-            bot.telegram.sendMessage(ctx.chat.id, `${config_1.default.lang_msg_sent} ${name[1]}`, 
+            bot.telegram.sendMessage(ctx.chat.id, `${config_1.default.language.msg_sent} ${name[1]}`, 
             // eslint-disable-next-line new-cap
             Extra.HTML().notifications(false));
             console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
@@ -88,3 +88,4 @@ function chat(ctx, bot) {
     }
 }
 exports.chat = chat;
+//# sourceMappingURL=staff.js.map

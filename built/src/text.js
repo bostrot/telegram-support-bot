@@ -19,7 +19,7 @@ function handleText(bot, ctx, keys) {
         .indexOf(ctx.message.text) > -1)) {
         if (!ctx.session.admin && config_1.default.categories &&
             !ctx.session.group) {
-            ctx.reply('Services', {
+            ctx.reply(config_1.default.language.services, {
                 reply_markup: {
                     keyboard: keys,
                 },
@@ -61,3 +61,4 @@ function ticketHandler(bot, ctx) {
     }
 }
 exports.ticketHandler = ticketHandler;
+//# sourceMappingURL=text.js.map

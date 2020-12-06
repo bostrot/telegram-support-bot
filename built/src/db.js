@@ -42,3 +42,4 @@ const open = function (callback, category) {
     callback(searchDB);
 };
 exports.open = open;
+//# sourceMappingURL=db.js.map

@@ -25,6 +25,11 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 Install Node ( > 8 ) and npm ( > 3.38.0 ).
 
+Install typescript
+```bash
+npm i -g typescript
+```
+
 Run it
 ```bash
 git clone https://github.com/bostrot/telegram-support-bot.git

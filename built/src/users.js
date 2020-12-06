@@ -16,10 +16,10 @@ function ticketMsg(ticket, message, anon = true) {
     if (!anon) {
         link = `tg://user?id=${cache_1.default.ticketID}`;
     }
-    return `${config_1.default.lang_ticket} ` +
-        `#T${ticket.toString().padStart(6, '0')} ${config_1.default.lang_from} ` +
+    return `${config_1.default.language.ticket} ` +
+        `#T${ticket.toString().padStart(6, '0')} ${config_1.default.language.from} ` +
         `<a href="${link}">` +
-        `${message.from.first_name}</a> ${config_1.default.lang_language}: ` +
+        `${message.from.first_name}</a> ${config_1.default.language.language}: ` +
         `${message.from.language_code}\n\n` +
         `${message.text}`;
 }
@@ -38,7 +38,7 @@ function chat(ctx, bot, chat) {
     if (cache_1.default.ticketSent[cache_1.default.ticketID] === undefined) {
         // Get Ticket ID from DB
         // eslint-disable-next-line new-cap
-        bot.telegram.sendMessage(chat.id, config_1.default.lang_contactMessage, Extra.HTML());
+        bot.telegram.sendMessage(chat.id, config_1.default.language.contactMessage, Extra.HTML());
         // Get Ticket ID from DB
         db.check(chat.id, function (ticket) {
             bot.telegram.sendMessage(config_1.default.staffchat_id, ticketMsg(ticket.id, ctx.message), 
@@ -52,7 +52,7 @@ function chat(ctx, bot, chat) {
                         inline_keyboard: [
                             [
                                 {
-                                    'text': 'Reply in private',
+                                    'text': config_1.default.language.replyPrivate,
                                     'callback_data': ticket.id.toString().padStart(6, '0')
                                 }
                             ],
@@ -84,10 +84,11 @@ function chat(ctx, bot, chat) {
     else if (cache_1.default.ticketSent[cache_1.default.ticketID] === 4) {
         cache_1.default.ticketSent[cache_1.default.ticketID]++;
         // eslint-disable-next-line new-cap
-        bot.telegram.sendMessage(chat.id, config_1.default.lang_blockedSpam, Extra.HTML());
+        bot.telegram.sendMessage(chat.id, config_1.default.language.blockedSpam, Extra.HTML());
     }
     db.check(cache_1.default.ticketID, function (ticket) {
         console.log(ticketMsg(ticket.id, ctx.message));
     });
 }
 exports.chat = chat;
+//# sourceMappingURL=users.js.map

@@ -80,3 +80,4 @@ function checkPermissions(ctx, next, config) {
 }
 exports.checkPermissions = checkPermissions;
 ;
+//# sourceMappingURL=permissions.js.map

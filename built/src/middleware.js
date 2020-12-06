@@ -25,3 +25,4 @@ const downloadDocumentMiddleware = (bot, ctx, next) => {
     });
 };
 exports.downloadDocumentMiddleware = downloadDocumentMiddleware;
+//# sourceMappingURL=middleware.js.map
