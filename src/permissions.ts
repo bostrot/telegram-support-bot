@@ -8,7 +8,7 @@ const session = require('telegraf/session');
  */
 function checkRights(ctx, config) {
   return new Promise(function(resolve, reject) {
-    // Is staff group
+    // Is staff - category group
     if (config.categories) {
       config.categories.forEach((element, index) => {
         config.categories[index].subgroups.forEach((innerElement, index) => {
@@ -21,16 +21,11 @@ function checkRights(ctx, config) {
     if (ctx.session.groupAdmin && ctx.chat.type == 'private') {
       ctx.session.groupAdmin = undefined;
     }
+    // Is admin group
     if (ctx.chat.id.toString() === config.staffchat_id ||
           ctx.session.groupAdmin) {
-      // Is admin
-      ctx.getChatAdministrators().then(function(admins) {
-        admins = JSON.stringify(admins);
-        if (admins.indexOf(ctx.from.id) > -1) {
-          console.log('Permission granted for ' + ctx.from.username);
-          resolve(true);
-        }
-      });
+      console.log('Permission granted for ' + ctx.from.username);
+      resolve(true);
     } else resolve(false);
   });
 };

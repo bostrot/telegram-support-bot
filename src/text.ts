@@ -42,8 +42,7 @@ function ticketHandler(bot, ctx) {
         } else {
           db.add(ctx.message.from.id, 'open', undefined);
         }
-        // TODO: implement type asking
-        // customerChat(ctx, bot, chat);
+        users.chat(ctx, bot, ctx.message.chat);
       } else if (user.status !== 'banned') {
         users.chat(ctx, bot, ctx.message.chat);
       }

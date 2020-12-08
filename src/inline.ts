@@ -8,6 +8,7 @@ import config from '../config/config';
  */
 function replyKeyboard(keys) {
   return {
+    parse_mode: 'html',
     reply_markup: {
       keyboard: keys,
     },
@@ -20,6 +21,7 @@ function replyKeyboard(keys) {
  */
 function removeKeyboard() {
   return {
+    parse_mode: 'html',
     reply_markup: {
       remove_keyboard: true,
     },
@@ -42,18 +44,20 @@ function initInline(bot, config) {
       // Get subcategories
       for (const j in config.categories[i].subgroups) {
         if (j !== undefined) {
-          subKeys.push([config.categories[i].subgroups[j].name]);
+          let categoryFullId = [config.categories[i].name + 
+          ': ' + config.categories[i].subgroups[j].name];
+          subKeys.push(categoryFullId);
           // Create subcategory button events
-          bot.hears(config.categories[i].subgroups[j].name, (ctx) => {
-            ctx.reply(config.language.msgForwarding +
-              config.categories[i].subgroups[j].name, removeKeyboard());
+          bot.hears(categoryFullId, (ctx) => {
+            ctx.reply(config.language.msgForwarding + '\n' +
+              `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
             ctx.session.group = config.categories[i].subgroups[j].group_id;
             ctx.session.groupCategory = config.categories[i].subgroups[j].name;
           });
-          subKeys.push([config.language.back]);
         }
       }
+      subKeys.push([config.language.back]);
       // Create subcategory buttons
       bot.hears(config.categories[i].name, (ctx) => {
         ctx.reply(config.language.whatSubCategory,
