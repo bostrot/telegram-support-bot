@@ -4,7 +4,7 @@ module.exports = {
   staffchat_id: 'SUPERGROUP_CHAT_ID', // eg. -123456789
   owner_id: 'YOUR_TELEGRAM_ID',
   spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
-  allow_private: true,
+  allow_private: false, // Allow / disallow option for staff to chat privately
 
   // customize your language
  lang: {
@@ -36,6 +36,7 @@ module.exports = {
     openTickets: 'Open Tickets',
   },
 
+  /* <==== Remove this line if you want categories ====>
   categories:
     [
       {
@@ -53,4 +54,5 @@ module.exports = {
         ],
       },
     ],
+   <==== Remove this line if you want categories ====> */
 };
