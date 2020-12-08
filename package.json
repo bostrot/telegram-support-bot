@@ -1,61 +1,61 @@
 {
-  "name": "telegram-support-bot",
-  "version": "2.0.0",
-  "description": "Telegram Support Bot",
-  "license": "GPL-3.0",
-  "author": "bostrot <eric@bostrot.com>",
-  "homepage": "https://bostrot.com",
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/bostrot/telegram-support-bot.git"
-  },
-  "bugs": {
-    "url": "https://github.com/bostrot/telegram-support-bot/issues"
-  },
-  "main": "built/src/index.js",
-  "scripts": {
-    "start": "node built/src/index.js",
-    "debug": "nodemon --inspect built/src/index.js",
-    "tsc": "tsc",
-    "dev": "ts-node-dev ./src/index.ts",
-    "prod": "tsc && node ./dist/index.js"
-  },
-  "engines": {
-    "node": ">=6.2.0"
-  },
-  "dependencies": {
-    "better-sqlite3": "^7.1.1",
-    "chalk": "^4.1.0",
-    "debug": "^4.3.1",
-    "node-fetch": "^2.6.1",
-    "node-gyp": "^7.1.2",
-    "sandwich-stream": "^2.0.2",
-    "telegraf": "^3.38.0",
-    "telegraf-experiments": "^1.1.0",
-    "telegraf-inline-menu": "^5.3.0",
-    "telegraf-session-sqlite": "^1.0.6",
-    "ts-node-dev": "^1.0.0",
-    "typescript": "^4.1.2"
-  },
-  "devDependencies": {
-    "@types/node": "^14.14.10",
-    "eslint": "^7.15.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "mocha": "^8.2.1",
-    "ts-node": "^9.1.0"
-  },
-  "keywords": [
-    "telegram-support-bot",
-    "support",
-    "telegraf",
-    "telegram",
-    "telegram bot api",
-    "bot",
-    "botapi",
-    "bot framework"
-  ]
+    "name": "telegram-support-bot",
+    "version": "2.0.0",
+    "description": "Telegram Support Bot",
+    "license": "GPL-3.0",
+    "author": "bostrot <eric@bostrot.com>",
+    "homepage": "https://bostrot.com",
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/bostrot/telegram-support-bot.git"
+    },
+    "bugs": {
+        "url": "https://github.com/bostrot/telegram-support-bot/issues"
+    },
+    "main": "built/src/index.js",
+    "scripts": {
+        "start": "node built/src/index.js",
+        "debug": "nodemon --inspect built/src/index.js",
+        "tsc": "tsc",
+        "dev": "ts-node-dev ./src/index.ts",
+        "prod": "tsc && node ./built/src/index.js"
+    },
+    "engines": {
+        "node": ">=6.2.0"
+    },
+    "dependencies": {
+        "better-sqlite3": "^7.1.1",
+        "chalk": "^4.1.0",
+        "debug": "^4.3.1",
+        "node-fetch": "^2.6.1",
+        "node-gyp": "^7.1.2",
+        "sandwich-stream": "^2.0.2",
+        "telegraf": "^3.38.0",
+        "telegraf-experiments": "^1.1.0",
+        "telegraf-inline-menu": "^5.3.0",
+        "telegraf-session-sqlite": "^1.0.6",
+        "ts-node-dev": "^1.0.0",
+        "typescript": "^4.1.2"
+    },
+    "devDependencies": {
+        "@types/node": "^14.14.10",
+        "eslint": "^7.15.0",
+        "eslint-config-google": "^0.14.0",
+        "eslint-plugin-import": "^2.22.1",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^4.2.1",
+        "eslint-plugin-standard": "^4.1.0",
+        "mocha": "^8.2.1",
+        "ts-node": "^9.1.0"
+    },
+    "keywords": [
+        "telegram-support-bot",
+        "support",
+        "telegraf",
+        "telegram",
+        "telegram bot api",
+        "bot",
+        "botapi",
+        "bot framework"
+    ]
 }
