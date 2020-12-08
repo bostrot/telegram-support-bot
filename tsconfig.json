@@ -4,7 +4,8 @@
       "allowJs": true,
       "target": "es6",
       "module": "commonjs",
-      "sourceMap": true
+      "sourceMap": true,
+      "moduleResolution": "node"
     },
     "include": ["./src/**/*"]
 }

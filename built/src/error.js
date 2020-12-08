@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.init = void 0;
 const fs = require("fs");
 const util = require("util");
-const debugFile = './config/debug.log';
+const debugFile = '../config/debug.log';
 const logStdout = process.stdout;
 function init() {
     // overload logging to file
