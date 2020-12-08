@@ -36,6 +36,7 @@ const config = {
     openTickets: 'Open Tickets',
   },
 
+  categories: false,
   /* <==== Remove this line if you want categories ====>
   categories:
     [

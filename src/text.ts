@@ -24,6 +24,8 @@ function handleText(bot, ctx, keys) {
     } else {
       ticketHandler(bot, ctx);
     }
+  } else {
+    ticketHandler(bot, ctx);
   }
 };
 

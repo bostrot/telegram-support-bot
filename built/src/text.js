@@ -15,7 +15,7 @@ function handleText(bot, ctx, keys) {
     if (ctx.session.mode == 'private_reply') {
         staff.privateReply(bot, ctx);
     }
-    else if (!(JSON.stringify(config_1.default.categories)
+    else if (config_1.default.categories && !(JSON.stringify(config_1.default.categories)
         .indexOf(ctx.message.text) > -1)) {
         if (!ctx.session.admin && config_1.default.categories &&
             !ctx.session.group) {
@@ -28,6 +28,9 @@ function handleText(bot, ctx, keys) {
         else {
             ticketHandler(bot, ctx);
         }
+    }
+    else {
+        ticketHandler(bot, ctx);
     }
 }
 exports.handleText = handleText;
