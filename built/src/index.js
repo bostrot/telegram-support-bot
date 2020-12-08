@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable new-cap */
-require('module-alias/register');
 const Telegraf = require('telegraf');
 const { Extra } = Telegraf;
 const middleware = require("./middleware");

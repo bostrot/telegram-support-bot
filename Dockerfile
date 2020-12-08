@@ -8,4 +8,4 @@ COPY . /bot
 RUN cd bot/ && \
     npm i
 
-CMD ["npm", "run prod"]
+CMD ["npm", "run prod --prefix /bot"]
