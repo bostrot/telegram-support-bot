@@ -12,7 +12,7 @@ import * as users from './users';
 function handleText(bot, ctx, keys) {
   if (ctx.session.mode == 'private_reply') {
     staff.privateReply(bot, ctx);
-  } else if (!(JSON.stringify(config.categories)
+  } else if (config.categories && !(JSON.stringify(config.categories)
       .indexOf(ctx.message.text) > -1)) {
     if (!ctx.session.admin && config.categories &&
     !ctx.session.group) {

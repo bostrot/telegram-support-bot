@@ -37,32 +37,34 @@ function removeKeyboard() {
 function initInline(bot, config) {
   const keys = [];
   // Get categories from config file
-  for (const i in config.categories) {
-    if (i !== undefined) {
-      keys.push([config.categories[i].name]);
-      const subKeys = [];
-      // Get subcategories
-      for (const j in config.categories[i].subgroups) {
-        if (j !== undefined) {
-          let categoryFullId = [config.categories[i].name + 
-          ': ' + config.categories[i].subgroups[j].name];
-          subKeys.push(categoryFullId);
-          // Create subcategory button events
-          bot.hears(categoryFullId, (ctx) => {
-            ctx.reply(config.language.msgForwarding + '\n' +
-              `<b>${categoryFullId}</b>`, removeKeyboard());
-            // Set subgroup
-            ctx.session.group = config.categories[i].subgroups[j].group_id;
-            ctx.session.groupCategory = config.categories[i].subgroups[j].name;
-          });
+  if (config.categories) {
+    for (const i in config.categories) {
+      if (i !== undefined) {
+        keys.push([config.categories[i].name]);
+        const subKeys = [];
+        // Get subcategories
+        for (const j in config.categories[i].subgroups) {
+          if (j !== undefined) {
+            let categoryFullId = [config.categories[i].name + 
+            ': ' + config.categories[i].subgroups[j].name];
+            subKeys.push(categoryFullId);
+            // Create subcategory button events
+            bot.hears(categoryFullId, (ctx) => {
+              ctx.reply(config.language.msgForwarding + '\n' +
+                `<b>${categoryFullId}</b>`, removeKeyboard());
+              // Set subgroup
+              ctx.session.group = config.categories[i].subgroups[j].group_id;
+              ctx.session.groupCategory = config.categories[i].subgroups[j].name;
+            });
+          }
         }
+        subKeys.push([config.language.back]);
+        // Create subcategory buttons
+        bot.hears(config.categories[i].name, (ctx) => {
+          ctx.reply(config.language.whatSubCategory,
+              replyKeyboard(subKeys));
+        });
       }
-      subKeys.push([config.language.back]);
-      // Create subcategory buttons
-      bot.hears(config.categories[i].name, (ctx) => {
-        ctx.reply(config.language.whatSubCategory,
-            replyKeyboard(subKeys));
-      });
     }
   }
   return keys;
