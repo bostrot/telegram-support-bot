@@ -49,7 +49,7 @@ function chat(ctx, bot, chat) {
         bot.telegram.sendMessage(
             ctx.session.group,
             ticketMsg(ticket.id, ctx.message),
-            {
+            config.allow_private ? {
               parse_mode: 'html',
               reply_markup: {
                 html: '',
@@ -60,6 +60,8 @@ function chat(ctx, bot, chat) {
                       'callback_data': ticket.id.toString().padStart(6, '0')}],
                 ],
               },
+            } : {
+              parse_mode: 'html',
             }
         );
       }

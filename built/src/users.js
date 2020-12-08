@@ -45,7 +45,7 @@ function chat(ctx, bot, chat) {
             // eslint-disable-next-line new-cap
             Extra.HTML());
             if (ctx.session.group !== undefined) {
-                bot.telegram.sendMessage(ctx.session.group, ticketMsg(ticket.id, ctx.message), {
+                bot.telegram.sendMessage(ctx.session.group, ticketMsg(ticket.id, ctx.message), config_1.default.allow_private ? {
                     parse_mode: 'html',
                     reply_markup: {
                         html: '',
@@ -58,6 +58,8 @@ function chat(ctx, bot, chat) {
                             ],
                         ],
                     },
+                } : {
+                    parse_mode: 'html',
                 });
             }
         });

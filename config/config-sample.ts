@@ -1,54 +1,55 @@
 module.exports = {
   // bot settings
-  'bot_token': 'YOUR_BOT_TOKEN', // support bot token
-  'staffchat_id': 'SUPERGROUP_CHAT_ID', // eg. -123456789
-  'owner_id': 'YOUR_TELEGRAM_ID',
-  'spam_time': 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
+  bot_token: 'YOUR_BOT_TOKEN', // support bot token
+  staffchat_id: 'SUPERGROUP_CHAT_ID', // eg. -123456789
+  owner_id: 'YOUR_TELEGRAM_ID',
+  spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
+  allow_private: true,
 
   // customize your language
-  'lang': {
-    'startCommandText': 'Welcome in our support chat! Ask your question here.',
-    'faqCommandText': 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
-    'helpCommandText': '<b>Available commands:</b>\n/help\n/faq\n/id',
-    'contactMessage': 'Thank you for contacting us. We will answer as soon as possible.',
-    'blockedSpam': 'You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them.',
-    'ticket': 'Ticket',
-    'closed': 'closed',
-    'acceptedBy': 'was accepted by',
-    'dear': 'Dear',
-    'regards': 'Best regards,',
-    'from': 'from',
-    'language': 'Language',
-    'msg_sent': 'Message sent to user',
-    'usr_with_ticket': 'User with ticket',
-    'banned': 'banned',
-    'replyPrivate': 'Reply in private',
-    'services': 'Select a service from the list below',
-    'customer': 'customer',
-    'msgForwarding': 'You messages will now be forwarded to vendors of the group: ',
-    'back': 'Go back',
-    'whatSubCategory': 'Which subcategory describes your needs the best? ',
-    'prvChatEnded': 'Private chat ended.',
-    'prvChatOpened': 'Private Chat opened with customer.',
-    'prvChatEnd': 'End Private chat',
-    'instructionsSent': 'Instructions were sent to you in private chat.',
-    'openTickets': 'Open Tickets',
+ lang: {
+    startCommandText: 'Welcome in our support chat! Ask your question here.',
+    faqCommandText: 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
+    helpCommandText: '<b>Available commands:</b>\n/help\n/faq\n/id',
+    contactMessage: 'Thank you for contacting us. We will answer as soon as possible.',
+    blockedSpam: 'You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them.',
+    ticket: 'Ticket',
+    closed: 'closed',
+    acceptedBy: 'was accepted by',
+    dear: 'Dear',
+    regards: 'Best regards,',
+    from: 'from',
+    language: 'Language',
+    msg_sent: 'Message sent to user',
+    usr_with_ticket: 'User with ticket',
+    banned: 'banned',
+    replyPrivate: 'Reply in private',
+    services: 'Select a service from the list below',
+    customer: 'customer',
+    msgForwarding: 'You messages will now be forwarded to vendors of the group: ',
+    back: 'Go back',
+    whatSubCategory: 'Which subcategory describes your needs the best? ',
+    prvChatEnded: 'Private chat ended.',
+    prvChatOpened: 'Private Chat opened with customer.',
+    prvChatEnd: 'End Private chat',
+    instructionsSent: 'Instructions were sent to you in private chat.',
+    openTickets: 'Open Tickets',
   },
 
-  'categories':
+  categories:
     [
       {
-        'name': 'Category1', 'subgroups': [
-          {'name': 'Sub1', 'group_id': '-12345678910'},
-          {'name': 'Sub2', 'group_id': '-12345678910'},
-          {'name': 'Sub3', 'group_id': '-12345678910'},
+        name: 'Category1', subgroups: [
+          {name: 'Sub1', group_id: '-12345678910'},
+          {name: 'Sub2', group_id: '-12345678910'},
+          {name: 'Sub3', group_id: '-12345678910'},
         ],
       },
       {
-        'name': 'Category2', 'subgroups': [
-          {'name': 'Sub4', 'group_id': '-12345678910'},
-          {'name': 'Sub5', 'group_id': '-12345678910'},
-          {'name': 'Sub6', 'group_id': '-12345678910'},
+        name: 'Category2', subgroups: [
+          {name: 'Sub4', group_id: '-12345678910'},
+          {name: 'Sub5', group_id: '-12345678910'},
+          {name: 'Sub6', group_id: '-12345678910'},
         ],
       },
     ],
