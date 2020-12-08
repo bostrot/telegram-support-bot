@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as util from 'util';
-const debugFile = '../config/debug.log';
+const debugFile = './config/debug.log';
 const logStdout = process.stdout;
 
 function init() {

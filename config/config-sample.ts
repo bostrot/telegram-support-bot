@@ -1,4 +1,4 @@
-module.exports = {
+const config = {
   // bot settings
   bot_token: 'YOUR_BOT_TOKEN', // support bot token
   staffchat_id: 'SUPERGROUP_CHAT_ID', // eg. -123456789
@@ -7,7 +7,7 @@ module.exports = {
   allow_private: false, // Allow / disallow option for staff to chat privately
 
   // customize your language
- lang: {
+  language: {
     startCommandText: 'Welcome in our support chat! Ask your question here.',
     faqCommandText: 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
     helpCommandText: '<b>Available commands:</b>\n/help\n/faq\n/id',
@@ -56,3 +56,6 @@ module.exports = {
     ],
    <==== Remove this line if you want categories ====> */
 };
+
+export default config;
+  
