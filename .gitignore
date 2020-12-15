@@ -1,7 +1,7 @@
 # Config file
 config.ts
 support.db
-built/
+build/
 *.rsls
 
 # Logs
