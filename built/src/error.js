@@ -31,7 +31,7 @@ function init() {
             if (err)
                 throw err;
         });
-        console.dir(new Date() + ': ' + err);
+        console.dir(new Date() + ': ' + err["stack"]);
     });
 }
 exports.init = init;

@@ -35,7 +35,7 @@ function init() {
         function(err) {
           if (err) throw err;
         });
-    console.dir(new Date() + ': ' + err);
+    console.dir(new Date() + ': ' + err["stack"]);
   });
 }
 

@@ -71,11 +71,14 @@ function chat(ctx, bot) {
       }
       cache.ticketStatus[userid[1]] = false;
 
+      // To user
       bot.telegram.sendMessage(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
+      
+      // To staff
       bot.telegram.sendMessage(ctx.chat.id,
           `${config.language.msg_sent} ${name[1]}`,
           // eslint-disable-next-line new-cap

@@ -42,10 +42,21 @@ function initInline(bot, config) {
       if (i !== undefined) {
         keys.push([config.categories[i].name]);
         const subKeys = [];
+        // Check if it has no subcategory
+        if (config.categories[i].subgroups == undefined) {
+          // Create subcategory button events
+          bot.hears(config.categories[i].name, (ctx) => {
+            ctx.reply(config.language.msgForwarding + '\n' +
+              `<b>${config.categories[i].name}</b>`, removeKeyboard());
+            ctx.session.group = config.categories[i].group_id;
+            ctx.session.groupCategory = config.categories[i].name;
+          });
+          continue;
+        }
         // Get subcategories
         for (const j in config.categories[i].subgroups) {
           if (j !== undefined) {
-            let categoryFullId = [config.categories[i].name + 
+            let categoryFullId = [config.categories[i].name +
             ': ' + config.categories[i].subgroups[j].name];
             subKeys.push(categoryFullId);
             // Create subcategory button events

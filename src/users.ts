@@ -45,7 +45,10 @@ function chat(ctx, bot, chat) {
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
-      if (ctx.session.group !== undefined) {
+      // Check if group flag is set and is not admin chat
+      if (ctx.session.group !== undefined &&
+        ctx.session.group_id != config.staffchat_id) {
+        // Send to group-staff chat
         bot.telegram.sendMessage(
             ctx.session.group,
             ticketMsg(ticket.id, ctx.message),

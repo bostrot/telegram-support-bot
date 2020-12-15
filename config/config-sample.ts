@@ -34,6 +34,8 @@ const config = {
     prvChatEnd: 'End Private chat',
     instructionsSent: 'Instructions were sent to you in private chat.',
     openTickets: 'Open Tickets',
+    support: 'Support',
+    prvChatOnly: 'This command can be used in private chat only.',
   },
 
   categories: false,
@@ -54,8 +56,14 @@ const config = {
           {name: 'Sub6', group_id: '-12345678910'},
         ],
       },
+      {
+        name: 'Category with no subcategories', group_id: '-12345678910'}
+      },
+      {
+        name: 'Admin Chat', group_id: '-12345678910' 
+      },
     ],
-   <==== Remove this line if you want categories ====> */
+   /* <==== Remove this line if you want categories ====> */
 };
 
 export default config;

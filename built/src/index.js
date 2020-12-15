@@ -32,8 +32,14 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 bot.command('open', (ctx) => commands.openCommand(ctx));
 bot.command('close', (ctx) => commands.closeCommand(ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
-bot.command('start', (ctx) => ctx.reply(config_1.default.language.startCommandText) &&
-    ctx.reply(config_1.default.language.services, inline.replyKeyboard(keys)));
+bot.command('start', (ctx) => {
+    if (ctx.chat.type == 'private') {
+        ctx.reply(config_1.default.language.startCommandText);
+        setTimeout(() => ctx.reply(config_1.default.language.services, inline.replyKeyboard(keys)), 500);
+    }
+    else
+        ctx.reply(config_1.default.language.prvChatOnly);
+});
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
 bot.command('faq', (ctx) => ctx.reply(config_1.default.language.faqCommandText, Extra.HTML()));
 bot.command('help', (ctx) => ctx.reply(config_1.default.language.helpCommandText, Extra.HTML()));
@@ -43,7 +49,7 @@ bot.on('photo', (ctx) => middleware.downloadPhotoMiddleware(bot, ctx, () => file
 bot.on('video', (ctx) => middleware.downloadVideoMiddleware(bot, ctx, () => files.fileHandler('video', bot, ctx)));
 bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () => files.fileHandler('document', bot, ctx)));
 // Bot regex
-bot.hears('Go back', (ctx) => ctx.reply(config_1.default.language.services, inline.replyKeyboard(keys)));
+bot.hears(config_1.default.language.back, (ctx) => ctx.reply(config_1.default.language.services, inline.replyKeyboard(keys)));
 bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
 bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 // Catch bot errors

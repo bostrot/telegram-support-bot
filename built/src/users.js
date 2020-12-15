@@ -44,7 +44,9 @@ function chat(ctx, bot, chat) {
             bot.telegram.sendMessage(config_1.default.staffchat_id, ticketMsg(ticket.id, ctx.message), 
             // eslint-disable-next-line new-cap
             Extra.HTML());
-            if (ctx.session.group !== undefined) {
+            // Check if group flag is set and is not admin chat
+            if (ctx.session.group !== undefined && ctx.session.group_id != config_1.default.staffchat_id) {
+                // Send to group-staff chat
                 bot.telegram.sendMessage(ctx.session.group, ticketMsg(ticket.id, ctx.message), config_1.default.allow_private ? {
                     parse_mode: 'html',
                     reply_markup: {
