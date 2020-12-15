@@ -37,6 +37,7 @@ const config = {
     openTickets: 'Open Tickets',
     support: 'Support',
     prvChatOnly: 'This command can be used in private chat only.',
+    ticketClosed: 'Your ticket was closed by our staff. You can open a new ticket at any time.',
   },
 
   categories: false,

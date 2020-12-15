@@ -36,7 +36,7 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
 // Bot commands
 bot.command('open', (ctx) => commands.openCommand(ctx));
-bot.command('close', (ctx) => commands.closeCommand(ctx));
+bot.command('close', (ctx) => commands.closeCommand(bot, ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
 bot.command('start', (ctx) => {
   if (ctx.chat.type == 'private') {

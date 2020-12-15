@@ -47,7 +47,7 @@ function openCommand(ctx) {
  * Close ticket
  * @param {Object} ctx
  */
-function closeCommand(ctx) {
+function closeCommand(bot, ctx) {
   if (!ctx.session.admin) return;
   let replyText = ctx.message.reply_to_message.text;
   if (replyText == undefined) {
@@ -60,7 +60,15 @@ function closeCommand(ctx) {
     if (ticket != undefined) {
         db.add(ticket.userid, 'closed', ctx.session.groupAdmin);
         ctx.reply(`
-          ${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ${config.language.closed}`,
+          ${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ` +
+          `${config.language.closed}`,
+          // eslint-disable-next-line new-cap
+          Extra.HTML().notifications(false)
+        );
+        bot.telegram.sendMessage(
+          ticket.userid,
+          `${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ` +
+          `${config.language.closed}\n\n${config.language.ticketClosed}`,
           // eslint-disable-next-line new-cap
           Extra.HTML().notifications(false)
         );
