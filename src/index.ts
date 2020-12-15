@@ -41,7 +41,8 @@ bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
 bot.command('start', (ctx) => {
   if (ctx.chat.type == 'private') {
     ctx.reply(config.language.startCommandText);
-    setTimeout(() => ctx.reply(config.language.services, inline.replyKeyboard(keys)), 500);    
+    if (config.categories != undefined && config.categories)
+      setTimeout(() => ctx.reply(config.language.services, inline.replyKeyboard(keys)), 500);    
   } else ctx.reply(config.language.prvChatOnly);
 });
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));

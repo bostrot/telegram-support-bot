@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3');
 const db = new Database('./config/support.db', {
-  /* verbose: console.log */}); // debugging
+   /* verbose: console.log */}); // debugging
 
 try {
   db.prepare(
@@ -11,37 +11,63 @@ db.prepare(
     (id INTEGER PRIMARY KEY AUTOINCREMENT, `+
     `userid TEXT, status TEXT, category TEXT);`).run();
 
-const check = function(userid, callback) {
+const check = function(userid, category, callback) {
   const searchDB = db.prepare(
-      `select * from supportees where userid = `+
-      `${userid} or id = ${userid}`).get();
+      `select * from supportees where (userid = `+
+      `${userid} or id = ${userid}) ` +
+      `${(category ? `AND category = '${category}'`: '')}`).all();
+  callback(searchDB);
+};
+
+const getOpen = function(userid, category, callback) {
+  const searchDB = db.prepare(
+      `select * from supportees where (userid = `+
+      `${userid} or id = ${userid}) AND status='open' ` +
+      `${(category ? `AND category = '${category}'`: '')}`).get();
   callback(searchDB);
 };
 
 const add = function(userid, status, category) {
+  let msg;
   if (status == 'closed') {
-    db.prepare(`DELETE FROM supportees WHERE userid = ${userid}`).run();
+    console.log(`UPDATE supportees SET status='closed' WHERE `+
+    `(userid='${userid}' or id='${userid}')` +
+    `${(category ? `AND category = '${category}'`: '')}`)
+    msg = db.prepare(
+        `UPDATE supportees SET status='closed' WHERE `+
+        `(userid='${userid}' or id='${userid}')` +
+        `${(category ? `AND category = '${category}'`: '')}`).run();
   } else if (status == 'open') {
-    db.prepare(
-        `INSERT or REPLACE INTO supportees (userid, `+
+    //db.prepare(`DELETE FROM supportees WHERE userid='${userid}'` +
+    //    ` or id='${userid}'`).run();
+    msg = db.prepare(
+        `REPLACE INTO supportees (userid, `+
         `status ${(category ? `,category`: '')}) `+
         `VALUES ('${userid}', '${status}' ${(category ? `,'${category}'`: '')})`
-    )
-        .run();
+    ).run();
   } else if (status = 'banned') {
-    db.prepare(
+    msg = db.prepare(
         `UPDATE supportees SET status='banned' WHERE `+
-        `userid='${userid}' or id='${userid}'`)
-        .run();
+        `userid='${userid}' or id='${userid}'`).run();
   }
+  return (msg.changes);    
 };
 
 const open = function(callback, category) {
-  console.log(`select * from supportees where status = 'open' `+
-  `and category ${(category ? ` = '${category}'`: 'is NULL')}`);
+  let searchText = '';
+  for (let i = 0; i < category.length; i++)
+  {
+    if (i == 0) 
+      searchText += `= '${category[i]}'`;
+    else
+      searchText +=  ` OR category = '${category[i]}'`;
+  }
+
   const searchDB = db.prepare(
       `select * from supportees where status = 'open' `+
-      `and category ${(category ? `= '${category}'`: 'is NULL')}`).all();
+      `and (category ${(category ? searchText : 'is NULL')})`).all();
+  
+  
   callback(searchDB);
 };
 
@@ -49,4 +75,5 @@ export {
   open,
   add,
   check,
+  getOpen,
 }

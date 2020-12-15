@@ -8,6 +8,25 @@ import config from '../config/config';
  */
 function openCommand(ctx) {
   if (!ctx.session.admin) return;
+  let groups = [];
+  // Search all labels for this group
+  if (config.categories) {
+    config.categories.forEach((element, index) => {
+      // No subgroup
+      if (config.categories[index].subgroups == undefined) {
+        if (config.categories[index].group_id == ctx.chat.id) {
+          groups.push(config.categories[index].name);
+        }
+      } else {
+        config.categories[index].subgroups.forEach((innerElement, index) => {
+          if (innerElement.group_id == ctx.chat.id) {
+            groups.push(innerElement.name);
+          }
+        });
+      }
+    });
+  }
+  // Get open tickets for any maintained label
   db.open(function(userList) {
     let openTickets = '';
     for (const i in userList) {
@@ -21,7 +40,7 @@ function openCommand(ctx) {
     ctx.reply(`<b>${config.language.openTickets}\n\n</b> ${openTickets}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
-  }, (ctx.session.groupAdmin));
+  }, groups);
 };
 
 /**
@@ -37,13 +56,15 @@ function closeCommand(ctx) {
   const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
                 config.language.from));
     // get userid from ticketid
-  db.check(userid[1], function(ticket) {
-    db.add(ticket.userid, 'closed', undefined);
-    ctx.reply(
-        config.language.ticket+ticket.id.toString().padStart(6, '0')+` ${config.language.closed}`,
-        // eslint-disable-next-line new-cap
-        Extra.HTML().notifications(false)
-    );
+  db.getOpen(userid[1], ctx.session.groupAdmin, function(ticket) {
+    if (ticket != undefined) {
+        db.add(ticket.userid, 'closed', ctx.session.groupAdmin);
+        ctx.reply(`
+          ${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ${config.language.closed}`,
+          // eslint-disable-next-line new-cap
+          Extra.HTML().notifications(false)
+        );
+    }
   });
 };
 
@@ -59,8 +80,8 @@ function banCommand(bot, ctx) {
                 ' ' + config.language.from));
 
   // get userid from ticketid
-  db.check(userid[1], function(ticket) {
-    db.add(ticket.userid, 'banned', undefined);
+  db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
+        db.add(ticket.userid, 'banned', undefined);
     bot.telegram.sendMessage(
         ctx.chat.id,
         config.language.usr_with_ticket + ' #T'+

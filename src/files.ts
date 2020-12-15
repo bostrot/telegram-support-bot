@@ -33,8 +33,8 @@ function fileHandler(type, bot, ctx) {
     if (ctx.session.admin && userInfo === undefined) {
       msgId = userid[1];
     }
-    db.check(msgId, function(ticket) {
-      let captionText = config.language.ticket +
+    db.getOpen(msgId, ctx.session.groupCategory, function(ticket) {
+            let captionText = config.language.ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
         ' ' +
@@ -53,7 +53,7 @@ function fileHandler(type, bot, ctx) {
                 caption: captionText,
               }
           );
-          if (ctx.session.group !== undefined) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
             bot.telegram.sendDocument(
                 ctx.session.group,
                 ctx.message.document.file_id, {
@@ -66,7 +66,7 @@ function fileHandler(type, bot, ctx) {
           bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
             caption: captionText,
           });
-          if (ctx.session.group !== undefined) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
             bot.telegram.sendPhoto(ctx.session.group,
                 ctx.message.photo[0].file_id, {
                   caption: captionText,
@@ -77,7 +77,7 @@ function fileHandler(type, bot, ctx) {
           bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
             caption: captionText,
           });
-          if (ctx.session.group !== undefined) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
             bot.telegram.sendVideo(ctx.session.group,
                 ctx.message.video.file_id, {
                   caption: captionText,
@@ -96,14 +96,14 @@ function fileHandler(type, bot, ctx) {
  * @param {callback} callback Bot callback.
  */
 function forwardFile(bot, ctx, callback) {
-  db.check(ctx.message.from.id, function(user) {
-    let ok = false;
-    if (user == undefined || user.status == undefined ||
-          user.status == 'closed') {
+  db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
+        let ok = false;
+    if (ticket == undefined || ticket.status == undefined ||
+          ticket.status == 'closed') {
       db.add(ctx.message.from.id, 'open', undefined);
       ok = true;
     }
-    if (ok || user !== undefined && user.status !== 'banned') {
+    if (ok || ticket !== undefined && ticket.status !== 'banned') {
       if (cache.ticketSent[cache.ticketID] === undefined) {
         fowardHandler(ctx, function(userInfo) {
           callback(userInfo);

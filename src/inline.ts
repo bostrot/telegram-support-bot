@@ -95,8 +95,8 @@ function callbackQuery(bot, ctx) {
     return;
   }
   // Get Ticket ID from DB
-  db.check(ctx.callbackQuery.data, function(ticket) {
-    ctx.session.mode = 'private_reply';
+  db.getOpen(ctx.callbackQuery.data, ctx.session.groupCategory, function(ticket) {
+        ctx.session.mode = 'private_reply';
     ctx.session.modeData = {
       ticketid: ctx.callbackQuery.data,
       userid: ticket.userid,

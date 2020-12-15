@@ -5,6 +5,7 @@ const config = {
   owner_id: 'YOUR_TELEGRAM_ID',
   spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
   allow_private: false, // Allow / disallow option for staff to chat privately
+  auto_close_tickets: true,
 
   // customize your language
   language: {

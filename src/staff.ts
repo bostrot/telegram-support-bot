@@ -61,8 +61,8 @@ function chat(ctx, bot) {
           '(.*)' + '\n' + config.language.from));
     }
 
-    db.check(userid[1], function(ticket) {
-      const name = replyText.match(new RegExp(
+    db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
+            const name = replyText.match(new RegExp(
           config.language.from + ' ' + '(.*)' + ' ' +
       config.language.language));
         // replying to non-ticket
@@ -78,7 +78,7 @@ function chat(ctx, bot) {
           Extra.HTML()
       );
       
-      // To staff
+      // To staff msg sent
       bot.telegram.sendMessage(ctx.chat.id,
           `${config.language.msg_sent} ${name[1]}`,
           // eslint-disable-next-line new-cap
@@ -86,8 +86,10 @@ function chat(ctx, bot) {
       );
       console.log(`Answer: `+ ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
-      // close ticket
-      db.add(userid[1], 'closed', undefined);
+      // Check if auto close ticket
+      if (config.auto_close_tickets) {
+        db.add(userid[1], 'closed', undefined);
+      }
     });
   } catch (e) {
     console.log(e);

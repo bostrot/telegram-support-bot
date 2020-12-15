@@ -36,16 +36,13 @@ function handleText(bot, ctx, keys) {
 */
 function ticketHandler(bot, ctx) {
   if (ctx.chat.type === 'private') {
-    db.check(ctx.message.from.id, function(user) {
-      if (user == undefined || user.status == undefined ||
-           user.status == 'closed') {
+    db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
+      if (ticket == undefined) {
         if (ctx.session.group !== undefined) {
           db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
         } else {
           db.add(ctx.message.from.id, 'open', undefined);
         }
-        users.chat(ctx, bot, ctx.message.chat);
-      } else if (user.status !== 'banned') {
         users.chat(ctx, bot, ctx.message.chat);
       }
     });

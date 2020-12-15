@@ -39,7 +39,8 @@ function chat(ctx, bot, chat) {
     // eslint-disable-next-line new-cap
     bot.telegram.sendMessage(chat.id, config.language.contactMessage, Extra.HTML());
     // Get Ticket ID from DB
-    db.check(chat.id, function(ticket) {
+    db.getOpen(chat.id, ctx.session.groupCategory, function(ticket) {
+      // To staff
       bot.telegram.sendMessage(config.staffchat_id,
           ticketMsg(ticket.id, ctx.message),
           // eslint-disable-next-line new-cap
@@ -47,7 +48,7 @@ function chat(ctx, bot, chat) {
       );
       // Check if group flag is set and is not admin chat
       if (ctx.session.group !== undefined &&
-        ctx.session.group_id != config.staffchat_id) {
+        ctx.session.group != config.staffchat_id) {
         // Send to group-staff chat
         bot.telegram.sendMessage(
             ctx.session.group,
@@ -77,7 +78,7 @@ function chat(ctx, bot, chat) {
     cache.ticketSent[cache.ticketID] = 0;
   } else if (cache.ticketSent[cache.ticketID] < 4) {
     cache.ticketSent[cache.ticketID]++;
-    db.check(cache.ticketID, function(ticket) {
+    db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
       bot.telegram.sendMessage(config.staffchat_id,
           ticketMsg(ticket.id, ctx.message),
           // eslint-disable-next-line new-cap
@@ -97,7 +98,7 @@ function chat(ctx, bot, chat) {
     // eslint-disable-next-line new-cap
     bot.telegram.sendMessage(chat.id, config.language.blockedSpam, Extra.HTML());
   }
-  db.check(cache.ticketID, function(ticket) {
+  db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
     console.log(ticketMsg(ticket.id, ctx.message));
   });
 }
