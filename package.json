@@ -12,13 +12,11 @@
     "bugs": {
         "url": "https://github.com/bostrot/telegram-support-bot/issues"
     },
-    "main": "built/src/index.js",
+    "main": "build/src/index.js",
     "scripts": {
-        "start": "node built/src/index.js",
-        "debug": "nodemon --inspect built/src/index.js",
         "tsc": "tsc",
         "dev": "ts-node-dev ./src/index.ts",
-        "prod": "tsc && node ./built/src/index.js"
+        "prod": "tsc && node ./build/src/index.js"
     },
     "engines": {
         "node": ">=6.2.0"
