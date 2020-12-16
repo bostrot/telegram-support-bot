@@ -94,31 +94,35 @@ function callbackQuery(bot, ctx) {
   }
   // Get Ticket ID from DB
   db.getOpen(ctx.callbackQuery.data, ctx.session.groupCategory, function(ticket) {
-        ctx.session.mode = 'private_reply';
-    ctx.session.modeData = {
-      ticketid: ctx.callbackQuery.data,
-      userid: ticket.userid,
-    };
-    bot.telegram.sendMessage(ctx.callbackQuery.from.id,
-        `${config.language.ticket} ` +
-        `#T${ticket.id.toString().padStart(6, '0')}` +
-        `\n\n` +
-        config.language.prvChatOpened,
-        {
-          parse_mode: 'html',
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  'text': config.language.prvChatEnd,
-                  'callback_data': 'R',
-                },
+    if (ticket !== undefined) {
+      ctx.session.mode = 'private_reply';
+      ctx.session.modeData = {
+        ticketid: ctx.callbackQuery.data,
+        userid: ticket.userid,
+      };
+      bot.telegram.sendMessage(ctx.callbackQuery.from.id,
+          `${config.language.ticket} ` +
+          `#T${ticket.id.toString().padStart(6, '0')}` +
+          `\n\n` +
+          config.language.prvChatOpened,
+          {
+            parse_mode: 'html',
+            reply_markup: {
+              html: '',
+              inline_keyboard: [
+                [
+                  {
+                    'text': config.language.prvChatEnd,
+                    'callback_data': 'R',
+                  },
+                ],
               ],
-            ],
-          },
-        }
-    );
+            },
+          }
+      );
+    } else {
+      console.log('Ticket data empty. Does the ticket exist?');
+    }
   });
   ctx.answerCbQuery(config.language.instructionsSent);
 };
