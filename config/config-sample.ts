@@ -40,7 +40,7 @@ const config = {
     ticketClosed: 'Your ticket was closed by our staff. You can open a new ticket at any time.',
   },
 
-  categories: false,
+  categories: [],
   /* <==== Remove this line if you want categories ====>
   categories:
     [

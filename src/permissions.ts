@@ -9,22 +9,20 @@ const session = require('telegraf/session');
 function checkRights(ctx, config) {
   return new Promise(function(resolve, reject) {
     // Is staff - category group
-    if (config.categories) {
-      config.categories.forEach((element, index) => {
-        // No subgroup
-        if (config.categories[index].subgroups == undefined) {
-          if (config.categories[index].group_id == ctx.chat.id) {
-            ctx.session.groupAdmin = config.categories[index].name;
-          }
-        } else {
-          config.categories[index].subgroups.forEach((innerElement, index) => {
-            if (innerElement.group_id == ctx.chat.id) {
-              ctx.session.groupAdmin = innerElement.name;
-            }
-          });
+    config.categories.forEach((element, index) => {
+      // No subgroup
+      if (config.categories[index].subgroups == undefined) {
+        if (config.categories[index].group_id == ctx.chat.id) {
+          ctx.session.groupAdmin = config.categories[index].name;
         }
-      });
-    }
+      } else {
+        config.categories[index].subgroups.forEach((innerElement, index) => {
+          if (innerElement.group_id == ctx.chat.id) {
+            ctx.session.groupAdmin = innerElement.name;
+          }
+        });
+      }
+    });
     if (ctx.session.groupAdmin && ctx.chat.type == 'private') {
       ctx.session.groupAdmin = undefined;
     }

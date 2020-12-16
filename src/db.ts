@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3');
 const db = new Database('./config/support.db', {
-   /* verbose: console.log */}); // debugging
+   verbose: console.log }); // debugging
 
 try {
   db.prepare(
@@ -65,7 +65,7 @@ const open = function(callback, category) {
 
   const searchDB = db.prepare(
       `select * from supportees where status = 'open' `+
-      `and (category ${(category ? searchText : 'is NULL')})`).all();
+      `and (category ${(category.length > 0 ? searchText : 'is NULL')})`).all();
   
   
   callback(searchDB);

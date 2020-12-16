@@ -12,7 +12,7 @@ import * as users from './users';
 function handleText(bot, ctx, keys) {
   if (ctx.session.mode == 'private_reply') {
     staff.privateReply(bot, ctx);
-  } else if (config.categories && !(JSON.stringify(config.categories)
+  } else if (config.categories.length > 0 && !(JSON.stringify(config.categories)
       .indexOf(ctx.message.text) > -1)) {
     if (!ctx.session.admin && config.categories &&
     !ctx.session.group) {
@@ -38,13 +38,10 @@ function ticketHandler(bot, ctx) {
   if (ctx.chat.type === 'private') {
     db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
       if (ticket == undefined) {
-        if (ctx.session.group !== undefined) {
-          db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
-        } else {
-          db.add(ctx.message.from.id, 'open', undefined);
-        }
-        users.chat(ctx, bot, ctx.message.chat);
+        console.log(ctx.session.groupCategory)
+        db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
       }
+      users.chat(ctx, bot, ctx.message.chat);
     });
   } else {
     staff.chat(ctx, bot);

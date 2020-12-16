@@ -10,22 +10,20 @@ function openCommand(ctx) {
   if (!ctx.session.admin) return;
   let groups = [];
   // Search all labels for this group
-  if (config.categories) {
-    config.categories.forEach((element, index) => {
-      // No subgroup
-      if (config.categories[index].subgroups == undefined) {
-        if (config.categories[index].group_id == ctx.chat.id) {
-          groups.push(config.categories[index].name);
-        }
-      } else {
-        config.categories[index].subgroups.forEach((innerElement, index) => {
-          if (innerElement.group_id == ctx.chat.id) {
-            groups.push(innerElement.name);
-          }
-        });
+  config.categories.forEach((element, index) => {
+    // No subgroup
+    if (config.categories[index].subgroups == undefined) {
+      if (config.categories[index].group_id == ctx.chat.id) {
+        groups.push(config.categories[index].name);
       }
-    });
-  }
+    } else {
+      config.categories[index].subgroups.forEach((innerElement, index) => {
+        if (innerElement.group_id == ctx.chat.id) {
+          groups.push(innerElement.name);
+        }
+      });
+    }
+  });
   // Get open tickets for any maintained label
   db.open(function(userList) {
     let openTickets = '';
