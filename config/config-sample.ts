@@ -64,6 +64,9 @@ const config = {
       {
         name: 'Admin Chat', group_id: '-12345678910' 
       },
+      {
+        name: 'Contact', msg: 'Check out our Website'
+      },
     ],
    /* <==== Remove this line if you want categories ====> */
 };

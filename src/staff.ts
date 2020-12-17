@@ -23,12 +23,28 @@ function ticketMsg(name, message) {
  * @param {Object} ctx
  */
 function privateReply(bot, ctx) {
-  ctx.session.mode = '';
-  ctx.session.mode = 'private_reply';
+  // Msg to other end
   bot.telegram.sendMessage(
-      ctx.session.modeData.userid, ticketMsg(` ${config.language.customer}`,
-      // eslint-disable-next-line new-cap
-          ctx.message), Extra.HTML());
+    ctx.session.modeData.userid,
+    ticketMsg(` ${ctx.session.modeData.name}`, ctx.message),
+    {
+      parse_mode: 'html',
+      reply_markup: {
+        html: '',
+        inline_keyboard: [
+          [
+            {
+              'text': config.language.replyPrivate,
+              'callback_data': ctx.chat.id +
+              '---' + ctx.message.from.first_name }],
+        ],
+      },
+    }
+  );
+  // Confirmation message
+  bot.telegram.sendMessage(
+    ctx.from.id,
+    config.language.msg_sent);
 }
 
 /**

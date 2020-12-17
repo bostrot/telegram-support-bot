@@ -45,10 +45,15 @@ function initInline(bot, config) {
       if (config.categories[i].subgroups == undefined) {
         // Create subcategory button events
         bot.hears(config.categories[i].name, (ctx) => {
-          ctx.reply(config.language.msgForwarding + '\n' +
-            `<b>${config.categories[i].name}</b>`, removeKeyboard());
-          ctx.session.group = config.categories[i].group_id;
-          ctx.session.groupCategory = config.categories[i].name;
+          // Info text
+          if (config.categories[i].msg != undefined) {
+            ctx.reply(config.categories[i].msg);
+          } else {
+            ctx.reply(config.language.msgForwarding + '\n' +
+              `<b>${config.categories[i].name}</b>`, removeKeyboard());
+            ctx.session.group = config.categories[i].group_id;
+            ctx.session.groupCategory = config.categories[i].name;
+          }
         });
         continue;
       }
@@ -93,18 +98,22 @@ function callbackQuery(bot, ctx) {
     return;
   }
   // Get Ticket ID from DB
-  db.getOpen(ctx.callbackQuery.data, ctx.session.groupCategory, function(ticket) {
+  const id = ctx.callbackQuery.data.split('---')[0];
+  const name = ctx.callbackQuery.data.split('---')[1];
+  db.getOpen(id, ctx.session.groupCategory, function(ticket) {
     if (ticket !== undefined) {
       ctx.session.mode = 'private_reply';
       ctx.session.modeData = {
-        ticketid: ctx.callbackQuery.data,
+        ticketid: id,
         userid: ticket.userid,
+        name: name,
       };
       bot.telegram.sendMessage(ctx.callbackQuery.from.id,
+        ctx.chat.type !== 'private' ?
           `${config.language.ticket} ` +
           `#T${ticket.id.toString().padStart(6, '0')}` +
           `\n\n` +
-          config.language.prvChatOpened,
+          config.language.prvChatOpened : config.language.prvChatOpenedCustomer,
           {
             parse_mode: 'html',
             reply_markup: {
