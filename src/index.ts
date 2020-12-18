@@ -39,6 +39,8 @@ bot.command('open', (ctx) => commands.openCommand(ctx));
 bot.command('close', (ctx) => commands.closeCommand(bot, ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
 bot.command('start', (ctx) => {
+  ctx.session.mode = undefined;
+  ctx.session.modeData = undefined;
   if (ctx.chat.type == 'private') {
     ctx.reply(config.language.startCommandText);
     if (config.categories.length > 0)

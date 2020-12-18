@@ -61,8 +61,9 @@ function chat(ctx, bot, chat) {
                   [
                     {
                       'text': config.language.replyPrivate,
-                      'callback_data': ticket.id.toString().padStart(6, '0') +
-                      '---' + ctx.message.from.first_name}],
+                      'callback_data': ctx.from.id +
+                      '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
+                      '---' + ticket.id }],
                 ],
               },
             } : {

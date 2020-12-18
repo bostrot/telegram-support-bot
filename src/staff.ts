@@ -35,8 +35,9 @@ function privateReply(bot, ctx) {
           [
             {
               'text': config.language.replyPrivate,
-              'callback_data': ctx.chat.id +
-              '---' + ctx.message.from.first_name }],
+              'callback_data': ctx.from.id +
+              '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
+              '---' + ctx.session.modeData.ticketid }],
         ],
       },
     }

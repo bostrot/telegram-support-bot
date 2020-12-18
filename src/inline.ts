@@ -100,39 +100,36 @@ function callbackQuery(bot, ctx) {
   // Get Ticket ID from DB
   const id = ctx.callbackQuery.data.split('---')[0];
   const name = ctx.callbackQuery.data.split('---')[1];
-  db.getOpen(id, ctx.session.groupCategory, function(ticket) {
-    if (ticket !== undefined) {
-      ctx.session.mode = 'private_reply';
-      ctx.session.modeData = {
-        ticketid: id,
-        userid: ticket.userid,
-        name: name,
-      };
-      bot.telegram.sendMessage(ctx.callbackQuery.from.id,
-        ctx.chat.type !== 'private' ?
-          `${config.language.ticket} ` +
-          `#T${ticket.id.toString().padStart(6, '0')}` +
-          `\n\n` +
-          config.language.prvChatOpened : config.language.prvChatOpenedCustomer,
-          {
-            parse_mode: 'html',
-            reply_markup: {
-              html: '',
-              inline_keyboard: [
-                [
-                  {
-                    'text': config.language.prvChatEnd,
-                    'callback_data': 'R',
-                  },
-                ],
-              ],
-            },
-          }
-      );
-    } else {
-      console.log('Ticket data empty. Does the ticket exist?');
-    }
-  });
+  let category = ctx.callbackQuery.data.split('---')[2];
+  const ticketid = ctx.callbackQuery.data.split('---')[3];
+  ctx.session.mode = 'private_reply';
+  ctx.session.modeData = {
+    ticketid: ticketid,
+    userid: id,
+    name: name,
+    category: category,
+  };
+  bot.telegram.sendMessage(ctx.callbackQuery.from.id,
+    ctx.chat.type !== 'private' ?
+      `${config.language.ticket} ` +
+      `#T${ticketid.toString().padStart(6, '0')}` +
+      `\n\n` +
+      config.language.prvChatOpened : config.language.prvChatOpenedCustomer,
+      {
+        parse_mode: 'html',
+        reply_markup: {
+          html: '',
+          inline_keyboard: [
+            [
+              {
+                'text': config.language.prvChatEnd,
+                'callback_data': 'R',
+              },
+            ],
+          ],
+        },
+      }
+  );
   ctx.answerCbQuery(config.language.instructionsSent);
 };
 
