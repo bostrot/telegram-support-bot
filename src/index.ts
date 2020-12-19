@@ -38,6 +38,7 @@ bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
 bot.command('open', (ctx) => commands.openCommand(ctx));
 bot.command('close', (ctx) => commands.closeCommand(bot, ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
+bot.command('unban', (ctx) => commands.unbanCommand(bot, ctx));
 bot.command('start', (ctx) => {
   ctx.session.mode = undefined;
   ctx.session.modeData = undefined;

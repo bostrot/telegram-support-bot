@@ -1,4 +1,5 @@
 const session = require('telegraf/session');
+import * as db from './db';
 
 /**
  * Check permissions of group and admin
@@ -65,7 +66,12 @@ function checkPermissions(ctx, next, config) {
   checkRights(ctx, config).then((access) => {
     if (access) ctx.session.admin = true;
   }).finally(() => {
-    return next();
+    db.checkBan(ctx.chat.id, function(ticket) {
+      if (ticket != undefined && ticket.status == 'banned') {
+        return; 
+      }
+      return next();
+    })
   });
 };
 

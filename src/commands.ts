@@ -107,13 +107,14 @@ function closeCommand(bot, ctx) {
  */
 function banCommand(bot, ctx) {
   if (!ctx.session.admin) return;
+  // Get open tickets for any maintained label
   const replyText = ctx.message.reply_to_message.text;
-  const userid = replyText.match(new RegExp('#T' + '(.*)' +
-                ' ' + config.language.from));
+  const ticketId = replyText.match(new RegExp('#T' + '(.*)' +
+                ' ' + config.language.from))[1];
 
   // get userid from ticketid
-  db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
-        db.add(ticket.userid, 'banned', undefined);
+  db.getId(ticketId, function(ticket) {
+    db.add(ticket.userid, 'banned', undefined);
     bot.telegram.sendMessage(
         ctx.chat.id,
         config.language.usr_with_ticket + ' #T'+
@@ -125,8 +126,35 @@ function banCommand(bot, ctx) {
   });
 };
 
+/**
+ * Unban user
+ * @param {Object} bot
+ * @param {Object} ctx
+ */
+function unbanCommand(bot, ctx) {
+  if (!ctx.session.admin) return;
+  // Get open tickets for any maintained label
+  const replyText = ctx.message.reply_to_message.text;
+  const ticketId = replyText.match(new RegExp('#T' + '(.*)' +
+                ' ' + config.language.from))[1];
+
+  // get userid from ticketid
+  db.getId(ticketId, function(ticket) {
+    db.add(ticket.userid, 'closed', undefined);
+    bot.telegram.sendMessage(
+        ctx.chat.id,
+        config.language.usr_with_ticket + ' #T'+
+                  ticket.id.toString().padStart(6, '0')+
+                      ' ' + 'unbanned',
+        // eslint-disable-next-line new-cap
+        Extra.HTML().notifications(false)
+    );
+  });
+};
+
 export {
   banCommand,
   openCommand,
   closeCommand,
+  unbanCommand,
 };

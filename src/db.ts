@@ -27,6 +27,20 @@ const getOpen = function(userid, category, callback) {
   callback(searchDB);
 };
 
+const getId = function(userid, callback) {
+  const searchDB = db.prepare(
+      `select * from supportees where (userid = `+
+      `${userid} or id = ${userid})`).get();
+  callback(searchDB);
+};
+
+const checkBan = function(userid, callback) {
+  const searchDB = db.prepare(
+      `select * from supportees where (userid = `+
+      `${userid} or id = ${userid}) AND status='banned' `).get();
+  callback(searchDB);
+};
+
 const add = function(userid, status, category) {
   let msg;
   if (status == 'closed') {
@@ -47,8 +61,8 @@ const add = function(userid, status, category) {
     ).run();
   } else if (status = 'banned') {
     msg = db.prepare(
-        `UPDATE supportees SET status='banned' WHERE `+
-        `userid='${userid}' or id='${userid}'`).run();
+        `REPLACE INTO supportees (userid, status, category)` +
+        `VALUES ('${userid}', '${status}', 'BANNED')`).run();
   }
   return (msg.changes);    
 };
@@ -76,4 +90,6 @@ export {
   add,
   check,
   getOpen,
+  checkBan,
+  getId,
 }
