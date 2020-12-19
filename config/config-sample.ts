@@ -33,6 +33,7 @@ const config = {
     prvChatEnded: 'Private chat ended.',
     prvChatOpened: 'Private Chat opened with customer.',
     prvChatEnd: 'End Private chat',
+    prvChatOpenedCustomer: 'Opened private chat',
     instructionsSent: 'Instructions were sent to you in private chat.',
     openTickets: 'Open Tickets',
     support: 'Support',
