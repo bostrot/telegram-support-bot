@@ -47,31 +47,57 @@ function openCommand(ctx) {
  */
 function closeCommand(bot, ctx) {
   if (!ctx.session.admin) return;
+  let groups = [];
+  // Search all labels for this group
+  config.categories.forEach((element, index) => {
+    // No subgroup
+    if (config.categories[index].subgroups == undefined) {
+      if (config.categories[index].group_id == ctx.chat.id) {
+        groups.push(config.categories[index].name);
+      }
+    } else {
+      config.categories[index].subgroups.forEach((innerElement, index) => {
+        if (innerElement.group_id == ctx.chat.id) {
+          groups.push(innerElement.name);
+        }
+      });
+    }
+  });
+  // Get open tickets for any maintained label
   let replyText = ctx.message.reply_to_message.text;
   if (replyText == undefined) {
     replyText = ctx.message.reply_to_message.caption;
   }
-  const userid = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
-                config.language.from));
-    // get userid from ticketid
-  db.getOpen(userid[1], ctx.session.groupAdmin, function(ticket) {
-    if (ticket != undefined) {
-        db.add(ticket.userid, 'closed', ctx.session.groupAdmin);
-        ctx.reply(`
-          ${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ` +
-          `${config.language.closed}`,
-          // eslint-disable-next-line new-cap
-          Extra.HTML().notifications(false)
-        );
-        bot.telegram.sendMessage(
-          ticket.userid,
-          `${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ` +
-          `${config.language.closed}\n\n${config.language.ticketClosed}`,
-          // eslint-disable-next-line new-cap
-          Extra.HTML().notifications(false)
-        );
+  // Ticket ID
+  const ticketId = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
+                config.language.from))[1];
+  // get userid from ticketid
+  db.open(function(tickets) {
+    if (tickets == undefined) {
+      console.log('Close command: tickets undefined');
+      return;
     }
-  });
+    let userid = 0;
+    for (let i = 0; i < tickets.length; i++) {
+      if (tickets[i].id.toString().padStart(6, '0') == ticketId) {
+        db.add(tickets[i].userid, 'closed', tickets[i].category);
+        userid = tickets[i].userid;
+      }
+    }
+    ctx.reply(`
+    ${config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
+    `${config.language.closed}`,
+    // eslint-disable-next-line new-cap
+    Extra.HTML().notifications(false)
+    );
+    bot.telegram.sendMessage(
+      userid,
+      `${config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
+      `${config.language.closed}\n\n${config.language.ticketClosed}`,
+      // eslint-disable-next-line new-cap
+      Extra.HTML().notifications(false)
+    );
+  }, groups);
 };
 
 /**
