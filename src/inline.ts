@@ -45,6 +45,8 @@ function initInline(bot, config) {
       if (config.categories[i].subgroups == undefined) {
         // Create subcategory button events
         bot.hears(config.categories[i].name, (ctx) => {
+          ctx.session.mode = undefined;
+          ctx.session.modeData = undefined;
           // Info text
           if (config.categories[i].msg != undefined) {
             ctx.reply(config.categories[i].msg);
@@ -65,6 +67,8 @@ function initInline(bot, config) {
           subKeys.push(categoryFullId);
           // Create subcategory button events
           bot.hears(categoryFullId, (ctx) => {
+            ctx.session.mode = undefined;
+            ctx.session.modeData = undefined;
             ctx.reply(config.language.msgForwarding + '\n' +
               `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
@@ -76,6 +80,8 @@ function initInline(bot, config) {
       subKeys.push([config.language.back]);
       // Create subcategory buttons
       bot.hears(config.categories[i].name, (ctx) => {
+        ctx.session.mode = undefined;
+        ctx.session.modeData = undefined;
         ctx.reply(config.language.whatSubCategory,
             replyKeyboard(subKeys));
       });
