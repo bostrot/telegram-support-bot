@@ -1,4 +1,4 @@
-module.exports = {
+let cache = {
   ticketID: '',
   ticketIDs: [],
   ticketStatus: {},
@@ -7,3 +7,5 @@ module.exports = {
   noSound: '',
   markdown: '',
 };
+
+export default cache;

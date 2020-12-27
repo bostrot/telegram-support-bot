@@ -1,6 +1,8 @@
 # Config file
-config.js
+config.ts
 support.db
+build/
+*.rsls
 
 # Logs
 logs
@@ -8,9 +10,6 @@ logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# dont upload sensitive data
-config.js
 
 # Runtime data
 pids
