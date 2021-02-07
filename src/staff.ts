@@ -33,11 +33,18 @@ function privateReply(bot, ctx) {
         html: '',
         inline_keyboard: [
           [
+            config.direct_reply ?
+            {
+              'text': config.language.replyPrivate,
+              'url': `https://t.me/${ctx.from.username}`,
+            } :
             {
               'text': config.language.replyPrivate,
               'callback_data': ctx.from.id +
               '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
-              '---' + ctx.session.modeData.ticketid }],
+              '---' + ctx.session.modeData.ticketid
+            },
+          ],
         ],
       },
     }

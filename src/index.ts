@@ -51,6 +51,27 @@ bot.command('start', (ctx) => {
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
 bot.command('faq', (ctx) => ctx.reply(config.language.faqCommandText, Extra.HTML()));
 bot.command('help', (ctx) => ctx.reply(config.language.helpCommandText, Extra.HTML()));
+bot.command('links', (ctx) => {
+  let links = '';
+  const subcategories = [];
+  for (const i in config.categories) {
+    if (i !== undefined) {
+      for (const j in config.categories[i].subgroups) {
+        if (j !== undefined) {
+          const catName = config.categories[i].subgroups[j].name;
+          const id = (config.categories[i].name +
+            config.categories[i].subgroups[j].name)
+            .replace(/[\[\]\:\ "]/g, '').substr(0,63);
+          if (subcategories.indexOf(id) == -1) {
+            subcategories.push(id);
+            links += `${catName} - https://t.me/${bot.options.username}?start=${id}\n`;
+          }
+        }
+      }
+    }
+  }
+  ctx.reply(`${config.language.links}:\n${links}`, Extra.HTML())
+});
 
 // Bot ons
 bot.on('callback_query', (ctx) => inline.callbackQuery(bot, ctx));

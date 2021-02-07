@@ -43,6 +43,24 @@ function initInline(bot, config) {
       const subKeys = [];
       // Check if it has no subcategory
       if (config.categories[i].subgroups == undefined) {
+        // Create category button events for start with parameter
+        // Full category name to 64 Byte without special chars
+        let startStr = '/start ' + config.categories[i].name
+          .replace(/[\[\]\:\ "]/g, '')
+          .substr(0,63);
+        bot.hears(startStr, (ctx) => {
+          ctx.session.mode = undefined;
+          ctx.session.modeData = undefined;
+          // Info text
+          if (config.categories[i].msg != undefined) {
+            ctx.reply(config.categories[i].msg);
+          } else {
+            ctx.reply(config.language.msgForwarding + '\n' +
+              `<b>${config.categories[i].name}</b>`, removeKeyboard());
+            ctx.session.group = config.categories[i].group_id;
+            ctx.session.groupCategory = config.categories[i].name;
+          }
+        });
         // Create subcategory button events
         bot.hears(config.categories[i].name, (ctx) => {
           ctx.session.mode = undefined;
@@ -65,6 +83,22 @@ function initInline(bot, config) {
           let categoryFullId = [config.categories[i].name +
           ': ' + config.categories[i].subgroups[j].name];
           subKeys.push(categoryFullId);
+          
+          // Create subcategory button events for start with parameter
+          // Full category name to 64 Byte without special chars
+          let startStr = '/start ' + JSON.stringify(categoryFullId)
+            .replace(/[\[\]\:\ "]/g, '')
+            .substr(0,63);
+          bot.hears(startStr, (ctx) => {
+            ctx.session.mode = undefined;
+            ctx.session.modeData = undefined;
+            ctx.reply(config.language.msgForwarding + '\n' +
+              `<b>${categoryFullId}</b>`, removeKeyboard());
+            // Set subgroup
+            ctx.session.group = config.categories[i].subgroups[j].group_id;
+            ctx.session.groupCategory = config.categories[i].subgroups[j].name;
+          });
+          
           // Create subcategory button events
           bot.hears(categoryFullId, (ctx) => {
             ctx.session.mode = undefined;
@@ -136,7 +170,14 @@ function callbackQuery(bot, ctx) {
         },
       }
   );
-  ctx.answerCbQuery(config.language.instructionsSent);
+
+  // TODO: forward to bot? not possible without triggering start command
+  // var t = ('https://t.me/' + bot.options.username + '?start=X');
+  ctx.answerCbQuery(config.language.instructionsSent, true,
+      /* {
+        'url': t,
+      } */
+    );
 };
 
 export {

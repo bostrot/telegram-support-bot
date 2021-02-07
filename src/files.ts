@@ -149,7 +149,6 @@ function fowardHandler(ctx, callback) {
       if (ctx.session.group === undefined) {
         userInfo =
               `${config.language.from} ${ctx.message.from.first_name} ` +
-              `@${ctx.message.from.username} ` +
               `${config.language.language}: ` +
               `${ctx.message.from.language_code}\n\n`;
       }

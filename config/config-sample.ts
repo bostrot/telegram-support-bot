@@ -6,6 +6,7 @@ const config = {
   spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
   allow_private: false, // Allow / disallow option for staff to chat privately
   auto_close_tickets: true,
+  direct_reply: false,
 
   // customize your language
   language: {
@@ -39,6 +40,7 @@ const config = {
     support: 'Support',
     prvChatOnly: 'This command can be used in private chat only.',
     ticketClosed: 'Your ticket was closed by our staff. You can open a new ticket at any time.',
+    links: 'Direct support links',
   },
 
   categories: [],
