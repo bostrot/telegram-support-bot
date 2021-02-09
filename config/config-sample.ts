@@ -62,7 +62,7 @@ const config = {
         ],
       },
       {
-        name: 'Category with no subcategories', group_id: '-12345678910'}
+        name: 'Category with no subcategories', group_id: '-12345678910'
       },
       {
         name: 'Admin Chat', group_id: '-12345678910' 
