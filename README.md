@@ -73,7 +73,7 @@ as the `staffchat_id` you can e.g. create a help chat for using the bot.
         ],
       },
       {
-        name: 'Category3', group_id: '-12345678910'}
+        name: 'Category3', group_id: '-12345678910'
       },
       {
         name: 'Admin Chat', group_id: '-12345678910' 
