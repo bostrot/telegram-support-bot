@@ -45,6 +45,10 @@ function fileHandler(type, bot, ctx) {
         receiverId = ticket.userid;
         captionText = (ctx.message.caption || '');
       }
+      if (ctx.session.modeData != undefined &&
+        ctx.session.modeData.userid != undefined) {
+          receiverId = ctx.session.modeData.userid;
+      }
       switch (type) {
         case 'document':
           bot.telegram.sendDocument(
@@ -53,7 +57,8 @@ function fileHandler(type, bot, ctx) {
                 caption: captionText,
               }
           );
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+            !ctx.session.modeData) {
             bot.telegram.sendDocument(
                 ctx.session.group,
                 ctx.message.document.file_id, {
@@ -66,7 +71,8 @@ function fileHandler(type, bot, ctx) {
           bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
             caption: captionText,
           });
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+            !ctx.session.modeData) {
             bot.telegram.sendPhoto(ctx.session.group,
                 ctx.message.photo[0].file_id, {
                   caption: captionText,
@@ -77,7 +83,8 @@ function fileHandler(type, bot, ctx) {
           bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
             caption: captionText,
           });
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id) {
+          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+            !ctx.session.modeData) {
             bot.telegram.sendVideo(ctx.session.group,
                 ctx.message.video.file_id, {
                   caption: captionText,
