@@ -63,6 +63,10 @@ function fileHandler(type, bot, ctx) {
       msgId = userid[1];
     }
     db.getOpen(msgId, ctx.session.groupCategory, function(ticket) {
+      if (ticket == undefined) {
+        ctx.reply(config.language.textFirst);
+        return;
+      }
             let captionText = config.language.ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
@@ -94,6 +98,19 @@ function fileHandler(type, bot, ctx) {
                 ctx.session.group,
                 ctx.message.document.file_id, {
                   caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          'text': config.language.replyPrivate,
+                          'callback_data': ctx.from.id +
+                          '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
+                          '---' + ticket.id 
+                        }
+                      ],
+                    ],
+                  },
                 }
             );
           }
@@ -108,6 +125,19 @@ function fileHandler(type, bot, ctx) {
             bot.telegram.sendPhoto(ctx.session.group,
                 ctx.message.photo[0].file_id, {
                   caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          'text': config.language.replyPrivate,
+                          'callback_data': ctx.from.id +
+                          '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
+                          '---' + ticket.id 
+                        }
+                      ],
+                    ],
+                  },
                 });
           }
           break;
@@ -121,6 +151,19 @@ function fileHandler(type, bot, ctx) {
             bot.telegram.sendVideo(ctx.session.group,
                 ctx.message.video.file_id, {
                   caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          'text': config.language.replyPrivate,
+                          'callback_data': ctx.from.id +
+                          '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
+                          '---' + ticket.id 
+                        }
+                      ],
+                    ],
+                  },
                 });
           }
           break;
