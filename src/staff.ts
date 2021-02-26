@@ -22,11 +22,13 @@ function ticketMsg(name, message) {
  * @param {Object} bot
  * @param {Object} ctx
  */
-function privateReply(bot, ctx) {
+function privateReply(bot, ctx, msg = undefined) {
+  if (msg == undefined)
+    msg = ctx.message;
   // Msg to other end
   bot.telegram.sendMessage(
     ctx.session.modeData.userid,
-    ticketMsg(` ${ctx.session.modeData.name}`, ctx.message),
+    ticketMsg(` ${ctx.session.modeData.name}`, msg),
     {
       parse_mode: 'html',
       reply_markup: {

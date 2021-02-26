@@ -1,7 +1,35 @@
 import * as db from './db';
 import config from '../config/config';
 import cache from './cache';
+import * as staff from './staff';
 const {Extra} = require('telegraf');
+
+/**
+ * Helper for private reply
+ * @param type 
+ * @param bot 
+ * @param ctx 
+ */
+function replyMarkup(ctx) {
+  return {
+      html: '',
+      inline_keyboard: [
+        [
+          config.direct_reply ?
+          {
+            'text': config.language.replyPrivate,
+            'url': `https://t.me/${ctx.from.username}`,
+          } :
+          {
+            'text': config.language.replyPrivate,
+            'callback_data': ctx.from.id +
+            '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
+            '---' + ctx.session.modeData.ticketid
+          },
+        ],
+      ],
+  }
+}
 
 /**
  * Forward video files to staff.
@@ -29,6 +57,7 @@ function fileHandler(type, bot, ctx) {
   forwardFile(bot, ctx, function(userInfo) {
     let receiverId = config.staffchat_id;
     let msgId = ctx.message.chat.id;
+    let isPrivate = false;
     // if admin
     if (ctx.session.admin && userInfo === undefined) {
       msgId = userid[1];
@@ -48,6 +77,7 @@ function fileHandler(type, bot, ctx) {
       if (ctx.session.modeData != undefined &&
         ctx.session.modeData.userid != undefined) {
           receiverId = ctx.session.modeData.userid;
+          isPrivate = true;
       }
       switch (type) {
         case 'document':
@@ -55,6 +85,7 @@ function fileHandler(type, bot, ctx) {
               receiverId,
               ctx.message.document.file_id, {
                 caption: captionText,
+                reply_markup: isPrivate ? replyMarkup(ctx) : {},
               }
           );
           if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
@@ -70,6 +101,7 @@ function fileHandler(type, bot, ctx) {
         case 'photo':
           bot.telegram.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
             caption: captionText,
+            reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
           if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
             !ctx.session.modeData) {
@@ -82,6 +114,7 @@ function fileHandler(type, bot, ctx) {
         case 'video':
           bot.telegram.sendVideo(receiverId, ctx.message.video.file_id, {
             caption: captionText,
+            reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
           if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
             !ctx.session.modeData) {
@@ -92,6 +125,10 @@ function fileHandler(type, bot, ctx) {
           }
           break;
       }
+      // Confirmation message
+      bot.telegram.sendMessage(
+        ctx.from.id,
+        config.language.msg_sent);
     });
   });
 }
