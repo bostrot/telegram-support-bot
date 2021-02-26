@@ -41,6 +41,7 @@ const config = {
     prvChatOnly: 'This command can be used in private chat only.',
     ticketClosed: 'Your ticket was closed by our staff. You can open a new ticket at any time.',
     links: 'Direct support links',
+    textFirst: 'Please send us a message before sending an image so that we can help you better.',
   },
 
   categories: [],
