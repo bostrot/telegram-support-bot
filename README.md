@@ -5,7 +5,7 @@
 [![node](https://img.shields.io/node/v/telegraf.svg?style=flat-square)](https://www.npmjs.com/package/)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](http://standardjs.com/)
 
-# [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot)
+# [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot) (Ticketing system for Telegram)
 is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It lets users create tickets which will be send to a staff group and can be answered by a reply.
 
 <table>
