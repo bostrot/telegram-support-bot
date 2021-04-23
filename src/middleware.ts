@@ -22,8 +22,17 @@ const downloadDocumentMiddleware = (bot, ctx, next) => {
   });
 };
 
+// escape special characters
+const escapeText = (str) => {
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+}
+
 export {
   downloadPhotoMiddleware,
   downloadVideoMiddleware,
   downloadDocumentMiddleware,
+  escapeText,
 };

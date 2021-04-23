@@ -11,11 +11,12 @@ import * as files from './files';
 import config from '../config/config';
 import * as error from './error';
 
-// Init error handling
-error.init();
 
 // Create new Telegraf() with token
 const bot = new Telegraf(config.bot_token);
+
+// Init error handling
+error.init(bot);
 
 // TODO: Unit testing
 const testing = false;
@@ -88,6 +89,9 @@ bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
 bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 
 // Catch bot errors
-bot.catch((err) => console.log('Error: ', err));
+bot.catch((err, ctx) => {
+  console.log('Error: ', err);
+  ctx.reply('Message is not sent due to an error.');
+});
 
 bot.launch();

@@ -1,6 +1,7 @@
 import * as db from './db';
 import cache from './cache';
 import config from '../config/config';
+import * as middleware from './middleware';
 const {Extra} = require('telegraf');
 
 /** Message template helper
@@ -19,7 +20,7 @@ function ticketMsg(ticket, message, anon = true) {
           `<a href="${link}">` +
           `${message.from.first_name}</a> ${config.language.language}: ` +
           `${message.from.language_code}\n\n` +
-          `${message.text}`;
+          `${middleware.escapeText(message.text)}`;
 }
 
 /**

@@ -1,9 +1,10 @@
 import * as fs from 'fs';
 import * as util from 'util';
+import config from '../config/config';
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
 
-function init() {
+function init(bot) {
   // overload logging to file
   console.log = function(d) {
     logStdout.write(util.format(d) + '\n');
@@ -23,6 +24,9 @@ function init() {
           if (err) throw err;
         });
     console.error(new Date() + ': ' + 'Error: ', err);
+    bot.telegram.sendMessage(
+        config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`,
+    );
     process.exit(1);
   });
 
@@ -36,6 +40,9 @@ function init() {
           if (err) throw err;
         });
     console.dir(new Date() + ': ' + err["stack"]);
+    bot.telegram.sendMessage(
+        config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`,
+    );
   });
 }
 
