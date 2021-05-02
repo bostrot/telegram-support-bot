@@ -53,6 +53,10 @@ function fileHandler(type, bot, ctx) {
       userid = replyText.match(new RegExp('#T' +
             '(.*)' + '\n' + config.language.from));
     }
+    // replying to non-ticket
+    if (userid === null || userid === undefined) {
+      return;
+    }
   }
   forwardFile(bot, ctx, function(userInfo) {
     let receiverId = config.staffchat_id;
