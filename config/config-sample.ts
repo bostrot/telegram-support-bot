@@ -7,6 +7,7 @@ const config = {
   allow_private: false, // Allow / disallow option for staff to chat privately
   auto_close_tickets: true,
   direct_reply: false,
+  anonymous_tickets: true, //Include userid in tickets or not
 
   // customize your language
   language: {
