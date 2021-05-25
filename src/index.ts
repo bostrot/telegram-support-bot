@@ -91,7 +91,12 @@ bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 // Catch bot errors
 bot.catch((err, ctx) => {
   console.log('Error: ', err);
-  ctx.reply('Message is not sent due to an error.');
+  // Catch bot blocked by user
+  try {
+    ctx.reply('Message is not sent due to an error.');
+  } catch(e) {
+    console.log('Could not send error msg to chat: ', e);
+  }
 });
 
 bot.launch();
