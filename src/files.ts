@@ -169,9 +169,12 @@ function fileHandler(type, bot, ctx) {
           break;
       }
       // Confirmation message
+      const name = replyText.match(new RegExp(
+          config.language.from + ' ' + '(.*)' + ' ' +
+          config.language.language));
       bot.telegram.sendMessage(
         ctx.chat.id,
-        config.language.msg_sent);
+        `${config.language.msg_sent} ${name[1]}`);
     });
   });
 }
