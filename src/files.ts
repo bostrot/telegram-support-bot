@@ -170,7 +170,7 @@ function fileHandler(type, bot, ctx) {
       }
       // Confirmation message
       bot.telegram.sendMessage(
-        ctx.from.id,
+        ctx.chat.id,
         config.language.msg_sent);
     });
   });
