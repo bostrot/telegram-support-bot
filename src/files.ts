@@ -64,7 +64,12 @@ function fileHandler(type, bot, ctx) {
     }
     db.getOpen(msgId, ctx.session.groupCategory, function(ticket) {
       if (ticket == undefined) {
-        ctx.reply(config.language.textFirst);
+        if(ctx.session.admin && userInfo === undefined) {
+          // replying to closed ticket
+          ctx.reply(config.language.ticketClosedError);
+        } else {
+          ctx.reply(config.language.textFirst);
+        }
         return;
       }
             let captionText = config.language.ticket +
