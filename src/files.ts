@@ -169,9 +169,17 @@ function fileHandler(type, bot, ctx) {
           break;
       }
       // Confirmation message
+      let message = config.language.contactMessage;
+      // if admin
+      if(ctx.session.admin && userInfo === undefined) {
+        const name = replyText.match(new RegExp(
+            config.language.from + ' ' + '(.*)' + ' ' +
+            config.language.language));
+        message = `${config.language.file_sent} ${name[1]}`;
+      }
       bot.telegram.sendMessage(
-        ctx.from.id,
-        config.language.msg_sent);
+        ctx.chat.id,
+        message);
     });
   });
 }

@@ -23,6 +23,7 @@ const config = {
     from: 'from',
     language: 'Language',
     msg_sent: 'Message sent to user',
+    file_sent: 'File sent to user',
     usr_with_ticket: 'User with ticket',
     banned: 'banned',
     replyPrivate: 'Reply in private',
