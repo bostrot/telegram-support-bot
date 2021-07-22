@@ -175,7 +175,7 @@ function fileHandler(type, bot, ctx) {
         const name = replyText.match(new RegExp(
             config.language.from + ' ' + '(.*)' + ' ' +
             config.language.language));
-        message = `${config.language.msg_sent} ${name[1]}`;
+        message = `${config.language.file_sent} ${name[1]}`;
       }
       bot.telegram.sendMessage(
         ctx.chat.id,
