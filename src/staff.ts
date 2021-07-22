@@ -88,6 +88,11 @@ function chat(ctx, bot) {
           '(.*)' + '\n' + config.language.from));
     }
 
+    // replying to non-ticket
+    if (userid === null || userid === undefined) {
+        return;
+    }
+
     db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
             const name = replyText.match(new RegExp(
           config.language.from + ' ' + '(.*)' + ' ' +
@@ -95,6 +100,10 @@ function chat(ctx, bot) {
       // replying to closed ticket
       if (userid === null || ticket == undefined) {
         ctx.reply(config.language.ticketClosedError);
+      }
+      
+      // replying to non-ticket
+      if (ticket == undefined) {
         return;
       }
       cache.ticketStatus[userid[1]] = false;
