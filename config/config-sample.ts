@@ -43,6 +43,7 @@ const config = {
     ticketClosed: 'Your ticket was closed by our staff. You can open a new ticket at any time.',
     links: 'Direct support links',
     textFirst: 'Please send us a message before sending an image so that we can help you better.',
+    ticketClosedError: 'You cannot reply to a closed ticket.',
   },
 
   categories: [],

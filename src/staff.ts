@@ -97,7 +97,12 @@ function chat(ctx, bot) {
             const name = replyText.match(new RegExp(
           config.language.from + ' ' + '(.*)' + ' ' +
       config.language.language));
-        // replying to non-ticket
+      // replying to closed ticket
+      if (userid === null || ticket == undefined) {
+        ctx.reply(config.language.ticketClosedError);
+      }
+      
+      // replying to non-ticket
       if (ticket == undefined) {
         return;
       }
