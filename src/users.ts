@@ -76,7 +76,7 @@ function chat(ctx, bot, chat) {
     db.getOpen(chat.id, ctx.session.groupCategory, function(ticket) {
       // To staff
       bot.telegram.sendMessage(config.staffchat_id,
-          ticketMsg(ticket.id, ctx.message, true, autoReplyInfo),
+          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
@@ -86,7 +86,7 @@ function chat(ctx, bot, chat) {
         // Send to group-staff chat
         bot.telegram.sendMessage(
             ctx.session.group,
-            ticketMsg(ticket.id, ctx.message, true, autoReplyInfo),
+            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
             config.allow_private ? {
               parse_mode: 'html',
               reply_markup: {
@@ -118,14 +118,14 @@ function chat(ctx, bot, chat) {
     cache.ticketSent[cache.ticketID]++;
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
       bot.telegram.sendMessage(config.staffchat_id,
-          ticketMsg(ticket.id, ctx.message, true, autoReplyInfo),
+          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
       if (ctx.session.group !== undefined) {
         bot.telegram.sendMessage(
             ctx.session.group,
-            ticketMsg(ticket.id, ctx.message, true, autoReplyInfo),
+            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
             // eslint-disable-next-line new-cap
             Extra.HTML()
         );
@@ -137,7 +137,7 @@ function chat(ctx, bot, chat) {
     bot.telegram.sendMessage(chat.id, config.language.blockedSpam, Extra.HTML());
   }
   db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
-    console.log(ticketMsg(ticket.id, ctx.message, true, autoReplyInfo));
+    console.log(ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo));
   });
 }
 
