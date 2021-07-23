@@ -44,6 +44,10 @@ const config = {
     links: 'Direct support links',
     textFirst: 'Please send us a message before sending an image so that we can help you better.',
     ticketClosedError: 'You cannot reply to a closed ticket.',
+    automatedReply: 'This is an automated reply.',
+    automatedReplyAuthor: 'BottyBot.',
+    doesntHelp: 'This does not help.',
+    automatedReplySent: 'Automated reply was send to the user.',
   },
 
   categories: [],
