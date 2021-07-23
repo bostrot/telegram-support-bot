@@ -1,6 +1,7 @@
 import * as db from './db';
 import cache from './cache';
 import config from '../config/config';
+import strings from '../config/strings';
 import * as middleware from './middleware';
 const {Extra} = require('telegraf');
 
@@ -10,7 +11,7 @@ const {Extra} = require('telegraf');
  * @param {Boolean} anon
  * @return {String} text
  */
-function ticketMsg(ticket, message, anon = true) {
+function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
   let link = '';
   if (!anon) {
     link = `tg://user?id=${cache.ticketID}`;
@@ -20,7 +21,32 @@ function ticketMsg(ticket, message, anon = true) {
           `<a href="${link}">` +
           `${message.from.first_name}</a> ${config.language.language}: ` +
           `${message.from.language_code}\n\n` +
-          `${middleware.escapeText(message.text)}`;
+          `${middleware.escapeText(message.text)}\n\n` + 
+          `<i>${autoReplyInfo}</i>`;
+}
+
+/** Ticket auto reply for common questions
+ * @param {context} ctx Bot context.
+ * @param {bot} bot Bot object.
+ * @param {chat} chat Bot chat.
+ */
+function autoReply(ctx, bot, chat) {
+  for (let i in strings) {
+    if (ctx.message.text.toString().indexOf(strings[i][0]) > -1) {
+      // Define message
+      let msg = `${config.language.dear} <b>`+
+        `${ctx.message.from.first_name}</b>,\n\n`+
+        `${middleware.escapeText(strings[i][1])}\n\n`+
+        `${config.language.regards}\n`+
+        `${config.language.automatedReplyAuthor}\n\n`+
+        `<i>${config.language.automatedReply}</i>`;
+
+      // Send message with keyboard
+      ctx.reply(msg, Extra.HTML())
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -31,6 +57,12 @@ function ticketMsg(ticket, message, anon = true) {
  */
 function chat(ctx, bot, chat) {
   cache.ticketID = ctx.message.from.id;
+  // Check if auto reply works
+  let isAutoReply = false;
+  if (autoReply(ctx, bot, chat))
+    isAutoReply = true;
+  const autoReplyInfo = isAutoReply ? `<i>${config.language.automatedReplySent}</i>` : ''
+
   if (cache.ticketIDs[cache.ticketID] === undefined) {
     cache.ticketIDs.push(cache.ticketID);
   }
@@ -38,12 +70,13 @@ function chat(ctx, bot, chat) {
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
     // eslint-disable-next-line new-cap
-    bot.telegram.sendMessage(chat.id, config.language.contactMessage, Extra.HTML());
+    if (!isAutoReply)
+      bot.telegram.sendMessage(chat.id, config.language.contactMessage, Extra.HTML());
     // Get Ticket ID from DB
     db.getOpen(chat.id, ctx.session.groupCategory, function(ticket) {
       // To staff
       bot.telegram.sendMessage(config.staffchat_id,
-          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets),
+          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
@@ -53,7 +86,7 @@ function chat(ctx, bot, chat) {
         // Send to group-staff chat
         bot.telegram.sendMessage(
             ctx.session.group,
-            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets),
+            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
             config.allow_private ? {
               parse_mode: 'html',
               reply_markup: {
@@ -85,14 +118,14 @@ function chat(ctx, bot, chat) {
     cache.ticketSent[cache.ticketID]++;
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
       bot.telegram.sendMessage(config.staffchat_id,
-          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets),
+          ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
           // eslint-disable-next-line new-cap
           Extra.HTML()
       );
       if (ctx.session.group !== undefined) {
         bot.telegram.sendMessage(
             ctx.session.group,
-            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets),
+            ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
             // eslint-disable-next-line new-cap
             Extra.HTML()
         );
@@ -104,7 +137,7 @@ function chat(ctx, bot, chat) {
     bot.telegram.sendMessage(chat.id, config.language.blockedSpam, Extra.HTML());
   }
   db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
-    console.log(ticketMsg(ticket.id, ctx.message, config.anonymous_tickets));
+    console.log(ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo));
   });
 }
 
