@@ -21,65 +21,6 @@ is a support bot for telegram bots, using the Telegraf framework (by [@dotcypres
 
 [Telegraf documentation](http://telegraf.js.org).
 
-## Installation
-
-Install Node ( > 8 ) and npm ( > 3.38.0 ).
-
-Run it
-```bash
-git clone https://github.com/bostrot/telegram-support-bot.git
-cd telegram-support-bot
-npm i
-cp config/config-sample.ts config/config.ts     # Adjust settings in config.ts
-npm run prod                                    # For debugging: npm run dev
-```
-
-## Configuration
-
-You can get your ID with /id. The first number will be yours the second the one from the group you are in (if you are in one; including the minus).
-
-You need to set your bot token and chat ids in `config.ts`:
-
-```js
-    // bot settings
-    bot_token: 'YOUR_BOT_TOKEN', // support bot token
-    staffchat_id: 'SUPERGROUP_CHAT_ID', // telegram staff group chat id eg. -123456789
-    owner_id: 'YOUR_TELEGRAM_ID',
-    spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
-    allow_private: false, // Allow / disallow option for staff to chat privately
-    auto_close_tickets: true, // Closes messages after reply
-```
-
-If you replace `categories: false` with following snippet, you enable the subgroup system.
-This will allow the user to select a subcategory (e.g. for specified staff). If a chat has the same ID
-as the `staffchat_id` you can e.g. create a help chat for using the bot.
-
-```js
-    // subgroups for different subcategories in JS Array -> Object format
-    categories:
-    [
-      {
-        name: 'Category1', subgroups: [
-          {name: 'Sub1', group_id: '-12345678910'},
-          {name: 'Sub2', group_id: '-12345678910'},
-          {name: 'Sub3', group_id: '-12345678910'},
-        ],
-      },
-      {
-        name: 'Category2', subgroups: [
-          {name: 'Sub4', group_id: '-12345678910'},
-          {name: 'Sub5', group_id: '-12345678910'},
-          {name: 'Sub6', group_id: '-12345678910'},
-        ],
-      },
-      {
-        name: 'Category3', group_id: '-12345678910'
-      },
-      {
-        name: 'Admin Chat', group_id: '-12345678910' 
-      },
-    ],
-```
 
 ## Features
 
@@ -103,6 +44,78 @@ Features:
 * Simple anti spam system
 * Send tickets to different staff groups
 * Private reply to user
+* Anonymize users
+* Auto reply based on keywords [beta]
+
+## Installation
+
+Install Node ( > 8 ) and npm ( > 3.38.0 ).
+
+Run it
+```bash
+git clone https://github.com/bostrot/telegram-support-bot.git
+cd telegram-support-bot
+npm i
+cp config/config-sample.ts config/config.ts     # Adjust settings in config.ts
+npm run prod                                    # For debugging: npm run dev
+```
+
+## Configuration
+
+You can get your ID with /id. The first number will be yours the second the one from the group you are in (if you are in one; including the minus).
+
+You need to set your bot token and chat ids in `config.ts`:
+
+```js
+// bot settings
+bot_token: 'YOUR_BOT_TOKEN', // support bot token
+staffchat_id: 'SUPERGROUP_CHAT_ID', // telegram staff group chat id eg. -123456789
+owner_id: 'YOUR_TELEGRAM_ID',
+spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
+allow_private: false, // Allow / disallow option for staff to chat privately
+auto_close_tickets: true, // Closes messages after reply
+```
+
+If you replace `categories: false` with following snippet, you enable the subgroup system.
+This will allow the user to select a subcategory (e.g. for specified staff). If a chat has the same ID
+as the `staffchat_id` you can e.g. create a help chat for using the bot.
+
+```js
+// subgroups for different subcategories in JS Array -> Object format
+categories:
+[
+  {
+    name: 'Category1', subgroups: [
+      {name: 'Sub1', group_id: '-12345678910'},
+      {name: 'Sub2', group_id: '-12345678910'},
+      {name: 'Sub3', group_id: '-12345678910'},
+    ],
+  },
+  {
+    name: 'Category2', subgroups: [
+      {name: 'Sub4', group_id: '-12345678910'},
+      {name: 'Sub5', group_id: '-12345678910'},
+      {name: 'Sub6', group_id: '-12345678910'},
+    ],
+  },
+  {
+    name: 'Category3', group_id: '-12345678910'
+  },
+  {
+    name: 'Admin Chat', group_id: '-12345678910' 
+  },
+],
+```
+
+To edit autoreply keywords adjust `config/strings.ts` according to your needs:
+
+```js
+const strings = [
+    [ "how do I install this?", "You don't." ],
+    [ "are you sure?", "Yes." ],
+    [ "Some other Case Sensitive Text", "OK." ],
+]
+```
 
 ## Docker
 
