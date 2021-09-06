@@ -9,12 +9,18 @@
 # [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot) (Ticketing system for Telegram)
 is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It lets users create tickets which will be send to a staff group and can be answered by a reply.
 
+Telegram ticketing implementation:
+
 <table>
 <tr>
 <th><img src="https://i.imgur.com/du5KZ1C.jpg" /></th>
 <th><img src="https://i.imgur.com/N2002b0.jpg" /></th>
 </tr>
 </table>
+
+Web implementation:
+
+![image](https://user-images.githubusercontent.com/7342321/132263281-3e556787-ae8b-4a62-840a-165daaec174b.png)
 
 ## Documentation
 
@@ -47,6 +53,7 @@ Features:
 * Private reply to user
 * Anonymize users
 * Auto reply based on keywords [beta]
+* Web chat  
 
 ## Installation
 
