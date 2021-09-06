@@ -6,3 +6,5 @@ services:
     restart: unless-stopped
     volumes:
       - ${PWD}/config:/telegram-support-bot/config
+    ports:
+      - "8080:8080"

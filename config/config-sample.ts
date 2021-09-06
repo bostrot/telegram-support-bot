@@ -8,6 +8,8 @@ const config = {
   auto_close_tickets: true,
   direct_reply: false,
   anonymous_tickets: true, //Include userid in tickets or not
+  web_server: true, // Enable/disable web server
+  web_server_port: 8080, // Port for web server
 
   // customize your language
   language: {
