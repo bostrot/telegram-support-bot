@@ -38,7 +38,6 @@ function ticketHandler(bot, ctx) {
   if (ctx.chat.type === 'private') {
     db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
       if (ticket == undefined) {
-        console.log(ctx.session.groupCategory)
         db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
       }
       users.chat(ctx, bot, ctx.message.chat);

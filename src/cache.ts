@@ -6,6 +6,7 @@ let cache = {
   html: '',
   noSound: '',
   markdown: '',
+  io: null,
 };
 
 export default cache;

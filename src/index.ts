@@ -10,10 +10,13 @@ import * as text from './text';
 import * as files from './files';
 import config from '../config/config';
 import * as error from './error';
-
+import * as webserver from './web';
 
 // Create new Telegraf() with token
 const bot = new Telegraf(config.bot_token);
+
+// Start webserver
+webserver.init(bot);
 
 // Init error handling
 error.init(bot);
@@ -40,6 +43,7 @@ bot.command('open', (ctx) => commands.openCommand(ctx));
 bot.command('close', (ctx) => commands.closeCommand(bot, ctx));
 bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
 bot.command('unban', (ctx) => commands.unbanCommand(bot, ctx));
+bot.command('clear', (ctx) => commands.clearCommand(ctx));
 bot.command('start', (ctx) => {
   ctx.session.mode = undefined;
   ctx.session.modeData = undefined;
@@ -50,7 +54,8 @@ bot.command('start', (ctx) => {
   } else ctx.reply(config.language.prvChatOnly);
 });
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
-bot.command('faq', (ctx) => ctx.reply(config.language.faqCommandText, Extra.HTML()));
+bot.command('faq', (ctx) => 
+ctx.reply(config.language.faqCommandText, Extra.HTML()));
 bot.command('help', (ctx) => ctx.reply(config.language.helpCommandText, Extra.HTML()));
 bot.command('links', (ctx) => {
   let links = '';

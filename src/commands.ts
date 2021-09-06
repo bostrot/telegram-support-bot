@@ -1,6 +1,16 @@
 import * as db from './db';
 const {Extra} = require('telegraf');
 import config from '../config/config';
+import * as middleware from './middleware';
+
+/**
+ * Close all open tickets
+ * @param {Object} ctx
+ */
+function clearCommand(ctx) {
+  db.closeAll();
+  ctx.reply('All tickets closed.', Extra.HTML().notifications(false));
+}
 
 /**
  * Display open tickets
@@ -30,9 +40,11 @@ function openCommand(ctx) {
     for (const i in userList) {
       if (userList[i]['userid'] !== null &&
                       userList[i]['userid'] !== undefined) {
+        const isWebTicket = userList[i]['userid'].indexOf('WEB') > -1;
         openTickets += '#T' + userList[i]['id']
             .toString().padStart(6, '0')
-            .toString() + '\n';
+            .toString() + (isWebTicket ? ' (web)' : '') + ' ' +
+            '\n';
       }
     }
     ctx.reply(`<b>${config.language.openTickets}\n\n</b> ${openTickets}`,
@@ -90,13 +102,10 @@ function closeCommand(bot, ctx) {
     // eslint-disable-next-line new-cap
     Extra.HTML().notifications(false)
     );
-    bot.telegram.sendMessage(
-      userid,
+    middleware.message(bot, userid, 
       `${config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
       `${config.language.closed}\n\n${config.language.ticketClosed}`,
-      // eslint-disable-next-line new-cap
-      Extra.HTML().notifications(false)
-    );
+      Extra.HTML().notifications(false));
   }, groups);
 };
 
@@ -115,14 +124,10 @@ function banCommand(bot, ctx) {
   // get userid from ticketid
   db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'banned', undefined);
-    bot.telegram.sendMessage(
-        ctx.chat.id,
-        config.language.usr_with_ticket + ' #T'+
-                  ticket.id.toString().padStart(6, '0')+
-                      ' ' + config.language.banned,
-        // eslint-disable-next-line new-cap
-        Extra.HTML().notifications(false)
-    );
+
+    middleware.message(bot, ctx.chat.id, config.language.usr_with_ticket + ' #T'+
+    ticket.id.toString().padStart(6, '0')+
+        ' ' + config.language.banned, Extra.HTML().notifications(false));
   });
 };
 
@@ -141,14 +146,9 @@ function unbanCommand(bot, ctx) {
   // get userid from ticketid
   db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'closed', undefined);
-    bot.telegram.sendMessage(
-        ctx.chat.id,
-        config.language.usr_with_ticket + ' #T'+
-                  ticket.id.toString().padStart(6, '0')+
-                      ' ' + 'unbanned',
-        // eslint-disable-next-line new-cap
-        Extra.HTML().notifications(false)
-    );
+    middleware.message(bot, ctx.chat.id, config.language.usr_with_ticket + ' #T'+
+    ticket.id.toString().padStart(6, '0') +
+        ' ' + 'unbanned', Extra.HTML().notifications(false));
   });
 };
 
@@ -157,4 +157,5 @@ export {
   openCommand,
   closeCommand,
   unbanCommand,
+  clearCommand,
 };

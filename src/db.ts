@@ -22,7 +22,7 @@ const check = function(userid, category, callback) {
 const getOpen = function(userid, category, callback) {
   const searchDB = db.prepare(
       `select * from supportees where (userid = `+
-      `${userid} or id = ${userid}) AND status='open' ` +
+      `'${userid}' or id = '${userid}') AND status='open' ` +
       `${(category ? `AND category = '${category}'`: '')}`).get();
   callback(searchDB);
 };
@@ -40,6 +40,11 @@ const checkBan = function(userid, callback) {
       `${userid} or id = ${userid}) AND status='banned' `).get();
   callback(searchDB);
 };
+
+const closeAll = function() {
+  let msg = db.prepare(
+    `UPDATE supportees SET status='closed'`).run();
+}
 
 const add = function(userid, status, category) {
   let msg;
@@ -92,4 +97,5 @@ export {
   getOpen,
   checkBan,
   getId,
+  closeAll,
 }

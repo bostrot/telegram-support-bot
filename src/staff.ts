@@ -109,11 +109,27 @@ function chat(ctx, bot) {
       cache.ticketStatus[userid[1]] = false;
 
       // To user
-      bot.telegram.sendMessage(ticket.userid,
+      // Web user
+      if (ticket.userid.indexOf('WEB') > -1) {
+        try {
+          let socket_id = ticket.userid.split('WEB')[1];
+          cache.io.to(socket_id).emit('chat_staff', ticketMsg(name[1], ctx.message));
+        } catch(e) {
+          // To staff msg error
+          bot.telegram.sendMessage(ctx.chat.id,
+              `Web chat already closed.`,
+              // eslint-disable-next-line new-cap
+              Extra.HTML().notifications(false)
+          );
+          console.log(e);
+        }
+      } else {
+        bot.telegram.sendMessage(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
           Extra.HTML()
-      );
+        );
+      }
       
       // To staff msg sent
       bot.telegram.sendMessage(ctx.chat.id,

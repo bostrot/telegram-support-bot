@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+  <style>
+    body {
+      background-color: transparent;
+      margin-top: 335px;
+    }
+
+    .container {
+      display: none;
+      background-color: white;
+      margin: 0 !important;
+      border-radius: 20px 20px 0 0;
+      height: 400px;
+      max-width: 1000px;
+    }
+
+    #messages {
+      height: 290px;
+      padding: 20px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    form {
+      padding-left: 10px;
+      padding-right: 10px;
+      margin-bottom: 10px;
+      float: right;
+    }
+
+    .row {
+      width: 100%;
+    }
+
+    .msg-full {
+      width: 100%;
+      height: 75px;
+    }
+
+    .msg {
+      background: #1E88E5;
+      color: #fff;
+      padding: 10px;
+    }
+
+    .msg-you {
+      float: right;
+      text-align: end;
+      border-radius: 20px 20px 0px 20px;
+    }
+
+    .msg-other {
+      float: left;
+      text-align: start;
+      border-radius: 20px 20px 20px 0px;
+    }
+
+    .btn {
+      background: #1E88E5;
+    }
+
+    .time {
+      font-size: xx-small;
+    }
+
+    input {
+      border-top-left-radius: 20px !important;
+      border-bottom-left-radius: 20px !important;
+    }
+
+    button {
+      border-top-right-radius: 20px !important;
+      border-bottom-right-radius: 20px !important;
+    }
+
+    .topbar {
+      width: 100%;
+      height: 50px;
+      padding: 20px 0px 0px 20px;
+    }
+
+    .container-min {
+      background-color: white;
+      margin: 0 !important;
+      border-radius: 20px 20px 0 0;
+      height: 65px;
+    }
+
+    .btn-close {
+      float: right;
+      margin-left: 10px;
+      margin-top: 5px;
+    }
+
+    /* scrollbar */
+    /* width */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 5px;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-min" id="chat-container-bar">
+    <div class="topbar row">
+      <div class="col">
+        <h4>Chat with us</h4>
+      </div>
+      <div class="col">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="chat-container">
+    <div class="topbar row">
+      <div class="col">
+        <h4>Chat with us</h4>
+      </div>
+      <div class="col">
+        <button type="button" id="chat-container-close" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+    </div>
+    <div id="messages"></div>
+
+    <form id="form" action="" class="input-group">
+      <input id="input" type="text" class="form-control" placeholder="Type your message here..." autocomplete="off">
+      <button type="submit" class="btn btn-secondary">Send</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat', input.value);
+        input.value = '';
+      }
+    });
+
+    // msg from user
+    socket.on('chat_user', function (msg) {
+      handleMsg('user', msg);
+    });
+
+    // msg from staff
+    socket.on('chat_staff', function (msg) {
+      setTimeout(function () {
+        handleMsg('staff', msg);
+      }, 1000);
+    });
+
+    let handleMsg = function (type, msg) {
+      let current = new Date();
+      let time = current.getHours().toString().padStart(2, 0) + ":" + current.getMinutes().toString().padStart(2, 0)
+      var msgdiv = document.createElement('div');
+      msgdiv.className = 'msg-full';
+      var item = document.createElement('p');
+      item.className = 'msg ' + (type == 'user' ? 'msg-you' : 'msg-other');
+      item.innerHTML = msg + '<div class="time">' + time + '</div>';
+      msgdiv.appendChild(item);
+      messages.appendChild(msgdiv);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // on document load
+    window.onload = function () {
+      handleMsg('staff', 'Welcome, ask your question here!');
+      
+      let chatContainerBar = document.getElementById('chat-container-bar');
+      let chatContainer = document.getElementById('chat-container');
+      let chatContainerClose = document.getElementById('chat-container-close');
+      chatContainerBar.addEventListener('click', function () {
+        chatContainerBar.style.display = 'none';
+        chatContainer.style.display = 'block';
+        document.body.style.marginTop = '0px';
+      });
+      chatContainerClose.addEventListener('click', function () {
+        chatContainerBar.style.display = 'block';
+        chatContainer.style.display = 'none';
+        document.body.style.marginTop = '335px';
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous">
+  </script>
+  </div>
+</body>
+
+</html>
