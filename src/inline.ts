@@ -1,5 +1,6 @@
 import * as db from './db';
 import config from '../config/config';
+import * as middleware from './middleware';
 
 /**
  * Helper function for reply keyboard
@@ -149,27 +150,25 @@ function callbackQuery(bot, ctx) {
     name: name,
     category: category,
   };
-  bot.telegram.sendMessage(ctx.callbackQuery.from.id,
-    ctx.chat.type !== 'private' ?
-      `${config.language.ticket} ` +
-      `#T${ticketid.toString().padStart(6, '0')}` +
-      `\n\n` +
-      config.language.prvChatOpened : config.language.prvChatOpenedCustomer,
-      {
-        parse_mode: 'html',
-        reply_markup: {
-          html: '',
-          inline_keyboard: [
-            [
-              {
-                'text': config.language.prvChatEnd,
-                'callback_data': 'R',
-              },
-            ],
+  middleware.msg(ctx.callbackQuery.from.id, ctx.chat.type !== 'private' ?
+    `${config.language.ticket} ` +
+    `#T${ticketid.toString().padStart(6, '0')}` +
+    `\n\n` +
+    config.language.prvChatOpened : config.language.prvChatOpenedCustomer,
+    {
+      parse_mode: 'html',
+      reply_markup: {
+        html: '',
+        inline_keyboard: [
+          [
+            {
+              'text': config.language.prvChatEnd,
+              'callback_data': 'R',
+            },
           ],
-        },
-      }
-  );
+        ],
+      },
+    });
 
   // TODO: forward to bot? not possible without triggering start command
   // var t = ('https://t.me/' + bot.options.username + '?start=X');

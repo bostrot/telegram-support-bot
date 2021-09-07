@@ -11,9 +11,18 @@ import * as files from './files';
 import config from '../config/config';
 import * as error from './error';
 import * as webserver from './web';
+import cache from './cache';
+
+import * as signal from './addons/signal';
+
+signal.init(function(ctx, msg) {
+  console.log(msg)
+  text.handleText(bot, ctx, msg);
+});
 
 // Create new Telegraf() with token
 const bot = new Telegraf(config.bot_token);
+cache.bot = bot;
 
 // Start webserver
 webserver.init(bot);
@@ -30,7 +39,13 @@ if (testing) {
 
 // Use session and check for permissions on message
 bot.use(permissions.currentSession());
-bot.use((ctx, next) => permissions.checkPermissions(ctx, next, config));
+bot.use((ctx, next) => {
+  // Check dev mode
+  if (config.dev_mode) {
+    ctx.reply('<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', Extra.HTML());
+  }
+  permissions.checkPermissions(ctx, next, config)
+});
 
 // Init category keys
 const keys = inline.initInline(bot, config);

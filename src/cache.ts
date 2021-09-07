@@ -7,6 +7,7 @@ let cache = {
   noSound: '',
   markdown: '',
   io: null,
+  bot: null,
 };
 
 export default cache;

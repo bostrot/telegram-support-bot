@@ -8,15 +8,16 @@ const config = {
   auto_close_tickets: true,
   direct_reply: false,
   anonymous_tickets: true, //Include userid in tickets or not
-  web_server: true, // Enable/disable web server
+  web_server: false, // Enable/disable web server
   web_server_port: 8080, // Port for web server
+  dev_mode: false, // Enable/disable dev mode
 
   // customize your language
   language: {
     startCommandText: 'Welcome in our support chat! Ask your question here.',
     faqCommandText: 'Get this bot at: <a href=\'https://github.com/bostrot/telegram-support-bot\'>github.com</a>',
     helpCommandText: '<b>Available commands:</b>\n/help\n/faq\n/id',
-    contactMessage: 'Thank you for contacting us. We will answer as soon as possible.',
+    contactMessage: 'Thank you for contacting us. We will answer as soon as possible.\nYour Ticket ID: ',
     blockedSpam: 'You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them.',
     ticket: 'Ticket',
     closed: 'closed',

@@ -2,6 +2,7 @@ import * as db from './db';
 import config from '../config/config';
 import cache from './cache';
 import * as staff from './staff';
+import * as middleware from './middleware';
 const {Extra} = require('telegraf');
 
 /**
@@ -178,7 +179,8 @@ function fileHandler(type, bot, ctx) {
           break;
       }
       // Confirmation message
-      let message = config.language.contactMessage;
+      let message = config.language.contactMessage + ' #T' +
+        ticket.id.toString().padStart(6, '0');
       // if admin
       if(ctx.session.admin && userInfo === undefined) {
         const name = replyText.match(new RegExp(
@@ -186,9 +188,7 @@ function fileHandler(type, bot, ctx) {
             config.language.language));
         message = `${config.language.file_sent} ${name[1]}`;
       }
-      bot.telegram.sendMessage(
-        ctx.chat.id,
-        message);
+      middleware.msg(ctx.chat.id, message, {});
     });
   });
 }
@@ -227,9 +227,7 @@ function forwardFile(bot, ctx, callback) {
         });
       } else if (cache.ticketSent[cache.ticketID] === 5) {
         cache.ticketSent[cache.ticketID]++;
-        bot.telegram.sendMessage(ctx.chat.id,
-            // eslint-disable-next-line new-cap
-            config.language.blockedSpam, Extra.HTML());
+        middleware.msg(ctx.chat.id, config.language.blockedSpam, Extra.HTML());
       }
     }
   });

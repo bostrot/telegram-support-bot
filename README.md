@@ -139,9 +139,9 @@ docker build -t bostrot/telegram-support-bot:latest .
 docker run bostrot/telegram-support-bot -v /path/to/config_dir:/bot/config
 ```
 
-## Update to v1.0.1
+## Updating
 
-Backup and delete the database file (src/support.db) and move config.js to folder config. Then just start it normally.
+Backup and delete the database file (src/support.db) and config.js/config.ts files. Customize the new config.ts then just start it normally.
 
 ## Telegram token
 

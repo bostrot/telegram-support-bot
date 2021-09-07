@@ -40,10 +40,14 @@ function openCommand(ctx) {
     for (const i in userList) {
       if (userList[i]['userid'] !== null &&
                       userList[i]['userid'] !== undefined) {
-        const isWebTicket = userList[i]['userid'].indexOf('WEB') > -1;
+        let ticketInfo = '';
+        if (userList[i]['userid'].indexOf('WEB') > -1)
+          ticketInfo = '(web)';
+        if (userList[i]['userid'].indexOf('SIGNAL') > -1)
+          ticketInfo = '(signal)';
         openTickets += '#T' + userList[i]['id']
             .toString().padStart(6, '0')
-            .toString() + (isWebTicket ? ' (web)' : '') + ' ' +
+            .toString() + ' ' + ticketInfo +
             '\n';
       }
     }
@@ -102,7 +106,7 @@ function closeCommand(bot, ctx) {
     // eslint-disable-next-line new-cap
     Extra.HTML().notifications(false)
     );
-    middleware.message(bot, userid, 
+    middleware.msg(userid, 
       `${config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
       `${config.language.closed}\n\n${config.language.ticketClosed}`,
       Extra.HTML().notifications(false));
@@ -125,7 +129,7 @@ function banCommand(bot, ctx) {
   db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'banned', undefined);
 
-    middleware.message(bot, ctx.chat.id, config.language.usr_with_ticket + ' #T'+
+    middleware.msg(ctx.chat.id, config.language.usr_with_ticket + ' #T'+
     ticket.id.toString().padStart(6, '0')+
         ' ' + config.language.banned, Extra.HTML().notifications(false));
   });
@@ -146,7 +150,7 @@ function unbanCommand(bot, ctx) {
   // get userid from ticketid
   db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'closed', undefined);
-    middleware.message(bot, ctx.chat.id, config.language.usr_with_ticket + ' #T'+
+    middleware.msg(ctx.chat.id, config.language.usr_with_ticket + ' #T'+
     ticket.id.toString().padStart(6, '0') +
         ' ' + 'unbanned', Extra.HTML().notifications(false));
   });

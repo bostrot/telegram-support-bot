@@ -27,7 +27,8 @@ let fake_ctx = {
     },
     session: {
 
-    }
+    },
+    reply: null,
 }
 
 export default fake_ctx;

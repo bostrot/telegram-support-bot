@@ -11,8 +11,8 @@ import * as db from './db';
  * @return {String} text
  */
 function ticketMsg(name, message) {
-  return `${config.language.dear} <b>`+
-    `${name}</b>,\n\n`+
+  return `${config.language.dear} `+
+    `${name},\n\n`+
     `${middleware.escapeText(message.text)}\n\n`+
     `${config.language.regards}\n`+
     `${message.from.first_name}`;
@@ -27,8 +27,7 @@ function privateReply(bot, ctx, msg = undefined) {
   if (msg == undefined)
     msg = ctx.message;
   // Msg to other end
-  bot.telegram.sendMessage(
-    ctx.session.modeData.userid,
+  middleware.msg(ctx.session.modeData.userid,
     ticketMsg(` ${ctx.session.modeData.name}`, msg),
     {
       parse_mode: 'html',
@@ -53,9 +52,7 @@ function privateReply(bot, ctx, msg = undefined) {
     }
   );
   // Confirmation message
-  bot.telegram.sendMessage(
-    ctx.from.id,
-    config.language.msg_sent);
+  middleware.msg(ctx.chat.id, config.language.msg_sent, {});
 }
 
 /**
@@ -116,15 +113,11 @@ function chat(ctx, bot) {
           cache.io.to(socket_id).emit('chat_staff', ticketMsg(name[1], ctx.message));
         } catch(e) {
           // To staff msg error
-          bot.telegram.sendMessage(ctx.chat.id,
-              `Web chat already closed.`,
-              // eslint-disable-next-line new-cap
-              Extra.HTML().notifications(false)
-          );
+          middleware.msg(ctx.chat.id, `Web chat already closed.`, Extra.HTML().notifications(false));
           console.log(e);
         }
       } else {
-        bot.telegram.sendMessage(ticket.userid,
+        middleware.msg(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
           Extra.HTML()
@@ -132,7 +125,7 @@ function chat(ctx, bot) {
       }
       
       // To staff msg sent
-      bot.telegram.sendMessage(ctx.chat.id,
+      middleware.msg(ctx.chat.id,
           `${config.language.msg_sent} ${name[1]}`,
           // eslint-disable-next-line new-cap
           Extra.HTML().notifications(false)
@@ -146,7 +139,7 @@ function chat(ctx, bot) {
     });
   } catch (e) {
     console.log(e);
-    bot.telegram.sendMessage(
+    middleware.msg(
         config.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`,
         // eslint-disable-next-line new-cap

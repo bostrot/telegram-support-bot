@@ -16,7 +16,7 @@
     "scripts": {
         "tsc": "tsc",
         "dev": "ts-node-dev ./src/index.ts",
-        "prod": "tsc && cp ./src/web/index.html ./build/src/web/index.html && node ./build/src/index.js"
+        "prod": "tsc && cp -r ./src/web ./build/src/web && node ./build/src/index.js"
     },
     "engines": {
         "node": ">=6.2.0"

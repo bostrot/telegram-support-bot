@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as util from 'util';
 import config from '../config/config';
+import * as middleware from './middleware';
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
 
@@ -24,9 +25,7 @@ function init(bot) {
           if (err) throw err;
         });
     console.error(new Date() + ': ' + 'Error: ', err);
-    bot.telegram.sendMessage(
-        config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`,
-    );
+    middleware.msg(config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
     process.exit(1);
   });
 
@@ -40,9 +39,8 @@ function init(bot) {
           if (err) throw err;
         });
     console.dir(new Date() + ': ' + err["stack"]);
-    bot.telegram.sendMessage(
-        config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`,
-    );
+    
+    middleware.msg(config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
   });
 }
 

@@ -38,7 +38,6 @@ if (config.web_server) {
         fake_ctx.message.chat.id = 'WEB' + socket.id;
         fake_ctx.message.text = msg;
         ticketHandler(bot, fake_ctx);
-        // bot.telegram.sendMessage(config.staffchat_id, msg);
       });
       socket.on('disconnect', () => console.log('Disconnected'));
     });

@@ -34,8 +34,8 @@ function autoReply(ctx, bot, chat) {
   for (let i in strings) {
     if (ctx.message.text.toString().indexOf(strings[i][0]) > -1) {
       // Define message
-      let msg = `${config.language.dear} <b>`+
-        `${ctx.message.from.first_name}</b>,\n\n`+
+      let msg = `${config.language.dear} `+
+        `${ctx.message.from.first_name},\n\n`+
         `${middleware.escapeText(strings[i][1])}\n\n`+
         `${config.language.regards}\n`+
         `${config.language.automatedReplyAuthor}\n\n`+
@@ -69,21 +69,21 @@ function chat(ctx, bot, chat) {
   cache.ticketStatus[cache.ticketID] = true;
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
-    // eslint-disable-next-line new-cap
-    if (!isAutoReply)
-      middleware.message(bot, chat.id, config.language.contactMessage, Extra.HTML());
-    // Get Ticket ID from DB1
     db.getOpen(chat.id, ctx.session.groupCategory, function(ticket) {
       
+      if (!isAutoReply)
+        middleware.msg(chat.id, config.language.contactMessage + ' #T' +
+          ticket.id.toString().padStart(6, '0'), Extra.HTML());
+
       // To staff
-      middleware.message(bot, config.staffchat_id, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
+      middleware.msg(config.staffchat_id, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
       Extra.HTML());
       
       // Check if group flag is set and is not admin chat
       if (ctx.session.group !== undefined &&
         ctx.session.group != config.staffchat_id) {
         // Send to group-staff chat
-      middleware.message(bot, ctx.session.group, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo), config.allow_private ? {
+      middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo), config.allow_private ? {
         parse_mode: 'html',
         reply_markup: {
           html: '',
@@ -113,11 +113,11 @@ function chat(ctx, bot, chat) {
   } else if (cache.ticketSent[cache.ticketID] < 4) {
     cache.ticketSent[cache.ticketID]++;
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
-      middleware.message(bot, config.staffchat_id, 
+      middleware.msg(config.staffchat_id, 
         ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
         Extra.HTML());
       if (ctx.session.group !== undefined) {
-        middleware.message(bot, ctx.session.group, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
+        middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo),
           Extra.HTML());
       }
     });
@@ -125,7 +125,7 @@ function chat(ctx, bot, chat) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
     
-    middleware.message(bot, chat.id, config.language.blockedSpam, Extra.HTML());
+    middleware.msg(chat.id, config.language.blockedSpam, Extra.HTML());
   }
   db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
     console.log(ticketMsg(ticket.id, ctx.message, config.anonymous_tickets, autoReplyInfo));
