@@ -4,7 +4,7 @@
  */
 import fake_ctx from '../web/fake_ctx'
 const { exec } = require("child_process");
-const username = '+123456789'
+const username = '+49***REMOVED***'
 
 /**
  * Send message

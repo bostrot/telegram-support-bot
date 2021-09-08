@@ -15,18 +15,21 @@ import cache from './cache';
 
 import * as signal from './addons/signal';
 
-signal.init(function(ctx, msg) {
-  console.log(msg)
-  text.handleText(bot, ctx, msg);
-});
+if (config.signal_enabled) {
+  signal.init(function(ctx, msg) {
+    console.log(msg)
+    text.handleText(bot, ctx, msg);
+  });
+}
 
 // Create new Telegraf() with token
 const bot = new Telegraf(config.bot_token);
 cache.bot = bot;
 
 // Start webserver
-webserver.init(bot);
-
+if (config.web_server) {
+  webserver.init(bot);
+}
 // Init error handling
 error.init(bot);
 

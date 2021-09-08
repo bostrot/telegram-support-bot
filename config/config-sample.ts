@@ -11,6 +11,7 @@ const config = {
   web_server: false, // Enable/disable web server
   web_server_port: 8080, // Port for web server
   dev_mode: false, // Enable/disable dev mode
+  signal_enabled: false, // Enable/disable signal
 
   // customize your language
   language: {
