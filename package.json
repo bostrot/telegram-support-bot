@@ -1,6 +1,6 @@
 {
     "name": "telegram-support-bot",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "description": "Telegram Support Bot",
     "license": "GPL-3.0",
     "author": "bostrot <eric@bostrot.com>",
@@ -57,6 +57,9 @@
         "support",
         "telegraf",
         "telegram",
+        "ticket",
+        "ticketing",
+        "ticketing system",
         "telegram bot api",
         "bot",
         "botapi",
