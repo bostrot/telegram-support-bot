@@ -4,14 +4,14 @@ let fake_ctx = {
       web_msg: true,
       message_id: 4260,
       from: {
-        id: "WEB***REMOVED***",
+        id: "WEB49128969",
         is_bot: false,
         first_name: "Web User",
         username: "webuser",
         language_code: "en",
       },
       chat: {
-        id: "WEB***REMOVED***",
+        id: "WEB49128969",
         first_name: "Web User",
         username: "webuser",
         type: "private",
@@ -20,7 +20,7 @@ let fake_ctx = {
       text: "hello",
     },
     chat: {
-      id: "WEB***REMOVED***",
+      id: "WEB49128969",
       first_name: "Web User",
       username: "webuser",
       type: "private",
