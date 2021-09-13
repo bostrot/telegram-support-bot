@@ -3,13 +3,21 @@ bot_token: "YOUR_BOT_TOKEN" # support bot tok                                   
 staffchat_id: "SUPERGROUP_CHAT_ID" # eg. -123456789
 owner_id: "YOUR_TELEGRAM_ID"
 spam_time: 5 * 60 * 1000 # time (in MS) in which user may send 5 messages
+
 allow_private: false # Allow / disallow option for staff to chat privately
-auto_close_tickets: true
-direct_reply: false
-anonymous_tickets: true #Include userid in tickets or not
+direct_reply: false # Set this to true to just forward staff users to a user chat when allow_private
+
+auto_close_tickets: true # Close tickets after answering
+anonymous_tickets: true # Include userid in tickets or not
+
 signal_enabled: false # Enable/disable signal
+signal_number: '+12345689' # Your signal number / account
+
 web_server: false # Enable/disable web server
 web_server_port: 8080 # Port for web server
+web_server_ssl_cert: '../src/web/ssl.crt' # Path for SSL cert
+web_server_ssl_key: '../src/web/ssl.key' # Path for SSL key
+
 dev_mode: true # Enable/disable dev mode
 
 # customize your language
