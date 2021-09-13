@@ -1,6 +1,5 @@
 import fake_ctx from './web/fake_ctx';
 import { ticketHandler } from './text';
-import config from '../config/config';
 import cache from './cache';
 
 /* include script
@@ -8,11 +7,11 @@ import cache from './cache';
 */
 let init = function(bot) {
     // Enable web server with socketio
-if (config.web_server) {
+if (cache.config.web_server) {
     const express = require('express');
     const http = require('http');
     const app = express();
-    const port = config.web_server_port;
+    const port = cache.config.web_server_port;
     const server = http.createServer(app);
   
     const { Server } = require('socket.io');

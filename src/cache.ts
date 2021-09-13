@@ -8,6 +8,7 @@ let cache = {
   markdown: '',
   io: null,
   bot: null,
+  config: null,
 };
 
 export default cache;

@@ -1,5 +1,4 @@
 import * as db from './db';
-import config from '../config/config';
 import cache from './cache';
 import * as staff from './staff';
 import * as middleware from './middleware';
@@ -16,13 +15,13 @@ function replyMarkup(ctx) {
       html: '',
       inline_keyboard: [
         [
-          config.direct_reply ?
+          cache.config.direct_reply ?
           {
-            'text': config.language.replyPrivate,
+            'text': cache.config.language.replyPrivate,
             'url': `https://t.me/${ctx.from.username}`,
           } :
           {
-            'text': config.language.replyPrivate,
+            'text': cache.config.language.replyPrivate,
             'callback_data': ctx.from.id +
             '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
             '---' + ctx.session.modeData.ticketid
@@ -49,10 +48,10 @@ function fileHandler(type, bot, ctx) {
       replyText = ctx.message.reply_to_message.caption;
     }
     userid = replyText.match(new RegExp('#T' +
-          '(.*)' + ' ' + config.language.from));
+          '(.*)' + ' ' + cache.config.language.from));
     if (userid === null || userid === undefined) {
       userid = replyText.match(new RegExp('#T' +
-            '(.*)' + '\n' + config.language.from));
+            '(.*)' + '\n' + cache.config.language.from));
     }
     // replying to non-ticket
     if (userid === null || userid === undefined) {
@@ -60,7 +59,7 @@ function fileHandler(type, bot, ctx) {
     }
   }
   forwardFile(bot, ctx, function(userInfo) {
-    let receiverId = config.staffchat_id;
+    let receiverId = cache.config.staffchat_id;
     let msgId = ctx.message.chat.id;
     let isPrivate = false;
     // if admin
@@ -71,13 +70,13 @@ function fileHandler(type, bot, ctx) {
       if (ticket == undefined) {
         if(ctx.session.admin && userInfo === undefined) {
           // replying to closed ticket
-          ctx.reply(config.language.ticketClosedError);
+          ctx.reply(cache.config.language.ticketClosedError);
         } else {
-          ctx.reply(config.language.textFirst);
+          ctx.reply(cache.config.language.textFirst);
         }
         return;
       }
-            let captionText = config.language.ticket +
+            let captionText = cache.config.language.ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
         ' ' +
@@ -102,7 +101,7 @@ function fileHandler(type, bot, ctx) {
                 reply_markup: isPrivate ? replyMarkup(ctx) : {},
               }
           );
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+          if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
             bot.telegram.sendDocument(
                 ctx.session.group,
@@ -113,7 +112,7 @@ function fileHandler(type, bot, ctx) {
                     inline_keyboard: [
                       [
                         {
-                          'text': config.language.replyPrivate,
+                          'text': cache.config.language.replyPrivate,
                           'callback_data': ctx.from.id +
                           '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
                           '---' + ticket.id 
@@ -130,7 +129,7 @@ function fileHandler(type, bot, ctx) {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+          if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
             bot.telegram.sendPhoto(ctx.session.group,
                 ctx.message.photo[0].file_id, {
@@ -140,7 +139,7 @@ function fileHandler(type, bot, ctx) {
                     inline_keyboard: [
                       [
                         {
-                          'text': config.language.replyPrivate,
+                          'text': cache.config.language.replyPrivate,
                           'callback_data': ctx.from.id +
                           '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
                           '---' + ticket.id 
@@ -156,7 +155,7 @@ function fileHandler(type, bot, ctx) {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
-          if (ctx.session.group !== undefined && ctx.session.group !== config.staffchat_id &&
+          if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
             bot.telegram.sendVideo(ctx.session.group,
                 ctx.message.video.file_id, {
@@ -166,7 +165,7 @@ function fileHandler(type, bot, ctx) {
                     inline_keyboard: [
                       [
                         {
-                          'text': config.language.replyPrivate,
+                          'text': cache.config.language.replyPrivate,
                           'callback_data': ctx.from.id +
                           '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
                           '---' + ticket.id 
@@ -179,14 +178,15 @@ function fileHandler(type, bot, ctx) {
           break;
       }
       // Confirmation message
-      let message = config.language.contactMessage + ' #T' +
+      let message = cache.config.language.contactMessage + 
+        (cache.config.show_user_ticket ? cache.config.language.yourTicketId : '') + ' #T' +
         ticket.id.toString().padStart(6, '0');
       // if admin
       if(ctx.session.admin && userInfo === undefined) {
         const name = replyText.match(new RegExp(
-            config.language.from + ' ' + '(.*)' + ' ' +
-            config.language.language));
-        message = `${config.language.file_sent} ${name[1]}`;
+            cache.config.language.from + ' ' + '(.*)' + ' ' +
+            cache.config.language.language));
+        message = `${cache.config.language.file_sent} ${name[1]}`;
       }
       middleware.msg(ctx.chat.id, message, {});
     });
@@ -216,7 +216,7 @@ function forwardFile(bot, ctx, callback) {
         // send notificatoin sounds in that time to avoid spam
         setTimeout(function() {
           cache.ticketSent[cache.ticketID] = undefined;
-        }, config.spam_time);
+        }, cache.config.spam_time);
         cache.ticketSent[cache.ticketID] = 0;
       } else if (cache.ticketSent[cache.ticketID] < 5) {
         cache.ticketSent[cache.ticketID]++;
@@ -227,7 +227,7 @@ function forwardFile(bot, ctx, callback) {
         });
       } else if (cache.ticketSent[cache.ticketID] === 5) {
         cache.ticketSent[cache.ticketID]++;
-        middleware.msg(ctx.chat.id, config.language.blockedSpam, Extra.HTML());
+        middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, Extra.HTML());
       }
     }
   });
@@ -244,14 +244,14 @@ function fowardHandler(ctx, callback) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
       userInfo =
-          `${config.language.from} ${ctx.message.from.first_name} ` +
-          `${config.language.language}: ` +
+          `${cache.config.language.from} ${ctx.message.from.first_name} ` +
+          `${cache.config.language.language}: ` +
           `${ctx.message.from.language_code}\n\n`;
 
       if (ctx.session.group === undefined) {
         userInfo =
-              `${config.language.from} ${ctx.message.from.first_name} ` +
-              `${config.language.language}: ` +
+              `${cache.config.language.from} ${ctx.message.from.first_name} ` +
+              `${cache.config.language.language}: ` +
               `${ctx.message.from.language_code}\n\n`;
       }
       callback(userInfo);

@@ -1,4 +1,3 @@
-import config from '../config/config';
 import cache from './cache';
 const {Extra} = require('telegraf');
 import * as middleware from './middleware';
@@ -11,10 +10,10 @@ import * as db from './db';
  * @return {String} text
  */
 function ticketMsg(name, message) {
-  return `${config.language.dear} `+
+  return `${cache.config.language.dear} `+
     `${name},\n\n`+
     `${middleware.escapeText(message.text)}\n\n`+
-    `${config.language.regards}\n`+
+    `${cache.config.language.regards}\n`+
     `${message.from.first_name}`;
 }
 
@@ -35,13 +34,13 @@ function privateReply(bot, ctx, msg = undefined) {
         html: '',
         inline_keyboard: [
           [
-            config.direct_reply ?
+            cache.config.direct_reply ?
             {
-              'text': config.language.replyPrivate,
+              'text': cache.config.language.replyPrivate,
               'url': `https://t.me/${ctx.from.username}`,
             } :
             {
-              'text': config.language.replyPrivate,
+              'text': cache.config.language.replyPrivate,
               'callback_data': ctx.from.id +
               '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
               '---' + ctx.session.modeData.ticketid
@@ -52,7 +51,7 @@ function privateReply(bot, ctx, msg = undefined) {
     }
   );
   // Confirmation message
-  middleware.msg(ctx.chat.id, config.language.msg_sent, {});
+  middleware.msg(ctx.chat.id, cache.config.language.msg_sent, {});
 }
 
 /**
@@ -79,10 +78,10 @@ function chat(ctx, bot) {
     }
 
     let userid = replyText.match(new RegExp('#T' +
-        '(.*)' + ' ' + config.language.from));
+        '(.*)' + ' ' + cache.config.language.from));
     if (userid === null || userid === undefined) {
       userid = replyText.match(new RegExp('#T' +
-          '(.*)' + '\n' + config.language.from));
+          '(.*)' + '\n' + cache.config.language.from));
     }
 
     // replying to non-ticket
@@ -92,11 +91,11 @@ function chat(ctx, bot) {
 
     db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
             const name = replyText.match(new RegExp(
-          config.language.from + ' ' + '(.*)' + ' ' +
-      config.language.language));
+          cache.config.language.from + ' ' + '(.*)' + ' ' +
+      cache.config.language.language));
       // replying to closed ticket
       if (userid === null || ticket == undefined) {
-        ctx.reply(config.language.ticketClosedError);
+        ctx.reply(cache.config.language.ticketClosedError);
       }
       
       // replying to non-ticket
@@ -126,21 +125,21 @@ function chat(ctx, bot) {
       
       // To staff msg sent
       middleware.msg(ctx.chat.id,
-          `${config.language.msg_sent} ${name[1]}`,
+          `${cache.config.language.msg_sent} ${name[1]}`,
           // eslint-disable-next-line new-cap
           Extra.HTML().notifications(false)
       );
       console.log(`Answer: `+ ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
       // Check if auto close ticket
-      if (config.auto_close_tickets) {
+      if (cache.config.auto_close_tickets) {
         db.add(userid[1], 'closed', undefined);
       }
     });
   } catch (e) {
     console.log(e);
     middleware.msg(
-        config.staffchat_id, `An error occured, please 
+        cache.config.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false)

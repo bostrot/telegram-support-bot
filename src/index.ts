@@ -2,20 +2,23 @@
 const Telegraf = require( 'telegraf');
 const {Extra} = Telegraf;
 
+import * as fs from 'fs';
+import * as YAML from 'yaml';
+import cache from './cache';
+cache.config = YAML.parse(fs.readFileSync('./config/config.yaml', 'utf8'));
+
 import * as middleware from './middleware';
 import * as commands from './commands';
 import * as permissions from './permissions';
 import * as inline from './inline';
 import * as text from './text';
 import * as files from './files';
-import config from '../config/config';
 import * as error from './error';
 import * as webserver from './web';
-import cache from './cache';
 
 import * as signal from './addons/signal';
 
-if (config.signal_enabled) {
+if (cache.config.signal_enabled) {
   signal.init(function(ctx, msg) {
     console.log(msg)
     text.handleText(bot, ctx, msg);
@@ -23,11 +26,11 @@ if (config.signal_enabled) {
 }
 
 // Create new Telegraf() with token
-const bot = new Telegraf(config.bot_token);
+const bot = new Telegraf(cache.config.bot_token);
 cache.bot = bot;
 
 // Start webserver
-if (config.web_server) {
+if (cache.config.web_server) {
   webserver.init(bot);
 }
 // Init error handling
@@ -44,14 +47,14 @@ if (testing) {
 bot.use(permissions.currentSession());
 bot.use((ctx, next) => {
   // Check dev mode
-  if (config.dev_mode) {
+  if (cache.config.dev_mode) {
     ctx.reply('<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', Extra.HTML());
   }
-  permissions.checkPermissions(ctx, next, config)
+  permissions.checkPermissions(ctx, next, cache.config)
 });
 
 // Init category keys
-const keys = inline.initInline(bot, config);
+const keys = inline.initInline(bot, cache.config);
 
 // Set bots username
 bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
@@ -66,25 +69,25 @@ bot.command('start', (ctx) => {
   ctx.session.mode = undefined;
   ctx.session.modeData = undefined;
   if (ctx.chat.type == 'private') {
-    ctx.reply(config.language.startCommandText);
-    if (config.categories.length > 0)
-      setTimeout(() => ctx.reply(config.language.services, inline.replyKeyboard(keys)), 500);    
-  } else ctx.reply(config.language.prvChatOnly);
+    ctx.reply(cache.config.language.startCommandText);
+    if (cache.config.categories.length > 0)
+      setTimeout(() => ctx.reply(cache.config.language.services, inline.replyKeyboard(keys)), 500);    
+  } else ctx.reply(cache.config.language.prvChatOnly);
 });
 bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
 bot.command('faq', (ctx) => 
-ctx.reply(config.language.faqCommandText, Extra.HTML()));
-bot.command('help', (ctx) => ctx.reply(config.language.helpCommandText, Extra.HTML()));
+ctx.reply(cache.config.language.faqCommandText, Extra.HTML()));
+bot.command('help', (ctx) => ctx.reply(cache.config.language.helpCommandText, Extra.HTML()));
 bot.command('links', (ctx) => {
   let links = '';
   const subcategories = [];
-  for (const i in config.categories) {
+  for (const i in cache.config.categories) {
     if (i !== undefined) {
-      for (const j in config.categories[i].subgroups) {
+      for (const j in cache.config.categories[i].subgroups) {
         if (j !== undefined) {
-          const catName = config.categories[i].subgroups[j].name;
-          const id = (config.categories[i].name +
-            config.categories[i].subgroups[j].name)
+          const catName = cache.config.categories[i].subgroups[j].name;
+          const id = (cache.config.categories[i].name +
+            cache.config.categories[i].subgroups[j].name)
             .replace(/[\[\]\:\ "]/g, '').substr(0,63);
           if (subcategories.indexOf(id) == -1) {
             subcategories.push(id);
@@ -94,7 +97,7 @@ bot.command('links', (ctx) => {
       }
     }
   }
-  ctx.reply(`${config.language.links}:\n${links}`, Extra.HTML())
+  ctx.reply(`${cache.config.language.links}:\n${links}`, Extra.HTML())
 });
 
 // Bot ons
@@ -107,7 +110,7 @@ bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () =
   files.fileHandler('document', bot, ctx)));
 
 // Bot regex
-bot.hears(config.language.back, (ctx) => ctx.reply(config.language.services, inline.replyKeyboard(keys)));
+bot.hears(cache.config.language.back, (ctx) => ctx.reply(cache.config.language.services, inline.replyKeyboard(keys)));
 bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
 bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 

@@ -8,28 +8,30 @@ import * as db from './db';
  * @return {Promise} promise
  */
 function checkRights(ctx, config) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     // Is staff - category group
-    config.categories.forEach((element, index) => {
-      // No subgroup
-      if (config.categories[index].subgroups == undefined) {
-        if (config.categories[index].group_id == ctx.chat.id) {
-          ctx.session.groupAdmin = config.categories[index].name;
-        }
-      } else {
-        config.categories[index].subgroups.forEach((innerElement, index) => {
-          if (innerElement.group_id == ctx.chat.id) {
-            ctx.session.groupAdmin = innerElement.name;
+    if (config.categories) {
+      config.categories.forEach((element, index) => {
+        // No subgroup
+        if (config.categories[index].subgroups == undefined) {
+          if (config.categories[index].group_id == ctx.chat.id) {
+            ctx.session.groupAdmin = config.categories[index].name;
           }
-        });
-      }
-    });
+        } else {
+          config.categories[index].subgroups.forEach((innerElement, index) => {
+            if (innerElement.group_id == ctx.chat.id) {
+              ctx.session.groupAdmin = innerElement.name;
+            }
+          });
+        }
+      });
+    }
     if (ctx.session.groupAdmin && ctx.chat.type == 'private') {
       ctx.session.groupAdmin = undefined;
     }
     // Is admin group
     if (ctx.chat.id.toString() === config.staffchat_id ||
-          ctx.session.groupAdmin) {
+      ctx.session.groupAdmin) {
       console.log('Permission granted for ' + ctx.from.username);
       resolve(true);
     } else resolve(false);
@@ -66,9 +68,9 @@ function checkPermissions(ctx, next, config) {
   checkRights(ctx, config).then((access) => {
     if (access) ctx.session.admin = true;
   }).finally(() => {
-    db.checkBan(ctx.chat.id, function(ticket) {
+    db.checkBan(ctx.chat.id, function (ticket) {
       if (ticket != undefined && ticket.status == 'banned') {
-        return; 
+        return;
       }
       return next();
     })

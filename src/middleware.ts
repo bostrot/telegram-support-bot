@@ -1,4 +1,3 @@
-import config from '../config/config';
 import cache from './cache';
 import * as signal from './addons/signal';
 
@@ -37,12 +36,12 @@ const escapeText = (str) => {
 // handle messages to web socket
 const msg = (id, msg, extra) => {
   // Check web message
-  if (id.toString().indexOf('WEB') > -1 && id != config.staffchat_id) {
+  if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
     // Web message
     console.log('Web message')
     let socket_id = id.split('WEB')[1];
     cache.io.to(socket_id).emit('chat_staff', msg);
-  } else if (id.toString().indexOf('SIGNAL') > -1 && id != config.staffchat_id) {
+  } else if (id.toString().indexOf('SIGNAL') > -1 && id != cache.config.staffchat_id) {
     // Signal message
     console.log('Signal message')
     signal.message(id.split('SIGNAL')[1], msg);

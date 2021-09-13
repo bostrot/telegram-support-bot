@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as util from 'util';
-import config from '../config/config';
+import cache from './cache';
 import * as middleware from './middleware';
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
@@ -25,7 +25,7 @@ function init(bot) {
           if (err) throw err;
         });
     console.error(new Date() + ': ' + 'Error: ', err);
-    middleware.msg(config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
+    middleware.msg(cache.config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
     process.exit(1);
   });
 
@@ -40,7 +40,7 @@ function init(bot) {
         });
     console.dir(new Date() + ': ' + err["stack"]);
     
-    middleware.msg(config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
+    middleware.msg(cache.config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
   });
 }
 
