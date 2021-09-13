@@ -11,7 +11,7 @@ import * as db from './db';
  */
 function ticketMsg(name, message) {
   return `${cache.config.language.dear} `+
-    `${name},\n\n`+
+    `${middleware.escapeText(name)},\n\n`+
     `${middleware.escapeText(message.text)}\n\n`+
     `${cache.config.language.regards}\n`+
     `${message.from.first_name}`;

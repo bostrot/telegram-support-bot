@@ -18,7 +18,7 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
   return `${cache.config.language.ticket} ` +
           `#T${ticket.toString().padStart(6, '0')} ${cache.config.language.from} ` +
           `<a href="${link}">` +
-          `${message.from.first_name}</a> ${cache.config.language.language}: ` +
+          `${middleware.escapeText(message.from.first_name)}</a> ${cache.config.language.language}: ` +
           `${message.from.language_code}\n\n` +
           `${middleware.escapeText(message.text)}\n\n` + 
           `<i>${autoReplyInfo}</i>`;
@@ -34,7 +34,7 @@ function autoReply(ctx, bot, chat) {
     if (ctx.message.text.toString().indexOf(strings[i][0]) > -1) {
       // Define message
       let msg = `${cache.config.language.dear} `+
-        `${ctx.message.from.first_name},\n\n`+
+        `${middleware.escapeText(ctx.message.from.first_name)},\n\n`+
         `${middleware.escapeText(strings[i][1])}\n\n`+
         `${cache.config.language.regards}\n`+
         `${cache.config.language.automatedReplyAuthor}\n\n`+
