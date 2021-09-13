@@ -59,13 +59,39 @@ Features:
 
 Install Node ( > 8 ) and npm ( > 3.38.0 ).
 
-Run it
+Download the latest release (e.g. v2.0.2) and run it via npm:
+
 ```bash
-git clone https://github.com/bostrot/telegram-support-bot.git
-cd telegram-support-bot
+wget https://github.com/bostrot/telegram-support-bot/archive/refs/tags/v2.0.2.zip
+unzip v2.0.2.zip
+cd telegram-support-bot-v2.0.2
 npm i
 cp config/config-sample.ts config/config.ts     # Adjust settings in config.ts
 npm run prod                                    # For debugging: npm run dev
+```
+
+or you could also use a **Docker** container:
+
+Either with docker-compose:
+
+```
+docker-compose up -d
+```
+
+or build it yourself:
+
+```
+docker build -t bostrot/telegram-support-bot:v2.0.2 .
+docker run bostrot/telegram-support-bot:v2.0.2 -v /path/to/config_dir:/bot/config
+```
+
+Prebuild docker containers are also available for stable versions and the master branch.
+It is recommend to use the latest release instead of master.
+
+e.g. 
+
+```
+docker run bostrot/telegram-support-bot:v2.0.2 -v /path/to/config_dir:/bot/config
 ```
 
 ## Configuration
@@ -123,20 +149,6 @@ const strings = [
     [ "are you sure?", "Yes." ],
     [ "Some other Case Sensitive Text", "OK." ],
 ]
-```
-
-## Docker
-
-via docker-compose:
-```
-docker-compose up -d
-```
-
-or build:
-
-```
-docker build -t bostrot/telegram-support-bot:latest .
-docker run bostrot/telegram-support-bot -v /path/to/config_dir:/bot/config
 ```
 
 ## Updating
