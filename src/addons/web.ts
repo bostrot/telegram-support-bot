@@ -1,6 +1,6 @@
-import fake_ctx from './web/fake_ctx';
-import { ticketHandler } from './text';
-import cache from './cache';
+import fake_ctx from './fake_ctx';
+import { ticketHandler } from '../text';
+import cache from '../cache';
 
 /* include script
 <script src="localhost:8080/chat.js"></script>
@@ -20,10 +20,6 @@ if (cache.config.web_server) {
   
     app.get('/', (req, res) => {
       res.sendFile(__dirname + '/web/index.html');
-    });
-
-    app.get('/test', (req, res) => {
-      res.sendFile(__dirname + '/web/test.html');
     });
     
     app.get('/chat.js', (req, res) => {

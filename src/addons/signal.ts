@@ -2,7 +2,7 @@
  * Telegram Ticketing System - Signal Addon
  * works with the unofficial signal cli by @AsamK
  */
-import fake_ctx from '../web/fake_ctx';
+import fake_ctx from './fake_ctx';
 import cache from '../cache';
 const { exec } = require("child_process");
 const username = cache.config.signal_number;

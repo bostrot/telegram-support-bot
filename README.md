@@ -18,11 +18,10 @@ Telegram ticketing implementation:
 </tr>
 </table>
 
-Web implementation:
-
-![image](https://user-images.githubusercontent.com/7342321/132263281-3e556787-ae8b-4a62-840a-165daaec174b.png)
 
 ## Documentation
+
+See the [WIKI](https://github.com/bostrot/telegram-support-bot/wiki) for more detailed information.
 
 `telegram-support-bot` was built on top of [`Telegraf`](https://github.com/telegraf/telegraf) libary.
 
@@ -57,20 +56,13 @@ Features:
 
 ## Installation
 
-Install Node ( > 8 ) and npm ( > 3.38.0 ).
-
-Download the latest release (e.g. v2.0.2) and run it via npm:
+See the [WIKI](https://github.com/bostrot/telegram-support-bot/wiki) for more detailed information.
 
 ```bash
-wget https://github.com/bostrot/telegram-support-bot/archive/refs/tags/v2.0.2.zip
-unzip v2.0.2.zip
-cd telegram-support-bot-v2.0.2
-npm i
-cp config/config-sample.ts config/config.ts     # Adjust settings in config.ts
-npm run prod                                    # For debugging: npm run dev
+mv config/config-sample.yaml config.yaml
 ```
 
-or you could also use a **Docker** container:
+**Docker** container:
 
 Either with docker-compose:
 
@@ -78,82 +70,9 @@ Either with docker-compose:
 docker-compose up -d
 ```
 
-or build it yourself:
-
-```
-docker build -t bostrot/telegram-support-bot:v2.0.2 .
-docker run bostrot/telegram-support-bot:v2.0.2 -v /path/to/config_dir:/bot/config
-```
-
-Prebuild docker containers are also available for stable versions and the master branch.
-It is recommend to use the latest release instead of master.
-
-e.g. 
-
-```
-docker run bostrot/telegram-support-bot:v2.0.2 -v /path/to/config_dir:/bot/config
-```
-
-## Configuration
-
-You can get your ID with /id. The first number will be yours the second the one from the group you are in (if you are in one; including the minus).
-
-You need to set your bot token and chat ids in `config.ts`:
-
-```js
-// bot settings
-bot_token: 'YOUR_BOT_TOKEN', // support bot token
-staffchat_id: 'SUPERGROUP_CHAT_ID', // telegram staff group chat id eg. -123456789
-owner_id: 'YOUR_TELEGRAM_ID',
-spam_time: 5 * 60 * 1000, // time (in MS) in which user may send 5 messages
-allow_private: false, // Allow / disallow option for staff to chat privately
-auto_close_tickets: true, // Closes messages after reply
-```
-
-If you replace `categories: false` with following snippet, you enable the subgroup system.
-This will allow the user to select a subcategory (e.g. for specified staff). If a chat has the same ID
-as the `staffchat_id` you can e.g. create a help chat for using the bot.
-
-```js
-// subgroups for different subcategories in JS Array -> Object format
-categories:
-[
-  {
-    name: 'Category1', subgroups: [
-      {name: 'Sub1', group_id: '-12345678910'},
-      {name: 'Sub2', group_id: '-12345678910'},
-      {name: 'Sub3', group_id: '-12345678910'},
-    ],
-  },
-  {
-    name: 'Category2', subgroups: [
-      {name: 'Sub4', group_id: '-12345678910'},
-      {name: 'Sub5', group_id: '-12345678910'},
-      {name: 'Sub6', group_id: '-12345678910'},
-    ],
-  },
-  {
-    name: 'Category3', group_id: '-12345678910'
-  },
-  {
-    name: 'Admin Chat', group_id: '-12345678910' 
-  },
-],
-```
-
-To edit autoreply keywords adjust `config/strings.ts` according to your needs:
-
-```js
-const strings = [
-    [ "how do I install this?", "You don't." ],
-    [ "are you sure?", "Yes." ],
-    [ "Some other Case Sensitive Text", "OK." ],
-]
-```
-
 ## Updating
 
-Backup and delete the database file (src/support.db) and config.js/config.ts files. Customize the new config.ts then just start it normally.
+Backup and delete the database file (src/support.db) and config.js/config.ts/config.yaml files. Customize the new config.ts then just start it normally.
 
 ## Telegram token
 
@@ -162,11 +81,6 @@ you first have to [get a bot account](https://core.telegram.org/bots)
 by [chatting with BotFather](https://core.telegram.org/bots#6-botfather).
 
 BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsTUVwxyZ`.
-
-## Creating a bot
-
-[Telegraf bot framework](https://github.com/telegraf/telegraf) for building a bot
-
 
 ## Help
 

@@ -14,7 +14,7 @@ import * as inline from './inline';
 import * as text from './text';
 import * as files from './files';
 import * as error from './error';
-import * as webserver from './web';
+import * as webserver from './addons/web';
 
 import * as signal from './addons/signal';
 
