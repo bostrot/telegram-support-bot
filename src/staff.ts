@@ -95,7 +95,7 @@ function chat(ctx, bot) {
       cache.config.language.language));
       // replying to closed ticket
       if (userid === null || ticket == undefined) {
-        ctx.reply(cache.config.language.ticketClosedError);
+        middleware.reply(ctx, cache.config.language.ticketClosedError);
       }
       
       // replying to non-ticket

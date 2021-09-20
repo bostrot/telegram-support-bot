@@ -54,9 +54,9 @@ function initInline(bot, config) {
           ctx.session.modeData = undefined;
           // Info text
           if (cache.config.categories[i].msg != undefined) {
-            ctx.reply(cache.config.categories[i].msg);
+            middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
-            ctx.reply(cache.config.language.msgForwarding + '\n' +
+            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${cache.config.categories[i].name}</b>`, removeKeyboard());
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -68,9 +68,9 @@ function initInline(bot, config) {
           ctx.session.modeData = undefined;
           // Info text
           if (cache.config.categories[i].msg != undefined) {
-            ctx.reply(cache.config.categories[i].msg);
+            middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
-            ctx.reply(cache.config.language.msgForwarding + '\n' +
+            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${cache.config.categories[i].name}</b>`, removeKeyboard());
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -93,7 +93,7 @@ function initInline(bot, config) {
           bot.hears(startStr, (ctx) => {
             ctx.session.mode = undefined;
             ctx.session.modeData = undefined;
-            ctx.reply(cache.config.language.msgForwarding + '\n' +
+            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
             ctx.session.group = cache.config.categories[i].subgroups[j].group_id;
@@ -104,7 +104,7 @@ function initInline(bot, config) {
           bot.hears(categoryFullId, (ctx) => {
             ctx.session.mode = undefined;
             ctx.session.modeData = undefined;
-            ctx.reply(cache.config.language.msgForwarding + '\n' +
+            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
             ctx.session.group = cache.config.categories[i].subgroups[j].group_id;
@@ -117,7 +117,7 @@ function initInline(bot, config) {
       bot.hears(cache.config.categories[i].name, (ctx) => {
         ctx.session.mode = undefined;
         ctx.session.modeData = undefined;
-        ctx.reply(cache.config.language.whatSubCategory,
+        ctx.reply(ctx, cache.config.language.whatSubCategory,
             replyKeyboard(subKeys));
       });
     }
@@ -135,7 +135,7 @@ function callbackQuery(bot, ctx) {
   if (ctx.callbackQuery.data === 'R') {
     ctx.session.mode = undefined;
     ctx.session.modeData = undefined;
-    ctx.reply(cache.config.language.prvChatEnded);
+    middleware.reply(ctx, cache.config.language.prvChatEnded);
     return;
   }
   // Get Ticket ID from DB

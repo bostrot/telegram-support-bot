@@ -39,7 +39,7 @@ function init(bot) {
           if (err) throw err;
         });
     console.dir(new Date() + ': ' + err["stack"]);
-    
+    bot.drop();
     middleware.msg(cache.config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
   });
 }

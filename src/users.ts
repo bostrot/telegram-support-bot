@@ -41,7 +41,7 @@ function autoReply(ctx, bot, chat) {
         `<i>${cache.config.language.automatedReply}</i>`;
 
       // Send message with keyboard
-      ctx.reply(msg, Extra.HTML())
+      middleware.reply(msg, Extra.HTML())
       return true;
     }
   }

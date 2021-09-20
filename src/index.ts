@@ -48,7 +48,7 @@ bot.use(permissions.currentSession());
 bot.use((ctx, next) => {
   // Check dev mode
   if (cache.config.dev_mode) {
-    ctx.reply('<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', Extra.HTML());
+    middleware.reply(ctx, '<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', Extra.HTML());
   }
   permissions.checkPermissions(ctx, next, cache.config)
 });
@@ -69,15 +69,15 @@ bot.command('start', (ctx) => {
   ctx.session.mode = undefined;
   ctx.session.modeData = undefined;
   if (ctx.chat.type == 'private') {
-    ctx.reply(cache.config.language.startCommandText);
+    middleware.reply(ctx, cache.config.language.startCommandText);
     if (cache.config.categories.length > 0)
-      setTimeout(() => ctx.reply(cache.config.language.services, inline.replyKeyboard(keys)), 500);    
-  } else ctx.reply(cache.config.language.prvChatOnly);
+      setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);    
+  } else middleware.reply(ctx, cache.config.language.prvChatOnly);
 });
-bot.command('id', (ctx) => ctx.reply(ctx.from.id + ' ' + ctx.chat.id));
+bot.command('id', (ctx) => middleware.reply(ctx, ctx.from.id + ' ' + ctx.chat.id));
 bot.command('faq', (ctx) => 
-ctx.reply(cache.config.language.faqCommandText, Extra.HTML()));
-bot.command('help', (ctx) => ctx.reply(cache.config.language.helpCommandText, Extra.HTML()));
+middleware.reply(ctx, cache.config.language.faqCommandText, Extra.HTML()));
+bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, Extra.HTML()));
 bot.command('links', (ctx) => {
   let links = '';
   const subcategories = [];
@@ -97,7 +97,7 @@ bot.command('links', (ctx) => {
       }
     }
   }
-  ctx.reply(`${cache.config.language.links}:\n${links}`, Extra.HTML())
+  ctx.reply(ctx, `${cache.config.language.links}:\n${links}`, Extra.HTML())
 });
 
 // Bot ons
@@ -110,7 +110,7 @@ bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () =
   files.fileHandler('document', bot, ctx)));
 
 // Bot regex
-bot.hears(cache.config.language.back, (ctx) => ctx.reply(cache.config.language.services, inline.replyKeyboard(keys)));
+bot.hears(cache.config.language.back, (ctx) => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)));
 bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
 bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
 
@@ -119,7 +119,7 @@ bot.catch((err, ctx) => {
   console.log('Error: ', err);
   // Catch bot blocked by user
   try {
-    ctx.reply('Message is not sent due to an error.');
+    middleware.reply(ctx, 'Message is not sent due to an error.');
   } catch(e) {
     console.log('Could not send error msg to chat: ', e);
   }

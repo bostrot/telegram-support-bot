@@ -70,9 +70,9 @@ function fileHandler(type, bot, ctx) {
       if (ticket == undefined) {
         if(ctx.session.admin && userInfo === undefined) {
           // replying to closed ticket
-          ctx.reply(cache.config.language.ticketClosedError);
+          middleware.reply(ctx, cache.config.language.ticketClosedError);
         } else {
-          ctx.reply(cache.config.language.textFirst);
+          middleware.reply(ctx, cache.config.language.textFirst);
         }
         return;
       }

@@ -9,7 +9,7 @@ import * as middleware from './middleware';
  */
 function clearCommand(ctx) {
   db.closeAll();
-  ctx.reply('All tickets closed.', Extra.HTML().notifications(false));
+  middleware.reply(ctx, 'All tickets closed.', Extra.HTML().notifications(false));
 }
 
 /**
@@ -51,7 +51,7 @@ function openCommand(ctx) {
             '\n';
       }
     }
-    ctx.reply(`<b>${cache.config.language.openTickets}\n\n</b> ${openTickets}`,
+    ctx.reply(ctx, `<b>${cache.config.language.openTickets}\n\n</b> ${openTickets}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
   }, groups);
@@ -101,7 +101,7 @@ function closeCommand(bot, ctx) {
         userid = tickets[i].userid;
       }
     }
-    ctx.reply(`
+    ctx.reply(ctx, `
     ${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
     `${cache.config.language.closed}`,
     // eslint-disable-next-line new-cap
