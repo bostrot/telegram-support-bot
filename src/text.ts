@@ -2,6 +2,7 @@ import * as db from './db';
 import cache from './cache';
 import * as staff from './staff';
 import * as users from './users';
+import * as middleware from './middleware';
 
 /**
  * Text handler
@@ -17,7 +18,7 @@ function handleText(bot, ctx, keys) {
       .indexOf(ctx.message.text) > -1)) {
     if (!ctx.session.admin && cache.config.categories &&
     !ctx.session.group) {
-      ctx.reply(ctx, cache.config.language.services, {
+      middleware.reply(ctx, cache.config.language.services, {
         reply_markup: {
           keyboard: keys,
         },

@@ -56,7 +56,7 @@ function initInline(bot, config) {
           if (cache.config.categories[i].msg != undefined) {
             middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
-            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
+            middleware.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${cache.config.categories[i].name}</b>`, removeKeyboard());
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -70,7 +70,7 @@ function initInline(bot, config) {
           if (cache.config.categories[i].msg != undefined) {
             middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
-            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
+            middleware.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${cache.config.categories[i].name}</b>`, removeKeyboard());
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -93,7 +93,7 @@ function initInline(bot, config) {
           bot.hears(startStr, (ctx) => {
             ctx.session.mode = undefined;
             ctx.session.modeData = undefined;
-            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
+            middleware.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
             ctx.session.group = cache.config.categories[i].subgroups[j].group_id;
@@ -104,7 +104,7 @@ function initInline(bot, config) {
           bot.hears(categoryFullId, (ctx) => {
             ctx.session.mode = undefined;
             ctx.session.modeData = undefined;
-            ctx.reply(ctx, cache.config.language.msgForwarding + '\n' +
+            middleware.reply(ctx, cache.config.language.msgForwarding + '\n' +
               `<b>${categoryFullId}</b>`, removeKeyboard());
             // Set subgroup
             ctx.session.group = cache.config.categories[i].subgroups[j].group_id;
@@ -117,7 +117,7 @@ function initInline(bot, config) {
       bot.hears(cache.config.categories[i].name, (ctx) => {
         ctx.session.mode = undefined;
         ctx.session.modeData = undefined;
-        ctx.reply(ctx, cache.config.language.whatSubCategory,
+        middleware.reply(ctx, cache.config.language.whatSubCategory,
             replyKeyboard(subKeys));
       });
     }

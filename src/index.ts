@@ -97,7 +97,7 @@ bot.command('links', (ctx) => {
       }
     }
   }
-  ctx.reply(ctx, `${cache.config.language.links}:\n${links}`, Extra.HTML())
+  middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, Extra.HTML())
 });
 
 // Bot ons

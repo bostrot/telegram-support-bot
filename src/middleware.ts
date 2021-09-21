@@ -53,11 +53,11 @@ const msg = (id, msg, extra) => {
 
 const reply = (ctx, msg, extra = null) => {
   if (extra != null) {
-    ctx.reply(ctx, msg, extra).catch((err) => {
+    ctx.reply(msg, extra).catch((err) => {
       console.log(`Reply Error: ${err}`);
     });
   } else {
-    ctx.reply(ctx, msg).catch((err) => {
+    ctx.reply(msg).catch((err) => {
       console.log(`Reply Error: ${err}`);      
     });
   }

@@ -20,20 +20,22 @@ function openCommand(ctx) {
   if (!ctx.session.admin) return;
   let groups = [];
   // Search all labels for this group
-  cache.config.categories.forEach((element, index) => {
-    // No subgroup
-    if (cache.config.categories[index].subgroups == undefined) {
-      if (cache.config.categories[index].group_id == ctx.chat.id) {
-        groups.push(cache.config.categories[index].name);
-      }
-    } else {
-      cache.config.categories[index].subgroups.forEach((innerElement, index) => {
-        if (innerElement.group_id == ctx.chat.id) {
-          groups.push(innerElement.name);
+  if (cache.config.categories != undefined) {
+    cache.config.categories.forEach((element, index) => {
+      // No subgroup
+      if (cache.config.categories[index].subgroups == undefined) {
+        if (cache.config.categories[index].group_id == ctx.chat.id) {
+          groups.push(cache.config.categories[index].name);
         }
-      });
-    }
-  });
+      } else {
+        cache.config.categories[index].subgroups.forEach((innerElement, index) => {
+          if (innerElement.group_id == ctx.chat.id) {
+            groups.push(innerElement.name);
+          }
+        });
+      }
+    });
+  }
   // Get open tickets for any maintained label
   db.open(function(userList) {
     let openTickets = '';
@@ -51,7 +53,7 @@ function openCommand(ctx) {
             '\n';
       }
     }
-    ctx.reply(ctx, `<b>${cache.config.language.openTickets}\n\n</b> ${openTickets}`,
+    middleware.reply(ctx, `<b>${cache.config.language.openTickets}\n\n</b> ${openTickets}`,
         // eslint-disable-next-line new-cap
         Extra.HTML().notifications(false));
   }, groups);
@@ -101,7 +103,7 @@ function closeCommand(bot, ctx) {
         userid = tickets[i].userid;
       }
     }
-    ctx.reply(ctx, `
+    middleware.reply(ctx, `
     ${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
     `${cache.config.language.closed}`,
     // eslint-disable-next-line new-cap
