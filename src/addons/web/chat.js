@@ -4,6 +4,6 @@ window.addEventListener('load', function() {
   frame.style = 'width: 580px; height: 400px; border: none;' +
     'position: absolute; bottom: 0; right: 0;';
   frame.scroll = 'no';
-  frame.src = window.location.href;
+  frame.src = document.getElementById('chatScript').src.replace('/chat.js', '');
   document.body.appendChild(frame);
 });

@@ -3,7 +3,7 @@ import { ticketHandler } from '../text';
 import cache from '../cache';
 
 /* include script
-<script src="localhost:8080/chat.js"></script>
+<script id="chatScript" src="localhost:8080/chat.js"></script>
 */
 let init = function(bot) {
     // Enable web server with socketio
