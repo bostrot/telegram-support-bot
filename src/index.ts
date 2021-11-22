@@ -70,7 +70,7 @@ bot.command('start', (ctx) => {
   ctx.session.modeData = undefined;
   if (ctx.chat.type == 'private') {
     middleware.reply(ctx, cache.config.language.startCommandText);
-    if (cache.config.categories.length > 0)
+    if (cache.config.categories && cache.config.categories.length > 0)
       setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);    
   } else middleware.reply(ctx, cache.config.language.prvChatOnly);
 });
