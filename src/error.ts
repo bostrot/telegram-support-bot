@@ -5,15 +5,17 @@ import * as middleware from './middleware';
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
 
-function init(bot) {
+function init(bot, logs = true) {
   // overload logging to file
   console.log = function(d) {
-    logStdout.write(util.format(d) + '\n');
-    fs.appendFile(debugFile,
+    if (logs) {
+      logStdout.write(util.format(d) + '\n');
+      fs.appendFile(debugFile,
         new Date() + ': ' + util.format(d) + '\n', 'utf8',
         function(err) {
           if (err) throw err;
         });
+    }
   };
 
   // catch uncaught exceptions to log

@@ -16,7 +16,9 @@
     "scripts": {
         "tsc": "tsc",
         "dev": "ts-node-dev ./src/index.ts",
-        "prod": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web && node ./build/src/index.js"
+        "prod": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web && node ./build/src/index.js",
+        "build": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web",
+        "test": "mocha --exit"
     },
     "engines": {
         "node": ">=6.2.0"
@@ -48,7 +50,7 @@
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^4.2.1",
         "eslint-plugin-standard": "^4.1.0",
-        "mocha": "^8.2.1",
+        "mocha": "^8.4.0",
         "ts-node": "^9.1.0"
     },
     "keywords": [
