@@ -30,8 +30,10 @@ bot.launch = function() {
   console.log('not launching');
 };
 
-exports.bot = bot;
-exports.main = main;
-exports.waiting = waiting;
-exports.msgsToUser = msgsToUser;
-exports.msgsToStaff = msgsToStaff;
+export {
+  bot,
+  main,
+  waiting,
+  msgsToUser,
+  msgsToStaff
+}

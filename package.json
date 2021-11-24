@@ -18,7 +18,7 @@
         "dev": "ts-node-dev ./src/index.ts",
         "prod": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web && node ./build/src/index.js",
         "build": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web",
-        "test": "mocha --exit"
+        "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --exit"
     },
     "engines": {
         "node": ">=6.2.0"
@@ -41,9 +41,12 @@
         "yaml": "^1.10.2"
     },
     "devDependencies": {
+        "@types/chai": "^4.2.22",
+        "@types/mocha": "^9.0.0",
         "@types/node": "^14.14.10",
         "@typescript-eslint/eslint-plugin": "^4.10.0",
         "@typescript-eslint/parser": "^4.10.0",
+        "chai": "^4.3.4",
         "eslint": "^7.15.0",
         "eslint-config-google": "^0.14.0",
         "eslint-plugin-import": "^2.22.1",
@@ -51,7 +54,7 @@
         "eslint-plugin-promise": "^4.2.1",
         "eslint-plugin-standard": "^4.1.0",
         "mocha": "^8.4.0",
-        "ts-node": "^9.1.0"
+        "ts-node": "^9.1.1"
     },
     "keywords": [
         "telegram-support-bot",
