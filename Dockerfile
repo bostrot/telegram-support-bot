@@ -5,7 +5,6 @@ RUN apk update && \
 
 COPY . /bot
 RUN cd bot/ && \
-    npm i && \
-    npm rebuild
+    npm i
 
 CMD ["npm", "run", "prod", "--prefix", "/bot"]
