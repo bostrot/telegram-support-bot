@@ -1,10 +1,11 @@
 FROM node:16-alpine3.11
-
-RUN apk update && \
-    apk add wget python3 build-base
+WORKDIR /bot
 
 COPY . /bot
-RUN cd bot/ && \
-    npm i
+
+RUN apk update
+RUN apk add wget python3 build-base
+RUN rm -rf node_modules
+RUN npm install
 
 CMD ["npm", "run", "prod", "--prefix", "/bot"]

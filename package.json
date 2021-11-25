@@ -16,8 +16,8 @@
     "scripts": {
         "tsc": "tsc",
         "dev": "ts-node-dev ./src/index.ts",
-        "prod": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web && node ./build/src/index.js",
-        "build": "tsc && cp -r ./src/addons/web/* ./build/src/addons/web",
+        "prod": "ts-node ./src/index.ts",
+        "build": "tsc",
         "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --exit"
     },
     "engines": {
