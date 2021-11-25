@@ -71,6 +71,7 @@ function main(bot = defaultBot, logs = true) {
   bot.command('open', (ctx) => commands.openCommand(ctx));
   bot.command('close', (ctx) => commands.closeCommand(bot, ctx));
   bot.command('ban', (ctx) => commands.banCommand(bot, ctx));
+  bot.command('reopen', (ctx) => commands.reopenCommand(bot, ctx));
   bot.command('unban', (ctx) => commands.unbanCommand(bot, ctx));
   bot.command('clear', (ctx) => commands.clearCommand(ctx));
   bot.command('start', (ctx) => {

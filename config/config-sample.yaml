@@ -60,6 +60,7 @@ language:
     automatedReplyAuthor: "BottyBot."
     doesntHelp: "This does not help."
     automatedReplySent: "Automated reply was send to the user."
+    ticketReopened: "Ticket reopened."
 
 # categories: 
 #  - name: "Category1"

@@ -139,6 +139,28 @@ function banCommand(bot, ctx) {
 };
 
 /**
+ * Reopen ticket
+ * @param {Object} bot
+ * @param {Object} ctx
+ */
+ function reopenCommand(bot, ctx) {
+  if (!ctx.session.admin) return;
+  // Get open tickets for any maintained label
+  const replyText = ctx.message.reply_to_message.text;
+  const ticketId = replyText.match(new RegExp('#T' + '(.*)' +
+                ' ' + cache.config.language.from))[1];
+
+  // get userid from ticketid
+  db.getId(ticketId, function(ticket) {
+    db.reopen(ticket.userid, undefined);
+
+    middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T'+
+    ticket.id.toString().padStart(6, '0')+
+        ' ' + cache.config.language.ticketReopened, Extra.HTML().notifications(false));
+  });
+};
+
+/**
  * Unban user
  * @param {Object} bot
  * @param {Object} ctx
@@ -165,4 +187,5 @@ export {
   closeCommand,
   unbanCommand,
   clearCommand,
+  reopenCommand,
 };

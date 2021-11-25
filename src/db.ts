@@ -42,8 +42,13 @@ const checkBan = function(userid, callback) {
 };
 
 const closeAll = function() {
-  let msg = db.prepare(
-    `UPDATE supportees SET status='closed'`).run();
+  db.prepare(`UPDATE supportees SET status='closed'`).run();
+}
+
+const reopen = function(userid, category) {
+  db.prepare(`UPDATE supportees SET status='open'` +
+    `WHERE userid='${userid}' or id='${userid}'` +
+    `${(category ? `AND category = '${category}'`: '')}`).run();
 }
 
 const add = function(userid, status, category) {
@@ -98,4 +103,5 @@ export {
   checkBan,
   getId,
   closeAll,
+  reopen
 }
