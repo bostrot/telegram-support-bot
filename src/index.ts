@@ -17,7 +17,6 @@ import * as error from './error';
 import * as webserver from './addons/web';
 
 import * as signal from './addons/signal';
-import { create } from 'domain';
 
 // Create new Telegraf() with token
 let defaultBot;
@@ -43,13 +42,6 @@ function main(bot = defaultBot, logs = true) {
   }
   // Init error handling
   error.init(bot, logs);
-
-  // TODO: Unit testing
-  const testing = false;
-  if (testing) {
-    const {tests} = require('../tests/testing');
-    tests(bot);
-  }
 
   // Use session and check for permissions on message
   bot.use(permissions.currentSession());

@@ -1,3 +1,5 @@
-node_modules
-test
-#config/config.yaml
+node_modules/
+test/
+config/config.yaml
+*.db
+*.log
