@@ -1,12 +1,12 @@
 import assert = require('assert');
 
 // override functions
-import { bot, main, msgsToUser} from './functions';
+import { bot, main, msgsToUser, msgsToStaff} from './functions';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 
-const config = YAML.parse(fs.readFileSync('./config/config.yaml', 'utf8'))
-    .language;
+const config = YAML.parse(fs.readFileSync('./config/config.yaml', 'utf8'));
+const lang = config.language;
 
 export interface User {
     text?: string,
@@ -14,6 +14,7 @@ export interface User {
     lang?: string,
     admin?: boolean,
     group?: boolean,
+    id?: number,
 }
 
 class TelegrafContext {
@@ -24,7 +25,7 @@ class TelegrafContext {
         const context = JSON.parse(rawdata);
         
          // fake ctx setup
-        context.update.message.text = 'Hey, I need help.';
+        context.update.message.text = 'Hello, this is some test!';
         context.message = context.update.message;
         context.from = context.update.message.from;
         context.chat = context.update.message.chat;
@@ -38,11 +39,12 @@ class TelegrafContext {
         if (user == undefined) {
             user = {};
         }
-        this.ctx.text = user.text || '';
-        this.ctx.from.first_name = user.from || '';
-        this.ctx.chat.first_name = user.from || '';
-        this.ctx.type = user.group ? 'group' : 'private';
-        this.ctx.language_code = user.lang || '';
+        this.ctx.text = user.text || 'Text';
+        this.ctx.from.first_name = user.from || 'Name';
+        this.ctx.chat.first_name = user.from || 'Name';
+        this.ctx.chat.id = user.id || 123456789;
+        this.ctx.chat.type = user.group ? 'group' : 'private';
+        this.ctx.language_code = user.lang || 'en';
         this.ctx.session.admin = user.admin || false;
     }
 
@@ -56,8 +58,18 @@ class BotAssert extends TelegrafContext {
         super(user);
     }
 
-    getCtx() {
-        return this.ctx;
+    private wildcardCheck(ctx, expectedStaff, expectedUser, f) {
+        f(ctx);
+        const msg2 = msgsToStaff;
+        const msg3 = msgsToUser;
+        const msgStaff = msgsToStaff.pop();
+        if (!(new RegExp(expectedStaff, "g").test(msgStaff))) {
+            assert.fail(`${msgStaff} does not match ${expectedStaff}`);
+        }
+        const msgUser = msgsToUser.pop();
+        if (!(new RegExp(expectedUser, "g").test(msgUser))) {
+            assert.fail(`${msgUser} does not match ${expectedUser}`);
+        }
     }
 
     // user sends msg helper
@@ -68,6 +80,7 @@ class BotAssert extends TelegrafContext {
                 ctx.chat.type = type;
                 ctx.message.chat.id = fromId;
                 ctx.message.from.id = fromId;
+                ctx.update.message.text = text
                 ctx.message.text = text;
                 f(ctx);
             }
@@ -86,13 +99,25 @@ class BotAssert extends TelegrafContext {
         };
         main(bot, false);
     }
+    
+    assertCommandWildcard(cmd, expectedStaff, expectedUser) {
+        const ctx = this.ctx;
+        const wildcardCheck = this.wildcardCheck;
+        bot.command = function (command, f) {
+            if (command == cmd) {
+                f(ctx);
+                wildcardCheck(ctx, expectedStaff, expectedUser, f);
+            }
+        };
+        main(bot, false);
+    }
 
     assertCommandFail(cmd, expected) {
         const ctx = this.ctx;
         bot.command = function (command, f) {
             if (command == cmd) {
                 f(ctx);
-                assert.notEqual(msgsToUser.pop(), expected);
+                assert.notStrictEqual(msgsToUser.pop(), expected);
             }
         };
         main(bot, false);
@@ -100,12 +125,10 @@ class BotAssert extends TelegrafContext {
 
     assertCommandAlike(cmd, expected) {
         const ctx = this.ctx;
-        console.log(ctx);
         bot.command = function (command, f) {
             if (command == cmd) {
                 f(ctx);
                 const msg = msgsToUser.pop() || '';
-                console.log(msgsToUser)
                 if (msg.indexOf(expected) == -1) {
                     assert.fail(`"${msg}" does not contain "${expected}"`);
                 }
@@ -127,9 +150,17 @@ class BotAssert extends TelegrafContext {
         };
         main(bot, false);
     }
+
+    assertMsgWildcard(msg, expectedStaff, expectedUser) {
+        this.ctx.message.text = msg;
+        this.ctx.update.message.text = msg;
+        this.userMsg(msg, this.ctx.from.id);
+        this.wildcardCheck(this.ctx, expectedStaff, expectedUser, (t) => {});
+    }
 }
 
 export {
     BotAssert,
-    config
+    config,
+    lang
 };

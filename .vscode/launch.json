@@ -5,18 +5,35 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "name": "Launch via NPM",
             "request": "launch",
-            "name": "Debug",
+            "runtimeArgs": [
+                "run-script",
+                "debug"
+            ],
+            "runtimeExecutable": "npm run dev",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/build/src/index.js",
-            "preLaunchTask": "tsc: build - tsconfig.json",
-            "outFiles": [
-                "${workspaceFolder}/build/**/*.js"
-            ],
-            "sourceMaps": true
-        }
+            "type": "pwa-node"
+        },
+          {
+              "type": "node",
+              "request": "launch",
+              "preLaunchTask": "npm: tsc",
+              "name": "Run Mocha",
+              "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+              "env": {
+                  "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
+              },
+              "args": [
+                  "-r",
+                  "ts-node/register",
+                  "--colors",
+                  "${workspaceRoot}/test/**/*.ts"
+                ],
+              "cwd": "${workspaceRoot}",
+              "outFiles": []
+          }
     ]
 }
