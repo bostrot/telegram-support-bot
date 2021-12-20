@@ -70,9 +70,9 @@ Either with docker-compose:
 docker-compose up -d
 ```
 
-## Updating to master
+## Upgrading to v3.0.0 or to master
 
-The latest commit uses a new config file in YAML format which would break old versions. It is suggested to use the Release version v2.0.2 for production.
+The latest version uses a new config file in YAML format which would break old versions.
 
 In order to make old versions work with the master you would need to use the new config.yaml file instead of the config.ts file from before. The easiest would be if you copy the config-sample.yaml to config.yaml (both in the config folder) and edit the settings similar to your old config.ts file. There is no need to delete the database file so old tickets can be kept open.
 
