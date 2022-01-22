@@ -28,7 +28,7 @@
         "chalk": "^4.1.0",
         "debug": "^4.3.1",
         "express": "^4.17.1",
-        "node-fetch": "^2.6.1",
+        "node-fetch": "^3.1.1",
         "node-gyp": "^8.4.1",
         "sandwich-stream": "^2.0.2",
         "socket.io": "^4.2.0",
