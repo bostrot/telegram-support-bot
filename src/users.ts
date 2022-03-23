@@ -1,6 +1,6 @@
-import * as db from './db';
-import cache from './cache';
 import strings from '../config/strings';
+import cache from './cache';
+import * as db from './db';
 import * as middleware from './middleware';
 const {Extra} = require('telegraf');
 
@@ -105,12 +105,12 @@ function chat(ctx, bot, chat) {
       }
     });
     // wait 5 minutes before this message appears again and do not
-    // send notificatoin sounds in that time to avoid spam
+    // send notification sounds in that time to avoid spam
     setTimeout(function() {
       cache.ticketSent[cache.ticketID] = undefined;
     }, cache.config.spam_time);
     cache.ticketSent[cache.ticketID] = 0;
-  } else if (cache.ticketSent[cache.ticketID] < 4) {
+  } else if (cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
       middleware.msg(cache.config.staffchat_id, 
@@ -121,7 +121,7 @@ function chat(ctx, bot, chat) {
           Extra.HTML());
       }
     });
-  } else if (cache.ticketSent[cache.ticketID] === 4) {
+  } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
     
@@ -135,3 +135,4 @@ function chat(ctx, bot, chat) {
 export {
   chat,
 };
+
