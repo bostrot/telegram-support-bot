@@ -3,6 +3,7 @@ bot_token: "YOUR_BOT_TOKEN" # support bot tok                                   
 staffchat_id: "SUPERGROUP_CHAT_ID" # eg. -123456789
 owner_id: "YOUR_TELEGRAM_ID"
 spam_time: 5 * 60 * 1000 # time (in MS) in which user may send 5 messages
+spam_cant_msg: 5
 
 allow_private: false # Allow / disallow option for staff to chat privately
 direct_reply: false # Set this to true to just forward staff users to a user chat when allow_private
