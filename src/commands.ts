@@ -8,6 +8,7 @@ import * as middleware from './middleware';
  * @param {Object} ctx
  */
 function clearCommand(ctx) {
+  if (!ctx.session.admin) return;
   db.closeAll();
   middleware.reply(ctx, 'All tickets closed.', Extra.HTML().notifications(false));
 }
