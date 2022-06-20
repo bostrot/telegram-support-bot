@@ -18,6 +18,7 @@ Telegram ticketing implementation:
 </tr>
 </table>
 
+If you need help or need a hosted solution of this check out <a href="https://botspace.bostrot.com">Botspace</a> for a one-click setup.
 
 ## Documentation
 
@@ -87,6 +88,8 @@ BotFather will give you a *token*, something like `123456789:AbCdfGhIJKlmNoQQRsT
 ## Help
 
 You are welcome to contribute with pull requests, bug reports, ideas and donations.
+
+If you need help or need a hosted solution of this check out <a href="https://botspace.bostrot.com">Botspace</a> for a one-click setup.
 
 ## Custom requests
 
