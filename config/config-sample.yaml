@@ -25,8 +25,8 @@ dev_mode: true # Enable/disable dev mode
 language:
     startCommandText: "Welcome in our support chat! Ask your question here."
     faqCommandText: "This bot is <a href='https://github.com/bostrot/telegram-support-bot'>Open Source</a>. You can host it yourself here <a href='https://botspace.bostrot.com'>Botspace</a>."
-    helpCommandText: "<b>Available commands:</b><br />/help<br />/faq<br />/id"
-    contactMessage: "Thank you for contacting us. We will answer as soon as possible.<br />"
+    helpCommandText: "<b>Available commands:</b>    /help    /faq    /id"
+    contactMessage: "Thank you for contacting us. We will answer as soon as possible."
     blockedSpam: "You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them."
     ticket: "Ticket"
     closed: "closed"
