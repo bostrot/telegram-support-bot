@@ -11,13 +11,14 @@ import * as middleware from './middleware';
  * @param {Array} keys
  */
 function handleText(bot, ctx, keys) {
+  ctx.session.mode;
   if (ctx.session.mode == 'private_reply') {
     staff.privateReply(bot, ctx);
   } else if (cache.config.categories && cache.config.categories.length > 0 &&
     !(JSON.stringify(cache.config.categories)
       .indexOf(ctx.message.text) > -1)) {
     if (!ctx.session.admin && cache.config.categories &&
-    !ctx.session.group) {
+      !ctx.session.group) {
       middleware.reply(ctx, cache.config.language.services, {
         reply_markup: {
           keyboard: keys,
@@ -38,7 +39,7 @@ function handleText(bot, ctx, keys) {
 */
 function ticketHandler(bot, ctx) {
   if (ctx.chat.type === 'private') {
-    db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
+    db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function (ticket) {
       if (ticket == undefined) {
         db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
       }

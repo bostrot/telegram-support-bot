@@ -2,39 +2,42 @@ import cache from './cache';
 import * as signal from './addons/signal';
 
 // download photos
-const downloadPhotoMiddleware = function(bot, ctx, next) {
-  return bot.telegram.getFileLink(ctx.message.photo[0]).then((link) => {
+const downloadPhotoMiddleware = async function (bot, ctx, next) {
+  const file = await ctx.getFile();
+  return file.getUrl(ctx.message.photo[0]).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
 // download videos
-const downloadVideoMiddleware = function(bot, ctx, next) {
-  return bot.telegram.getFileLink(ctx.message.video).then((link) => {
+const downloadVideoMiddleware = async function (bot, ctx, next) {
+  const file = await ctx.getFile();
+  return file.getUrl(ctx.message.video).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
 // download documents
-const downloadDocumentMiddleware = function(bot, ctx, next) {
-  return bot.telegram.getFileLink(ctx.message.document).then((link) => {
+const downloadDocumentMiddleware = async function (bot, ctx, next) {
+  const file = await ctx.getFile();
+  return file.getUrl(ctx.message.document).then((link) => {
     ctx.state.fileLink = link;
     return next();
   });
 };
 
 // escape special characters
-const escapeText = function(str) {
+const escapeText = function (str) {
   return str.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // handle messages to web socket
-const msg = function(id, msg, extra) {
+const msg = function (id, msg, extra) {
   // Check web message
   if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
     // Web message
@@ -44,14 +47,14 @@ const msg = function(id, msg, extra) {
   } else if (id.toString().indexOf('SIGNAL') > -1 && id != cache.config.staffchat_id) {
     // Signal message
     console.log('Signal message');
-    signal.message(id.split('SIGNAL')[1], msg); 
+    signal.message(id.split('SIGNAL')[1], msg);
   }
   else {
-    cache.bot.telegram.sendMessage(id, msg, extra);
+    cache.bot.api.sendMessage(id, msg, extra);
   }
 }
 
-const reply = function(ctx, msgtext, extra = null) {
+const reply = function (ctx, msgtext, extra = null) {
   msg(ctx.message.chat.id, msgtext, extra);
 }
 

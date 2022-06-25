@@ -2,7 +2,6 @@ import strings from '../config/strings';
 import cache from './cache';
 import * as db from './db';
 import * as middleware from './middleware';
-const { Extra } = require('telegraf');
 
 /** Message template helper
  * @param {String} ticket
@@ -73,11 +72,11 @@ function chat(ctx, bot, chat) {
       if (!isAutoReply)
         middleware.msg(chat.id, cache.config.language.contactMessage +
           (cache.config.show_user_ticket ? cache.config.language.yourTicketId + ' #T' +
-            ticket.id.toString().padStart(6, '0') : ''), Extra.HTML());
+            ticket.id.toString().padStart(6, '0') : ''), { parse_mode: "HTML" });
 
       // To staff
       middleware.msg(cache.config.staffchat_id, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        Extra.HTML());
+        { parse_mode: "HTML" });
 
       // Check if group flag is set and is not admin chat
       if (ctx.session.group !== undefined &&
@@ -115,17 +114,17 @@ function chat(ctx, bot, chat) {
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
       middleware.msg(cache.config.staffchat_id,
         ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        Extra.HTML());
+        { parse_mode: "HTML" });
       if (ctx.session.group !== undefined) {
         middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-          Extra.HTML());
+          { parse_mode: "HTML" });
       }
     });
   } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
 
-    middleware.msg(chat.id, cache.config.language.blockedSpam, Extra.HTML());
+    middleware.msg(chat.id, cache.config.language.blockedSpam, { parse_mode: "HTML" });
   }
   db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
     console.log(ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo));

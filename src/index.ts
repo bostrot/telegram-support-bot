@@ -1,6 +1,4 @@
-/* eslint-disable new-cap */
-const Telegraf = require('telegraf');
-const { Extra } = Telegraf;
+import { Bot, Context, SessionFlavor } from "grammy";
 
 import * as fs from 'fs';
 import * as YAML from 'yaml';
@@ -18,10 +16,19 @@ import * as webserver from './addons/web';
 
 import * as signal from './addons/signal';
 
+
 // Create new Telegraf() with token
 let defaultBot;
+interface SessionData {
+  admin: boolean,
+  modeData: any,
+  groupCategory: any, // string
+  group: any,
+  groupAdmin: any,
+}
+type BotContext = Context & SessionFlavor<SessionData>;
 function createBot(noCache = false) {
-  defaultBot = new Telegraf(cache.config.bot_token);
+  defaultBot = new Bot<BotContext>(cache.config.bot_token);
 
   return defaultBot;
 }
@@ -48,7 +55,7 @@ function main(bot = defaultBot, logs = true) {
   bot.use((ctx, next) => {
     // Check dev mode
     if (cache.config.dev_mode) {
-      middleware.reply(ctx, '<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', Extra.HTML());
+      middleware.reply(ctx, '<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', { parse_mode: "HTML" });
     }
     permissions.checkPermissions(ctx, next, cache.config)
   });
@@ -57,7 +64,7 @@ function main(bot = defaultBot, logs = true) {
   const keys = inline.initInline(bot, cache.config);
 
   // Set bots username
-  bot.telegram.getMe().then((botInfo) => bot.options.username = botInfo.username);
+  // bot.api.getMe().then((botInfo) => bot.options.username = botInfo.username);
 
   // Bot commands
   bot.command('open', (ctx) => commands.openCommand(ctx));
@@ -77,8 +84,8 @@ function main(bot = defaultBot, logs = true) {
   });
   bot.command('id', (ctx) => middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`));
   bot.command('faq', (ctx) =>
-    middleware.reply(ctx, cache.config.language.faqCommandText, Extra.HTML()));
-  bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, Extra.HTML()));
+    middleware.reply(ctx, cache.config.language.faqCommandText, { parse_mode: "HTML" }));
+  bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, { parse_mode: "HTML" }));
   bot.command('links', (ctx) => {
     let links = '';
     const subcategories = [];
@@ -98,22 +105,22 @@ function main(bot = defaultBot, logs = true) {
         }
       }
     }
-    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, Extra.HTML())
+    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: "HTML" })
   });
 
   // Bot ons
   bot.on('callback_query', (ctx) => inline.callbackQuery(bot, ctx));
-  bot.on('photo', (ctx) => middleware.downloadPhotoMiddleware(bot, ctx, () =>
-    files.fileHandler('photo', bot, ctx)));
-  bot.on('video', (ctx) => middleware.downloadVideoMiddleware(bot, ctx, () =>
-    files.fileHandler('video', bot, ctx)));
-  bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () =>
-    files.fileHandler('document', bot, ctx)));
+  bot.on([':photo'], (ctx) => files.fileHandler('photo', bot, ctx));
+  bot.on([':video'], (ctx) => files.fileHandler('video', bot, ctx));
+  bot.on([':document'], (ctx) => files.fileHandler('document', bot, ctx));
 
   // Bot regex
   bot.hears(cache.config.language.back, (ctx) => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)));
   bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
-  bot.hears(/(.+)/, (ctx) => text.handleText(bot, ctx, keys));
+  bot.hears(/(.+)?/, (ctx) => {
+    text.handleText(bot, ctx, keys
+    )
+  });
 
   // Catch bot errors
   bot.catch((err, ctx) => {
@@ -127,7 +134,7 @@ function main(bot = defaultBot, logs = true) {
   });
 
   if (logs) {
-    bot.launch();
+    bot.start();
   }
 }
 

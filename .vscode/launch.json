@@ -8,32 +8,32 @@
             "name": "Launch via NPM",
             "request": "launch",
             "runtimeArgs": [
-                "run-script",
-                "debug"
+                "run",
+                "dev"
             ],
-            "runtimeExecutable": "npm run dev",
+            "runtimeExecutable": "npm",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "pwa-node"
+            "type": "node"
         },
-          {
-              "type": "node",
-              "request": "launch",
-              "preLaunchTask": "npm: tsc",
-              "name": "Run Mocha",
-              "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-              "env": {
-                  "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
-              },
-              "args": [
-                  "-r",
-                  "ts-node/register",
-                  "--colors",
-                  "${workspaceRoot}/test/**/*.ts"
-                ],
-              "cwd": "${workspaceRoot}",
-              "outFiles": []
-          }
+        {
+            "type": "node",
+            "request": "launch",
+            "preLaunchTask": "npm: tsc",
+            "name": "Run Mocha",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "env": {
+                "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
+            },
+            "args": [
+                "-r",
+                "ts-node/register",
+                "--colors",
+                "${workspaceRoot}/test/**/*.ts"
+            ],
+            "cwd": "${workspaceRoot}",
+            "outFiles": []
+        }
     ]
 }

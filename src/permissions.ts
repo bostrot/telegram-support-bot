@@ -1,4 +1,4 @@
-const session = require('telegraf/session');
+import { session } from "grammy";
 import * as db from './db';
 
 /**
@@ -38,23 +38,39 @@ function checkRights(ctx, config) {
   });
 };
 
+interface SessionData {
+  admin: boolean,
+  modeData: any,
+  groupCategory: any, // string
+  group: any,
+  groupAdmin: any,
+  /* getSessionKey: any, */
+}
 /**
  * Adds session middleware
  * @return {String} userid:chatid
  */
 function currentSession() {
-  return session({
-    getSessionKey: (ctx) => {
-      if (ctx.callbackQuery && ctx.callbackQuery.id) {
-        return `${ctx.from.id}:${ctx.from.id}`;
-      } else if (ctx.from && ctx.inlineQuery) {
-        return `${ctx.from.id}:${ctx.from.id}`;
-      } else if (ctx.from && ctx.chat) {
-        return `${ctx.from.id}:${ctx.chat.id}`;
-      };
-      return null;
-    },
-  });
+  function initial(): SessionData {
+    return {
+      admin: undefined,
+      modeData: undefined,
+      groupCategory: undefined,
+      group: undefined,
+      groupAdmin: undefined,
+      /* getSessionKey: (ctx) => {
+        if (ctx.callbackQuery && ctx.callbackQuery.id) {
+          return `${ctx.from.id}:${ctx.from.id}`;
+        } else if (ctx.from && ctx.inlineQuery) {
+          return `${ctx.from.id}:${ctx.from.id}`;
+        } else if (ctx.from && ctx.chat) {
+          return `${ctx.from.id}:${ctx.chat.id}`;
+        };
+        return null;
+      }, */
+    };
+  }
+  return session({ initial });
 };
 
 /**

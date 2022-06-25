@@ -1,5 +1,4 @@
 import cache from './cache';
-const {Extra} = require('telegraf');
 import * as middleware from './middleware';
 import * as db from './db';
 
@@ -10,10 +9,10 @@ import * as db from './db';
  * @return {String} text
  */
 function ticketMsg(name, message) {
-  return `${cache.config.language.dear} `+
-    `${middleware.escapeText(name)},\n\n`+
-    `${middleware.escapeText(message.text)}\n\n`+
-    `${cache.config.language.regards}\n`+
+  return `${cache.config.language.dear} ` +
+    `${middleware.escapeText(name)},\n\n` +
+    `${middleware.escapeText(message.text)}\n\n` +
+    `${cache.config.language.regards}\n` +
     `${message.from.first_name}`;
 }
 
@@ -35,16 +34,16 @@ function privateReply(bot, ctx, msg = undefined) {
         inline_keyboard: [
           [
             cache.config.direct_reply ?
-            {
-              'text': cache.config.language.replyPrivate,
-              'url': `https://t.me/${ctx.from.username}`,
-            } :
-            {
-              'text': cache.config.language.replyPrivate,
-              'callback_data': ctx.from.id +
-              '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
-              '---' + ctx.session.modeData.ticketid
-            },
+              {
+                'text': cache.config.language.replyPrivate,
+                'url': `https://t.me/${ctx.from.username}`,
+              } :
+              {
+                'text': cache.config.language.replyPrivate,
+                'callback_data': ctx.from.id +
+                  '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
+                  '---' + ctx.session.modeData.ticketid
+              },
           ],
         ],
       },
@@ -78,26 +77,26 @@ function chat(ctx, bot) {
     }
 
     let userid = replyText.match(new RegExp('#T' +
-        '(.*)' + ' ' + cache.config.language.from));
+      '(.*)' + ' ' + cache.config.language.from));
     if (userid === null || userid === undefined) {
       userid = replyText.match(new RegExp('#T' +
-          '(.*)' + '\n' + cache.config.language.from));
+        '(.*)' + '\n' + cache.config.language.from));
     }
 
     // replying to non-ticket
     if (userid === null || userid === undefined) {
-        return;
+      return;
     }
 
-    db.getOpen(userid[1], ctx.session.groupCategory, function(ticket) {
-            const name = replyText.match(new RegExp(
-          cache.config.language.from + ' ' + '(.*)' + ' ' +
-      cache.config.language.language));
+    db.getOpen(userid[1], ctx.session.groupCategory, function (ticket) {
+      const name = replyText.match(new RegExp(
+        cache.config.language.from + ' ' + '(.*)' + ' ' +
+        cache.config.language.language));
       // replying to closed ticket
       if (userid === null || ticket == undefined) {
         middleware.reply(ctx, cache.config.language.ticketClosedError);
       }
-      
+
       // replying to non-ticket
       if (ticket == undefined) {
         return;
@@ -110,26 +109,26 @@ function chat(ctx, bot) {
         try {
           let socket_id = ticket.userid.split('WEB')[1];
           cache.io.to(socket_id).emit('chat_staff', ticketMsg(name[1], ctx.message));
-        } catch(e) {
+        } catch (e) {
           // To staff msg error
-          middleware.msg(ctx.chat.id, `Web chat already closed.`, Extra.HTML().notifications(false));
+          middleware.msg(ctx.chat.id, `Web chat already closed.`, { parse_mode: "HTML" }/* .notifications(false) */);
           console.log(e);
         }
       } else {
         middleware.msg(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
-          Extra.HTML()
+          { parse_mode: "HTML" }
         );
       }
-      
+
       // To staff msg sent
       middleware.msg(ctx.chat.id,
-          `${cache.config.language.msg_sent} ${name[1]}`,
-          // eslint-disable-next-line new-cap
-          Extra.HTML().notifications(false)
+        `${cache.config.language.msg_sent} ${name[1]}`,
+        // eslint-disable-next-line new-cap
+        { parse_mode: "HTML" }/* .notifications(false) */
       );
-      console.log(`Answer: `+ ticketMsg(name[1], ctx.message));
+      console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
       // Check if auto close ticket
       if (cache.config.auto_close_tickets) {
@@ -139,10 +138,10 @@ function chat(ctx, bot) {
   } catch (e) {
     console.log(e);
     middleware.msg(
-        cache.config.staffchat_id, `An error occured, please 
+      cache.config.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`,
-        // eslint-disable-next-line new-cap
-        Extra.HTML().notifications(false)
+      // eslint-disable-next-line new-cap
+      { parse_mode: "HTML" }/* .notifications(false) */
     );
   }
 }
