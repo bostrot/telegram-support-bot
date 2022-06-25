@@ -7,12 +7,12 @@ const logStdout = process.stdout;
 
 function init(bot, logs = true) {
   // overload logging to file
-  console.log = function(d) {
+  console.log = function (d) {
     if (logs) {
       logStdout.write(util.format(d) + '\n');
       fs.appendFile(debugFile,
         new Date() + ': ' + util.format(d) + '\n', 'utf8',
-        function(err) {
+        function (err) {
           if (err) throw err;
         });
     }
@@ -22,10 +22,10 @@ function init(bot, logs = true) {
   process.on('uncaughtException', (err) => {
     console.log('=== UNHANDLED ERROR ===');
     fs.appendFile(debugFile,
-        err.stack + '\n', 'utf8',
-        function(err) {
-          if (err) throw err;
-        });
+      err.stack + '\n', 'utf8',
+      function (err) {
+        if (err) throw err;
+      });
     console.error(new Date() + ': ' + 'Error: ', err);
     middleware.msg(cache.config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
     process.exit(1);
@@ -36,13 +36,13 @@ function init(bot, logs = true) {
   process.on('unhandledRejection', (err, p) => {
     console.log('=== UNHANDLED REJECTION ===');
     fs.appendFile(debugFile,
-        err + '\n', 'utf8',
-        function(err) {
-          if (err) throw err;
-        });
+      err + '\n', 'utf8',
+      function (err) {
+        if (err) throw err;
+      });
     console.dir(new Date() + ': ' + err["stack"]);
-    bot.drop();
     middleware.msg(cache.config.staffchat_id, `An error occured, please report this to your admin: \n\n ${err}`, {});
+    bot.drop();
   });
 }
 
