@@ -94,7 +94,7 @@ function fileHandler(type, bot, ctx) {
       const file_id = (await ctx.getFile()).file_id;
       switch (type) {
         case 'document':
-          bot.api.sendDocument(
+          bot.sendDocument(
             receiverId,
             file_id, {
             caption: captionText,
@@ -103,7 +103,7 @@ function fileHandler(type, bot, ctx) {
           );
           if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
-            bot.api.sendDocument(
+            bot.sendDocument(
               ctx.session.group,
               file_id, {
               caption: captionText,
@@ -125,13 +125,13 @@ function fileHandler(type, bot, ctx) {
           }
           break;
         case 'photo':
-          bot.api.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
+          bot.sendPhoto(receiverId, ctx.message.photo[0].file_id, {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
           if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
-            bot.api.sendPhoto(ctx.session.group,
+            bot.sendPhoto(ctx.session.group,
               file_id, {
               caption: captionText,
               reply_markup: {
@@ -151,13 +151,13 @@ function fileHandler(type, bot, ctx) {
           }
           break;
         case 'video':
-          bot.api.sendVideo(receiverId, ctx.message.video.file_id, {
+          bot.sendVideo(receiverId, ctx.message.video.file_id, {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
           if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
-            bot.api.sendVideo(ctx.session.group,
+            bot.sendVideo(ctx.session.group,
               ctx.message.video.file_id, {
               caption: captionText,
               reply_markup: {

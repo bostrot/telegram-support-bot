@@ -1,5 +1,3 @@
-import { Bot, Context, SessionFlavor } from "grammy";
-
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 import cache from './cache';
@@ -12,29 +10,22 @@ import * as inline from './inline';
 import * as text from './text';
 import * as files from './files';
 import * as error from './error';
+
 import * as webserver from './addons/web';
-
 import * as signal from './addons/signal';
-
+import TelegramAddon from './addons/telegram';
 
 // Create new Telegraf() with token
 let defaultBot;
-interface SessionData {
-  admin: boolean,
-  modeData: any,
-  groupCategory: any, // string
-  group: any,
-  groupAdmin: any,
-}
-type BotContext = Context & SessionFlavor<SessionData>;
 function createBot(noCache = false) {
-  defaultBot = new Bot<BotContext>(cache.config.bot_token);
+  defaultBot = new TelegramAddon(cache.config.bot_token);
 
   return defaultBot;
 }
 
-function main(bot = defaultBot, logs = true) {
+function main(bot: TelegramAddon = defaultBot, logs = true) {
   cache.bot = defaultBot;
+  //bot.sendMessage(cache.config.staffchat_id, 'Bot started');
   // Check addon
   if (cache.config.signal_enabled) {
     signal.init(function (ctx, msg) {
@@ -51,7 +42,8 @@ function main(bot = defaultBot, logs = true) {
   error.init(bot, logs);
 
   // Use session and check for permissions on message
-  bot.use(permissions.currentSession());
+  bot.use(bot.initSession());
+
   bot.use((ctx, next) => {
     // Check dev mode
     if (cache.config.dev_mode) {
@@ -64,7 +56,7 @@ function main(bot = defaultBot, logs = true) {
   const keys = inline.initInline(bot, cache.config);
 
   // Set bots username
-  // bot.api.getMe().then((botInfo) => bot.options.username = botInfo.username);
+  //bot..getMe().then((botInfo) => bot.options.username = botInfo.username);
 
   // Bot commands
   bot.command('open', (ctx) => commands.openCommand(ctx));
@@ -99,7 +91,7 @@ function main(bot = defaultBot, logs = true) {
               .replace(/[\[\]\:\ "]/g, '').substr(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
-              links += `${catName} - https://t.me/${bot.options.username}?start=${id}\n`;
+              links += `${catName} - https://t.me/${bot.botInfo.username}?start=${id}\n`;
             }
           }
         }
@@ -117,9 +109,8 @@ function main(bot = defaultBot, logs = true) {
   // Bot regex
   bot.hears(cache.config.language.back, (ctx) => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)));
   bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
-  bot.hears(/(.+)?/, (ctx) => {
-    text.handleText(bot, ctx, keys
-    )
+  bot.hears(/(.+)/, (ctx) => {
+    text.handleText(bot, ctx, keys);
   });
 
   // Catch bot errors

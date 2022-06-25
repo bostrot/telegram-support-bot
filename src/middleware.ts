@@ -50,7 +50,7 @@ const msg = function (id, msg, extra) {
     signal.message(id.split('SIGNAL')[1], msg);
   }
   else {
-    cache.bot.api.sendMessage(id, msg, extra);
+    cache.bot.sendMessage(id, msg, extra);
   }
 }
 

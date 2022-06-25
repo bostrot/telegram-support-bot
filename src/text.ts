@@ -11,7 +11,6 @@ import * as middleware from './middleware';
  * @param {Array} keys
  */
 function handleText(bot, ctx, keys) {
-  ctx.session.mode;
   if (ctx.session.mode == 'private_reply') {
     staff.privateReply(bot, ctx);
   } else if (cache.config.categories && cache.config.categories.length > 0 &&
