@@ -1,6 +1,6 @@
 /* eslint-disable new-cap */
-const Telegraf = require( 'telegraf');
-const {Extra} = Telegraf;
+const Telegraf = require('telegraf');
+const { Extra } = Telegraf;
 
 import * as fs from 'fs';
 import * as YAML from 'yaml';
@@ -22,7 +22,7 @@ import * as signal from './addons/signal';
 let defaultBot;
 function createBot(noCache = false) {
   defaultBot = new Telegraf(cache.config.bot_token);
-  
+
   return defaultBot;
 }
 
@@ -30,7 +30,7 @@ function main(bot = defaultBot, logs = true) {
   cache.bot = defaultBot;
   // Check addon
   if (cache.config.signal_enabled) {
-    signal.init(function(ctx, msg) {
+    signal.init(function (ctx, msg) {
       console.log(msg)
       text.handleText(bot, ctx, msg);
     });
@@ -72,12 +72,12 @@ function main(bot = defaultBot, logs = true) {
     if (ctx.chat.type == 'private') {
       middleware.reply(ctx, cache.config.language.startCommandText);
       if (cache.config.categories && cache.config.categories.length > 0)
-        setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);    
+        setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);
     } else middleware.reply(ctx, cache.config.language.prvChatOnly);
   });
-  bot.command('id', (ctx) => middleware.reply(ctx, ctx.from.id + ' ' + ctx.chat.id));
-  bot.command('faq', (ctx) => 
-  middleware.reply(ctx, cache.config.language.faqCommandText, Extra.HTML()));
+  bot.command('id', (ctx) => middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`));
+  bot.command('faq', (ctx) =>
+    middleware.reply(ctx, cache.config.language.faqCommandText, Extra.HTML()));
   bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, Extra.HTML()));
   bot.command('links', (ctx) => {
     let links = '';
@@ -89,7 +89,7 @@ function main(bot = defaultBot, logs = true) {
             const catName = cache.config.categories[i].subgroups[j].name;
             const id = (cache.config.categories[i].name +
               cache.config.categories[i].subgroups[j].name)
-              .replace(/[\[\]\:\ "]/g, '').substr(0,63);
+              .replace(/[\[\]\:\ "]/g, '').substr(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
               links += `${catName} - https://t.me/${bot.options.username}?start=${id}\n`;
@@ -103,11 +103,11 @@ function main(bot = defaultBot, logs = true) {
 
   // Bot ons
   bot.on('callback_query', (ctx) => inline.callbackQuery(bot, ctx));
-  bot.on('photo', (ctx) => middleware.downloadPhotoMiddleware(bot, ctx, () => 
+  bot.on('photo', (ctx) => middleware.downloadPhotoMiddleware(bot, ctx, () =>
     files.fileHandler('photo', bot, ctx)));
-  bot.on('video', (ctx) => middleware.downloadVideoMiddleware(bot, ctx, () => 
+  bot.on('video', (ctx) => middleware.downloadVideoMiddleware(bot, ctx, () =>
     files.fileHandler('video', bot, ctx)));
-  bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () => 
+  bot.on('document', (ctx) => middleware.downloadDocumentMiddleware(bot, ctx, () =>
     files.fileHandler('document', bot, ctx)));
 
   // Bot regex
@@ -121,7 +121,7 @@ function main(bot = defaultBot, logs = true) {
     // Catch bot blocked by user
     try {
       middleware.reply(ctx, 'Message is not sent due to an error.');
-    } catch(e) {
+    } catch (e) {
       console.log('Could not send error msg to chat: ', e);
     }
   });
