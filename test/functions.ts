@@ -10,10 +10,10 @@ const msgsToUser: Array<string> = [];
 const msgsToStaff: Array<string> = [];
 let waiting = true;
 
-const { createBot, main } = require('../build/src/index.js');
+const {createBot, main} = require('../build/src/index.js');
 const bot = createBot();
 
-bot.api.sendMessage = function (id, text: string, options) {
+bot.api.sendMessage = function(id, text: string, options) {
   if (id == config.staffchat_id) {
     // msg to staff
     msgsToStaff.push(text);
@@ -25,15 +25,9 @@ bot.api.sendMessage = function (id, text: string, options) {
   waiting = false;
 };
 
-bot.launch = function () {
+bot.launch = function() {
   // Do nothing
   console.log('not launching');
 };
 
-export {
-  bot,
-  main,
-  waiting,
-  msgsToUser,
-  msgsToStaff,
-};
+export {bot, main, waiting, msgsToUser, msgsToStaff};

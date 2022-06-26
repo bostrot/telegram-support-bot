@@ -9,7 +9,11 @@ import * as middleware from './middleware';
 function clearCommand(ctx) {
   if (!ctx.session.admin) return;
   db.closeAll();
-  middleware.reply(ctx, 'All tickets closed.', { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+  middleware.reply(
+      ctx,
+      'All tickets closed.',
+      {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+  );
 }
 
 /**
@@ -28,20 +32,24 @@ function openCommand(ctx) {
           groups.push(cache.config.categories[index].name);
         }
       } else {
-        cache.config.categories[index].subgroups.forEach((innerElement, index) => {
-          if (innerElement.group_id == ctx.chat.id) {
-            groups.push(innerElement.name);
-          }
-        });
+        cache.config.categories[index].subgroups.forEach(
+            (innerElement, index) => {
+              if (innerElement.group_id == ctx.chat.id) {
+                groups.push(innerElement.name);
+              }
+            },
+        );
       }
     });
   }
   // Get open tickets for any maintained label
-  db.open(function (userList) {
+  db.open(function(userList) {
     let openTickets = '';
     for (const i in userList) {
-      if (userList[i]['userid'] !== null &&
-        userList[i]['userid'] !== undefined) {
+      if (
+        userList[i]['userid'] !== null &&
+        userList[i]['userid'] !== undefined
+      ) {
         let ticketInfo = '';
         if (userList[i]['userid'].indexOf('WEB') > -1) {
           ticketInfo = '(web)';
@@ -49,20 +57,26 @@ function openCommand(ctx) {
         if (userList[i]['userid'].indexOf('SIGNAL') > -1) {
           ticketInfo = '(signal)';
         }
-        openTickets += '#T' + userList[i]['id']
-          .toString().padStart(6, '0')
-          .toString() + ' ' + ticketInfo +
+        openTickets +=
+          '#T' +
+          userList[i]['id'].toString().padStart(6, '0').toString() +
+          ' ' +
+          ticketInfo +
           '\n';
       }
     }
-    middleware.reply(ctx, `*${cache.config.language.openTickets}\n\n* ${openTickets}`,
-      // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+    middleware.reply(
+        ctx,
+        `*${cache.config.language.openTickets}\n\n* ${openTickets}`,
+        // eslint-disable-next-line new-cap
+        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+    );
   }, groups);
-};
+}
 
 /**
  * Close ticket
+ * @param {Object} bot
  * @param {Object} ctx
  */
 function closeCommand(bot, ctx) {
@@ -77,11 +91,13 @@ function closeCommand(bot, ctx) {
           groups.push(cache.config.categories[index].name);
         }
       } else {
-        cache.config.categories[index].subgroups.forEach((innerElement, index) => {
-          if (innerElement.group_id == ctx.chat.id) {
-            groups.push(innerElement.name);
-          }
-        });
+        cache.config.categories[index].subgroups.forEach(
+            (innerElement, index) => {
+              if (innerElement.group_id == ctx.chat.id) {
+                groups.push(innerElement.name);
+              }
+            },
+        );
       }
     });
   }
@@ -98,14 +114,15 @@ function closeCommand(bot, ctx) {
   // Ticket ID
   let ticketId = -1;
   try {
-    ticketId = replyText.match(new RegExp('#T' + '(.*)' + ' ' +
-      cache.config.language.from))[1];
+    ticketId = replyText.match(
+        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+    )[1];
   } catch (e) {
     // Not replying to a ticket so return
     return;
   }
   // get userid from ticketid
-  db.open(function (tickets) {
+  db.open(function(tickets) {
     if (tickets == undefined) {
       console.log('Close command: tickets undefined');
       return;
@@ -117,18 +134,25 @@ function closeCommand(bot, ctx) {
         userid = tickets[i].userid;
       }
     }
-    middleware.reply(ctx, `
-    ${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
-      `${cache.config.language.closed}`,
-      // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+    middleware.reply(
+        ctx,
+        `
+    ${cache.config.language.ticket} 
+    #T${ticketId.toString().padStart(6, '0')} ` +
+        `${cache.config.language.closed}`,
+        // eslint-disable-next-line new-cap
+        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
     );
-    middleware.msg(userid,
-      `${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
-      `${cache.config.language.closed}\n\n${cache.config.language.ticketClosed}`,
-      { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+    middleware.msg(
+        userid,
+        `${cache.config.language.ticket} 
+        #T${ticketId.toString().padStart(6, '0')} ` +
+        `${cache.config.language.closed}\n\n
+      ${cache.config.language.ticketClosed}`,
+        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+    );
   }, groups);
-};
+}
 
 /**
  * Ban user
@@ -142,22 +166,29 @@ function banCommand(bot, ctx) {
 
   let ticketId = -1;
   try {
-    ticketId = replyText.match(new RegExp('#T' + '(.*)' +
-      ' ' + cache.config.language.from))[1];
+    ticketId = replyText.match(
+        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+    )[1];
   } catch (e) {
     // Not replying to a ticket so return
     return;
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function (ticket) {
+  db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'banned', undefined);
 
-    middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
-      ticket.id.toString().padStart(6, '0') +
-      ' ' + cache.config.language.banned, { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+    middleware.msg(
+        ctx.chat.id,
+        cache.config.language.usr_with_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        ' ' +
+        cache.config.language.banned,
+        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+    );
   });
-};
+}
 
 /**
  * Reopen ticket
@@ -171,22 +202,29 @@ function reopenCommand(bot, ctx) {
 
   let ticketId = -1;
   try {
-    ticketId = replyText.match(new RegExp('#T' + '(.*)' +
-      ' ' + cache.config.language.from))[1];
+    ticketId = replyText.match(
+        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+    )[1];
   } catch (e) {
     // Not replying to a ticket so return
     return;
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function (ticket) {
+  db.getId(ticketId, function(ticket) {
     db.reopen(ticket.userid, undefined);
 
-    middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
-      ticket.id.toString().padStart(6, '0') +
-      ' ' + cache.config.language.ticketReopened, { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+    middleware.msg(
+        ctx.chat.id,
+        cache.config.language.usr_with_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        ' ' +
+        cache.config.language.ticketReopened,
+        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+    );
   });
-};
+}
 
 /**
  * Unban user
@@ -200,21 +238,29 @@ function unbanCommand(bot, ctx) {
 
   let ticketId = -1;
   try {
-    ticketId = replyText.match(new RegExp('#T' + '(.*)' +
-      ' ' + cache.config.language.from))[1];
+    ticketId = replyText.match(
+        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+    )[1];
   } catch (e) {
     // Not replying to a ticket so return
     return;
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function (ticket) {
+  db.getId(ticketId, function(ticket) {
     db.add(ticket.userid, 'closed', undefined);
-    middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
-      ticket.id.toString().padStart(6, '0') +
-      ' ' + 'unbanned', { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
+    middleware.msg(
+        ctx.chat.id,
+        cache.config.language.usr_with_ticket +
+        ' #T' +
+        ticket.id.toString().padStart(6, '0') +
+        ' ' +
+        'unbanned',
+        {parse_mode: cache.config.parse_mode},
+        /* .notifications(false) */
+    );
   });
-};
+}
 
 export {
   banCommand,

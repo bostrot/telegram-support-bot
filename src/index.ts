@@ -15,20 +15,30 @@ import * as webserver from './addons/web';
 import * as signal from './addons/signal';
 import TelegramAddon from './addons/telegram';
 
-// Create new Telegraf() with token
 let defaultBot;
+
+/**
+ * Create Bot
+ * @param {boolean} noCache if true, don't use cache
+ * @return {Bot}
+ */
 function createBot(noCache = false) {
   defaultBot = new TelegramAddon(cache.config.bot_token);
 
   return defaultBot;
 }
 
+/**
+ * Main function
+ * @param {TelegramAddon} bot
+ * @param {boolean} logs
+ */
 function main(bot: TelegramAddon = defaultBot, logs = true) {
   cache.bot = defaultBot;
   // bot.sendMessage(cache.config.staffchat_id, 'Bot started');
   // Check addon
   if (cache.config.signal_enabled) {
-    signal.init(function (ctx, msg) {
+    signal.init(function(ctx, msg) {
       console.log(msg);
       text.handleText(bot, ctx, msg);
     });
@@ -47,7 +57,12 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.use((ctx, next) => {
     // Check dev mode
     if (cache.config.dev_mode) {
-      middleware.reply(ctx, '_Dev mode is on: You might notice some delay in messages, no replies or other errors._', { parse_mode: cache.config.parse_mode });
+      middleware.reply(
+          ctx,
+          `_Dev mode is on: You might notice 
+      some delay in messages, no replies or other errors._`,
+          {parse_mode: cache.config.parse_mode},
+      );
     }
     permissions.checkPermissions(ctx, next, cache.config);
   });
@@ -71,14 +86,31 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     if (ctx.chat.type == 'private') {
       middleware.reply(ctx, cache.config.language.startCommandText);
       if (cache.config.categories && cache.config.categories.length > 0) {
-        setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);
+        setTimeout(
+            () =>
+              middleware.reply(
+                  ctx,
+                  cache.config.language.services,
+                  inline.replyKeyboard(keys),
+              ),
+            500,
+        );
       }
     } else middleware.reply(ctx, cache.config.language.prvChatOnly);
   });
-  bot.command('id', (ctx) => middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`));
+  bot.command('id', (ctx) =>
+    middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`),
+  );
   bot.command('faq', (ctx) =>
-    middleware.reply(ctx, cache.config.language.faqCommandText, { parse_mode: cache.config.parse_mode }));
-  bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, { parse_mode: cache.config.parse_mode }));
+    middleware.reply(ctx, cache.config.language.faqCommandText, {
+      parse_mode: cache.config.parse_mode,
+    }),
+  );
+  bot.command('help', (ctx) =>
+    middleware.reply(ctx, cache.config.language.helpCommandText, {
+      parse_mode: cache.config.parse_mode,
+    }),
+  );
   bot.command('links', (ctx) => {
     let links = '';
     const subcategories = [];
@@ -87,9 +119,12 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
         for (const j in cache.config.categories[i].subgroups) {
           if (j !== undefined) {
             const catName = cache.config.categories[i].subgroups[j].name;
-            const id = (cache.config.categories[i].name +
-              cache.config.categories[i].subgroups[j].name)
-              .replace(/[\[\]\:\ "]/g, '').substr(0, 63);
+            const id = (
+              cache.config.categories[i].name +
+              cache.config.categories[i].subgroups[j].name
+            )
+                .replace(/[\[\]\:\ "]/g, '')
+                .substr(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
               links += `${catName} - https://t.me/${bot.botInfo.username}?start=${id}\n`;
@@ -98,7 +133,9 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
         }
       }
     }
-    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: cache.config.parse_mode });
+    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, {
+      parse_mode: cache.config.parse_mode,
+    });
   });
 
   // Bot ons
@@ -108,7 +145,13 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.on([':document'], (ctx) => files.fileHandler('document', bot, ctx));
 
   // Bot regex
-  bot.hears(cache.config.language.back, (ctx) => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)));
+  bot.hears(cache.config.language.back, (ctx) =>
+    middleware.reply(
+        ctx,
+        cache.config.language.services,
+        inline.replyKeyboard(keys),
+    ),
+  );
   bot.hears('testing', (ctx) => text.handleText(bot, ctx, keys));
   bot.hears(/(.+)/, (ctx) => {
     text.handleText(bot, ctx, keys);
@@ -133,7 +176,4 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
 createBot();
 main();
 
-export {
-  createBot,
-  main,
-};
+export {createBot, main};

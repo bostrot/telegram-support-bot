@@ -6,6 +6,7 @@ import * as middleware from './middleware';
  * @param {String} ticket
  * @param {Object} message
  * @param {Boolean} anon
+ * @param {String} autoReplyInfo
  * @return {String} text
  */
 function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
@@ -13,34 +14,38 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
   if (!anon) {
     link = `tg://user?id=${cache.ticketID}`;
   }
-  return `${cache.config.language.ticket} ` +
+  return (
+    `${cache.config.language.ticket} ` +
     `#T${ticket.toString().padStart(6, '0')} ${cache.config.language.from} ` +
     `[${middleware.strictEscape(message.from.first_name)}](${link})` +
     ` ${cache.config.language.language}: ` +
     `${message.from.language_code}\n\n` +
     `${middleware.strictEscape(message.text)}\n\n` +
-    (autoReplyInfo ? `_${autoReplyInfo}_` : '');
+    (autoReplyInfo ? `_${autoReplyInfo}_` : '')
+  );
 }
 
 /** Ticket auto reply for common questions
  * @param {context} ctx Bot context.
  * @param {bot} bot Bot object.
  * @param {chat} chat Bot chat.
+ * @return {boolean}
  */
 function autoReply(ctx, bot, chat) {
   const strings = cache.config.autoreply;
   for (const i in strings) {
     if (ctx.message.text.toString().indexOf(strings[i]['question']) > -1) {
       // Define message
-      const msg = `${cache.config.language.dear} ` +
-        `${(ctx.message.from.first_name)},\n\n` +
-        `${(strings[i]['answer'])}\n\n` +
+      const msg =
+        `${cache.config.language.dear} ` +
+        `${ctx.message.from.first_name},\n\n` +
+        `${strings[i]['answer']}\n\n` +
         `${cache.config.language.regards}\n` +
         `${cache.config.language.automatedReplyAuthor}\n\n` +
         `_${cache.config.language.automatedReply}_`;
 
       // Send message with keyboard
-      middleware.reply(ctx, msg, { parse_mode: cache.config.parse_mode });
+      middleware.reply(ctx, msg, {parse_mode: cache.config.parse_mode});
       return true;
     }
   }
@@ -63,7 +68,9 @@ function chat(ctx, bot, chat) {
       return;
     }
   }
-  const autoReplyInfo = isAutoReply ? cache.config.language.automatedReplySent : undefined;
+  const autoReplyInfo = isAutoReply ?
+    cache.config.language.automatedReplySent :
+    undefined;
 
   if (cache.ticketIDs[cache.ticketID] === undefined) {
     cache.ticketIDs.push(cache.ticketID);
@@ -71,70 +78,124 @@ function chat(ctx, bot, chat) {
   cache.ticketStatus[cache.ticketID] = true;
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
-    db.getOpen(chat.id, ctx.session.groupCategory, function (ticket) {
+    db.getOpen(chat.id, ctx.session.groupCategory, function(ticket) {
       if (!isAutoReply) {
-        middleware.msg(chat.id, cache.config.language.contactMessage +
-          (cache.config.show_user_ticket ? cache.config.language.yourTicketId + ' #T' +
-            ticket.id.toString().padStart(6, '0') : ''), { parse_mode: cache.config.parse_mode });
+        middleware.msg(
+            chat.id,
+            cache.config.language.contactMessage +
+            (cache.config.show_user_ticket ?
+              cache.config.language.yourTicketId +
+                ' #T' +
+                ticket.id.toString().padStart(6, '0') :
+              ''),
+            {parse_mode: cache.config.parse_mode},
+        );
       }
 
       // To staff
-      middleware.msg(cache.config.staffchat_id, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        { parse_mode: cache.config.parse_mode });
+      middleware.msg(
+          cache.config.staffchat_id,
+          ticketMsg(
+              ticket.id,
+              ctx.message,
+              cache.config.anonymous_tickets,
+              autoReplyInfo,
+          ),
+          {parse_mode: cache.config.parse_mode},
+      );
 
       // Check if group flag is set and is not admin chat
-      if (ctx.session.group !== undefined &&
-        ctx.session.group != cache.config.staffchat_id) {
+      if (
+        ctx.session.group !== undefined &&
+        ctx.session.group != cache.config.staffchat_id
+      ) {
         // Send to group-staff chat
-        middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo), cache.config.allow_private ? {
-          parse_mode: 'HTML',
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  'text': cache.config.language.replyPrivate,
-                  'callback_data': ctx.from.id +
-                    '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
-                    '---' + ticket.id,
-                },
-              ],
-            ],
-          },
-        } : {
-          parse_mode: 'HTML',
-        });
+        middleware.msg(
+            ctx.session.group,
+            ticketMsg(
+                ticket.id,
+                ctx.message,
+                cache.config.anonymous_tickets,
+                autoReplyInfo,
+            ),
+          cache.config.allow_private ?
+            {
+              parse_mode: 'HTML',
+              reply_markup: {
+                html: '',
+                inline_keyboard: [
+                  [
+                    {
+                      text: cache.config.language.replyPrivate,
+                      callback_data:
+                          ctx.from.id +
+                          '---' +
+                          ctx.message.from.first_name +
+                          '---' +
+                          ctx.session.groupCategory +
+                          '---' +
+                          ticket.id,
+                    },
+                  ],
+                ],
+              },
+            } :
+            {
+              parse_mode: 'HTML',
+            },
+        );
       }
     });
     // wait 5 minutes before this message appears again and do not
     // send notification sounds in that time to avoid spam
-    setTimeout(function () {
+    setTimeout(function() {
       cache.ticketSent[cache.ticketID] = undefined;
     }, cache.config.spam_time);
     cache.ticketSent[cache.ticketID] = 0;
   } else if (cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
-    db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
-      middleware.msg(cache.config.staffchat_id,
-        ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        { parse_mode: cache.config.parse_mode });
+    db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
+      middleware.msg(
+          cache.config.staffchat_id,
+          ticketMsg(
+              ticket.id,
+              ctx.message,
+              cache.config.anonymous_tickets,
+              autoReplyInfo,
+          ),
+          {parse_mode: cache.config.parse_mode},
+      );
       if (ctx.session.group !== undefined) {
-        middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-          { parse_mode: cache.config.parse_mode });
+        middleware.msg(
+            ctx.session.group,
+            ticketMsg(
+                ticket.id,
+                ctx.message,
+                cache.config.anonymous_tickets,
+                autoReplyInfo,
+            ),
+            {parse_mode: cache.config.parse_mode},
+        );
       }
     });
   } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
 
-    middleware.msg(chat.id, cache.config.language.blockedSpam, { parse_mode: cache.config.parse_mode });
+    middleware.msg(chat.id, cache.config.language.blockedSpam, {
+      parse_mode: cache.config.parse_mode,
+    });
   }
-  db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
-    console.log(ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo));
+  db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
+    console.log(
+        ticketMsg(
+            ticket.id,
+            ctx.message,
+            cache.config.anonymous_tickets,
+            autoReplyInfo,
+        ),
+    );
   });
 }
 
-export {
-  chat,
-};
-
+export {chat};

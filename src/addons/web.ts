@@ -1,11 +1,11 @@
 import fakectx from './fakectx';
-import { ticketHandler } from '../text';
+import {ticketHandler} from '../text';
 import cache from '../cache';
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>
 */
-const init = function (bot) {
+const init = function(bot) {
   // Enable web server with socketio
   if (cache.config.web_server) {
     const express = require('express');
@@ -14,7 +14,7 @@ const init = function (bot) {
     const port = cache.config.web_server_port;
     const server = http.createServer(app);
 
-    const { Server } = require('socket.io');
+    const {Server} = require('socket.io');
     const io = new Server(server);
     cache.io = io;
 
@@ -41,4 +41,4 @@ const init = function (bot) {
   }
 };
 
-export { init };
+export {init};

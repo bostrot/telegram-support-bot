@@ -13,18 +13,21 @@ const username = cache.config.signal_number;
  * @param {String} msg Msg
  */
 const message = (id, msg) => {
-  exec(`signal-cli -u ${username} send -m 
-    '${msg}' ${id}`, (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-  });
+  exec(
+      `signal-cli -u ${username} send -m 
+    '${msg}' ${id}`,
+      (error, stdout, stderr) => {
+        if (error) {
+          console.log(`error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.log(`stderr: ${stderr}`);
+          return;
+        }
+        console.log(`stdout: ${stdout}`);
+      },
+  );
 };
 
 /**
@@ -108,8 +111,4 @@ const init = (handle) => {
   }, 10000);
 };
 
-export {
-  message,
-  receive,
-  init,
-};
+export {message, receive, init};

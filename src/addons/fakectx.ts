@@ -25,9 +25,7 @@ const fakectx = {
     username: 'webuser',
     type: 'private',
   },
-  session: {
-
-  },
+  session: {},
   reply: null,
 };
 
