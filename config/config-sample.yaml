@@ -5,11 +5,13 @@ owner_id: "YOUR_TELEGRAM_ID"
 spam_time: 5 * 60 * 1000 # time (in MS) in which user may send 5 messages
 spam_cant_msg: 5
 
+parse_mode: "MarkdownV2" # Markdown, HTML or MarkdownV2
+
 allow_private: false # Allow / disallow option for staff to chat privately
 direct_reply: false # Set this to true to just forward staff users to a user chat when allow_private
-
 auto_close_tickets: true # Close tickets after answering
 anonymous_tickets: true # Include userid in tickets or not
+show_auto_replied: false # Send auto replied msgs to staff chat
 
 signal_enabled: false # Enable/disable signal
 signal_number: '+12345689' # Your signal number / account
@@ -62,6 +64,15 @@ language:
     doesntHelp: "This does not help."
     automatedReplySent: "Automated reply was send to the user."
     ticketReopened: "Ticket reopened."
+
+autoreply:
+  - question: "install"
+    answer: "If you want to install the bot, you can use the following link:\n\
+      [Getting Started](https://github.com/bostrot/telegram-support-bot/wiki/Getting-started)\n\n\
+      Alternatively you can also use our one-click setup & hosting service:\n\
+      [Botspace](https://botspace.bostrot.com/)"
+  - question: "are you sure?"
+    answer: "Yes."
 
 # categories: 
 #  - name: "Category1"

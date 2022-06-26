@@ -1,4 +1,3 @@
-import strings from '../config/strings';
 import cache from './cache';
 import * as db from './db';
 import * as middleware from './middleware';
@@ -29,18 +28,19 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
  * @param {chat} chat Bot chat.
  */
 function autoReply(ctx, bot, chat) {
+  const strings = cache.config.autoreply;
   for (let i in strings) {
-    if (ctx.message.text.toString().indexOf(strings[i][0]) > -1) {
+    if (ctx.message.text.toString().indexOf(strings[i]["question"]) > -1) {
       // Define message
       let msg = `${cache.config.language.dear} ` +
         `${middleware.escapeText(ctx.message.from.first_name)},\n\n` +
-        `${middleware.escapeText(strings[i][1])}\n\n` +
+        `${middleware.escapeText(strings[i]["answer"])}\n\n` +
         `${cache.config.language.regards}\n` +
         `${cache.config.language.automatedReplyAuthor}\n\n` +
         `<i>${cache.config.language.automatedReply}</i>`;
 
       // Send message with keyboard
-      middleware.reply(ctx, msg);
+      middleware.reply(ctx, msg, { parse_mode: "HTML" });
       return true;
     }
   }
@@ -83,7 +83,7 @@ function chat(ctx, bot, chat) {
         ctx.session.group != cache.config.staffchat_id) {
         // Send to group-staff chat
         middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo), cache.config.allow_private ? {
-          parse_mode: 'html',
+          parse_mode: 'HTML',
           reply_markup: {
             html: '',
             inline_keyboard: [
@@ -98,7 +98,7 @@ function chat(ctx, bot, chat) {
             ],
           },
         } : {
-          parse_mode: 'html',
+          parse_mode: 'HTML',
         });
 
       }
