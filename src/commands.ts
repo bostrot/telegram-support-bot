@@ -18,7 +18,7 @@ function clearCommand(ctx) {
  */
 function openCommand(ctx) {
   if (!ctx.session.admin) return;
-  let groups = [];
+  const groups = [];
   // Search all labels for this group
   if (cache.config.categories != undefined) {
     cache.config.categories.forEach((element, index) => {
@@ -43,10 +43,12 @@ function openCommand(ctx) {
       if (userList[i]['userid'] !== null &&
         userList[i]['userid'] !== undefined) {
         let ticketInfo = '';
-        if (userList[i]['userid'].indexOf('WEB') > -1)
+        if (userList[i]['userid'].indexOf('WEB') > -1) {
           ticketInfo = '(web)';
-        if (userList[i]['userid'].indexOf('SIGNAL') > -1)
+        }
+        if (userList[i]['userid'].indexOf('SIGNAL') > -1) {
           ticketInfo = '(signal)';
+        }
         openTickets += '#T' + userList[i]['id']
           .toString().padStart(6, '0')
           .toString() + ' ' + ticketInfo +
@@ -65,7 +67,7 @@ function openCommand(ctx) {
  */
 function closeCommand(bot, ctx) {
   if (!ctx.session.admin) return;
-  let groups = [];
+  const groups = [];
   // Search all labels for this group
   if (cache.config.categories) {
     cache.config.categories.forEach((element, index) => {
@@ -119,7 +121,7 @@ function closeCommand(bot, ctx) {
     ${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}`,
       // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }/* .notifications(false) */
+      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
     );
     middleware.msg(userid,
       `${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +

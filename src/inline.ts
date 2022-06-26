@@ -46,7 +46,7 @@ function initInline(bot, config) {
       if (cache.config.categories[i].subgroups == undefined) {
         // Create category button events for start with parameter
         // Full category name to 64 Byte without special chars
-        let startStr = '/start ' + cache.config.categories[i].name
+        const startStr = '/start ' + cache.config.categories[i].name
           .replace(/[\[\]\:\ "]/g, '')
           .substr(0, 63);
         bot.hears(startStr, (ctx) => {
@@ -81,13 +81,13 @@ function initInline(bot, config) {
       // Get subcategories
       for (const j in cache.config.categories[i].subgroups) {
         if (j !== undefined) {
-          let categoryFullId = [cache.config.categories[i].name +
+          const categoryFullId = [cache.config.categories[i].name +
             ': ' + cache.config.categories[i].subgroups[j].name];
           subKeys.push(categoryFullId);
 
           // Create subcategory button events for start with parameter
           // Full category name to 64 Byte without special chars
-          let startStr = '/start ' + JSON.stringify(categoryFullId)
+          const startStr = '/start ' + JSON.stringify(categoryFullId)
             .replace(/[\[\]\:\ "]/g, '')
             .substr(0, 63);
           bot.hears(startStr, (ctx) => {
@@ -141,7 +141,7 @@ function callbackQuery(bot, ctx) {
   // Get Ticket ID from DB
   const id = ctx.callbackQuery.data.split('---')[0];
   const name = ctx.callbackQuery.data.split('---')[1];
-  let category = ctx.callbackQuery.data.split('---')[2];
+  const category = ctx.callbackQuery.data.split('---')[2];
   const ticketid = ctx.callbackQuery.data.split('---')[3];
   ctx.session.mode = 'private_reply';
   ctx.session.modeData = {
@@ -174,8 +174,8 @@ function callbackQuery(bot, ctx) {
   // var t = ('https://t.me/' + bot.options.username + '?start=X');
   ctx.answerCbQuery(cache.config.language.instructionsSent, true,
     /* {
-      'url': t,
-    } */
+    'url': t,
+  } */
   );
 };
 

@@ -22,8 +22,9 @@ function ticketMsg(name, message) {
  * @param {Object} ctx
  */
 function privateReply(bot, ctx, msg = undefined) {
-  if (msg == undefined)
+  if (msg == undefined) {
     msg = ctx.message;
+  }
   // Msg to other end
   middleware.msg(ctx.session.modeData.userid,
     ticketMsg(` ${ctx.session.modeData.name}`, msg),
@@ -42,12 +43,12 @@ function privateReply(bot, ctx, msg = undefined) {
                 'text': cache.config.language.replyPrivate,
                 'callback_data': ctx.from.id +
                   '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
-                  '---' + ctx.session.modeData.ticketid
+                  '---' + ctx.session.modeData.ticketid,
               },
           ],
         ],
       },
-    }
+    },
   );
   // Confirmation message
   middleware.msg(ctx.chat.id, cache.config.language.msg_sent, {});
@@ -107,7 +108,7 @@ function chat(ctx, bot) {
       // Web user
       if (ticket.userid.indexOf('WEB') > -1) {
         try {
-          let socket_id = ticket.userid.split('WEB')[1];
+          const socket_id = ticket.userid.split('WEB')[1];
           cache.io.to(socket_id).emit('chat_staff', ticketMsg(name[1], ctx.message));
         } catch (e) {
           // To staff msg error
@@ -118,7 +119,7 @@ function chat(ctx, bot) {
         middleware.msg(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
-          { parse_mode: cache.config.parse_mode }
+          { parse_mode: cache.config.parse_mode },
         );
       }
 
@@ -126,7 +127,7 @@ function chat(ctx, bot) {
       middleware.msg(ctx.chat.id,
         `${cache.config.language.msg_sent} ${name[1]}`,
         // eslint-disable-next-line new-cap
-        { parse_mode: cache.config.parse_mode }/* .notifications(false) */
+        { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
       );
       console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
@@ -141,7 +142,7 @@ function chat(ctx, bot) {
       cache.config.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`,
       // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }/* .notifications(false) */
+      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
     );
   }
 }

@@ -81,10 +81,10 @@ function init(bot, logs = true) {
 
   // blocking
   function sleep(seconds) {
-    return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
   }
 }
 
 export {
-  init
+  init,
 };

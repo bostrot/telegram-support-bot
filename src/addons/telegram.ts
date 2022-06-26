@@ -2,8 +2,8 @@
 //  * Telegram Ticketing System - Telegram Implementation with GrammY
 //  */
 
-import { Bot, Context, SessionFlavor, session } from "grammy";
-import cache from "../cache";
+import { Bot, Context, SessionFlavor, session } from 'grammy';
+import cache from '../cache';
 
 interface SessionData {
   admin: boolean;
@@ -111,13 +111,13 @@ class TelegramAddon {
     chat_id: string | number,
     text: string,
     other?: any,
-    signal?: any
+    signal?: any,
   ) => {
     other = other || {};
     other.disable_web_page_preview = true;
-    this.bot.api.sendMessage(chat_id, text, other, signal); //fsdf
+    this.bot.api.sendMessage(chat_id, text, other, signal); // fsdf
   };
-  /**f
+  /** f
    * Registers some middleware that will only be executed when a certain
    * command is found.
    * ```ts
@@ -335,7 +335,7 @@ class TelegramAddon {
     chat_id: string | number,
     document: any,
     other?: any,
-    signal?: any
+    signal?: any,
   ) => {
     this.bot.api.sendDocument(chat_id, document, other, signal);
   };
@@ -353,7 +353,7 @@ class TelegramAddon {
     chat_id: string | number,
     photo: any,
     other?: any,
-    signal?: any
+    signal?: any,
   ) => {
     this.bot.api.sendPhoto(chat_id, photo, other, signal);
   };
@@ -371,7 +371,7 @@ class TelegramAddon {
     chat_id: string | number,
     video: any,
     other?: any,
-    signal?: any
+    signal?: any,
   ) => {
     this.bot.api.sendVideo(chat_id, video, other, signal);
   };
@@ -388,8 +388,8 @@ class TelegramAddon {
   };
   botInfo = null;
 
-  // fake_ctx.reply = (msg, options) => {
-  //     message(fake_ctx.message.chat.id, msg);
+  // fakectx.reply = (msg, options) => {
+  //     message(fakectx.message.chat.id, msg);
   // }
 }
 

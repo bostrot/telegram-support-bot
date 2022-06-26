@@ -77,7 +77,7 @@ const escapeText = function (str) {
     }
     return newStr;
   }
-}
+};
 
 // handle messages to web socket
 const msg = function (id, msg, extra = {}) {
@@ -86,21 +86,20 @@ const msg = function (id, msg, extra = {}) {
   if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
     // Web message
     console.log('Web message');
-    let socket_id = id.split('WEB')[1];
+    const socket_id = id.split('WEB')[1];
     cache.io.to(socket_id).emit('chat_staff', msg);
   } else if (id.toString().indexOf('SIGNAL') > -1 && id != cache.config.staffchat_id) {
     // Signal message
     console.log('Signal message');
     signal.message(id.split('SIGNAL')[1], msg);
-  }
-  else {
+  } else {
     cache.bot.sendMessage(id, msg, extra);
   }
-}
+};
 
 const reply = function (ctx, msgtext, extra = null) {
   msg(ctx.message.chat.id, msgtext, extra);
-}
+};
 
 export {
   downloadPhotoMiddleware,

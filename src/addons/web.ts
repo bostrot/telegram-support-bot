@@ -1,11 +1,11 @@
-import fake_ctx from './fake_ctx';
+import fakectx from './fakectx';
 import { ticketHandler } from '../text';
 import cache from '../cache';
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>
 */
-let init = function (bot) {
+const init = function (bot) {
   // Enable web server with socketio
   if (cache.config.web_server) {
     const express = require('express');
@@ -29,17 +29,16 @@ let init = function (bot) {
     io.on('connection', (socket) => {
       socket.on('chat', (msg) => {
         socket.emit('chat_user', msg);
-        fake_ctx.message.from.id = 'WEB' + socket.id;
-        fake_ctx.message.chat.id = 'WEB' + socket.id;
-        fake_ctx.message.text = msg;
-        ticketHandler(bot, fake_ctx);
+        fakectx.message.from.id = 'WEB' + socket.id;
+        fakectx.message.chat.id = 'WEB' + socket.id;
+        fakectx.message.text = msg;
+        ticketHandler(bot, fakectx);
       });
       socket.on('disconnect', () => console.log('Disconnected'));
     });
 
     server.listen(port, () => console.log(`Server started on port ${port}`));
   }
-
-}
+};
 
 export { init };

@@ -35,5 +35,5 @@ export {
   main,
   waiting,
   msgsToUser,
-  msgsToStaff
-}
+  msgsToStaff,
+};

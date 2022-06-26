@@ -44,31 +44,31 @@ const checkBan = function (userid, callback) {
 
 const closeAll = function () {
   db.prepare(`UPDATE supportees SET status='closed'`).run();
-}
+};
 
 const reopen = function (userid, category) {
   db.prepare(`UPDATE supportees SET status='open'` +
     `WHERE userid='${userid}' or id='${userid}'` +
     `${(category ? `AND category = '${category}'` : '')}`).run();
-}
+};
 
 const add = function (userid, status, category) {
   let msg;
   if (status == 'closed') {
     console.log(`UPDATE supportees SET status='closed' WHERE ` +
       `(userid='${userid}' or id='${userid}')` +
-      `${(category ? `AND category = '${category}'` : '')}`)
+      `${(category ? `AND category = '${category}'` : '')}`);
     msg = db.prepare(
       `UPDATE supportees SET status='closed' WHERE ` +
       `(userid='${userid}' or id='${userid}')` +
       `${(category ? `AND category = '${category}'` : '')}`).run();
   } else if (status == 'open') {
-    //db.prepare(`DELETE FROM supportees WHERE userid='${userid}'` +
+    // db.prepare(`DELETE FROM supportees WHERE userid='${userid}'` +
     //    ` or id='${userid}'`).run();
     msg = db.prepare(
       `REPLACE INTO supportees (userid, ` +
       `status ${(category ? `,category` : '')}) ` +
-      `VALUES ('${userid}', '${status}' ${(category ? `,'${category}'` : '')})`
+      `VALUES ('${userid}', '${status}' ${(category ? `,'${category}'` : '')})`,
     ).run();
   } else if (status = 'banned') {
     msg = db.prepare(
@@ -81,10 +81,11 @@ const add = function (userid, status, category) {
 const open = function (callback, category) {
   let searchText = '';
   for (let i = 0; i < category.length; i++) {
-    if (i == 0)
+    if (i == 0) {
       searchText += `= '${category[i]}'`;
-    else
+    } else {
       searchText += ` OR category = '${category[i]}'`;
+    }
   }
 
   const searchDB = db.prepare(
@@ -103,5 +104,5 @@ export {
   checkBan,
   getId,
   closeAll,
-  reopen
-}
+  reopen,
+};

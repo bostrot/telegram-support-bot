@@ -25,11 +25,11 @@ function createBot(noCache = false) {
 
 function main(bot: TelegramAddon = defaultBot, logs = true) {
   cache.bot = defaultBot;
-  //bot.sendMessage(cache.config.staffchat_id, 'Bot started');
+  // bot.sendMessage(cache.config.staffchat_id, 'Bot started');
   // Check addon
   if (cache.config.signal_enabled) {
     signal.init(function (ctx, msg) {
-      console.log(msg)
+      console.log(msg);
       text.handleText(bot, ctx, msg);
     });
   }
@@ -49,14 +49,14 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     if (cache.config.dev_mode) {
       middleware.reply(ctx, '_Dev mode is on: You might notice some delay in messages, no replies or other errors._', { parse_mode: cache.config.parse_mode });
     }
-    permissions.checkPermissions(ctx, next, cache.config)
+    permissions.checkPermissions(ctx, next, cache.config);
   });
 
   // Init category keys
   const keys = inline.initInline(bot, cache.config);
 
   // Set bots username
-  //bot..getMe().then((botInfo) => bot.options.username = botInfo.username);
+  // bot..getMe().then((botInfo) => bot.options.username = botInfo.username);
 
   // Bot commands
   bot.command('open', (ctx) => commands.openCommand(ctx));
@@ -70,8 +70,9 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     ctx.session.modeData = undefined;
     if (ctx.chat.type == 'private') {
       middleware.reply(ctx, cache.config.language.startCommandText);
-      if (cache.config.categories && cache.config.categories.length > 0)
+      if (cache.config.categories && cache.config.categories.length > 0) {
         setTimeout(() => middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)), 500);
+      }
     } else middleware.reply(ctx, cache.config.language.prvChatOnly);
   });
   bot.command('id', (ctx) => middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`));
@@ -97,7 +98,7 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
         }
       }
     }
-    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: cache.config.parse_mode })
+    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: cache.config.parse_mode });
   });
 
   // Bot ons
@@ -134,5 +135,5 @@ main();
 
 export {
   createBot,
-  main
-}
+  main,
+};

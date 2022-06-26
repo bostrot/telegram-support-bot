@@ -88,12 +88,12 @@ function checkPermissions(ctx, next, config) {
         return;
       }
       return next();
-    })
+    });
   });
 };
 
 export {
   checkRights,
-  //currentSession,
+  // currentSession,
   checkPermissions,
 };

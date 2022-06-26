@@ -29,12 +29,12 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
  */
 function autoReply(ctx, bot, chat) {
   const strings = cache.config.autoreply;
-  for (let i in strings) {
-    if (ctx.message.text.toString().indexOf(strings[i]["question"]) > -1) {
+  for (const i in strings) {
+    if (ctx.message.text.toString().indexOf(strings[i]['question']) > -1) {
       // Define message
-      let msg = `${cache.config.language.dear} ` +
+      const msg = `${cache.config.language.dear} ` +
         `${(ctx.message.from.first_name)},\n\n` +
-        `${(strings[i]["answer"])}\n\n` +
+        `${(strings[i]['answer'])}\n\n` +
         `${cache.config.language.regards}\n` +
         `${cache.config.language.automatedReplyAuthor}\n\n` +
         `_${cache.config.language.automatedReply}_`;
@@ -72,11 +72,11 @@ function chat(ctx, bot, chat) {
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
     db.getOpen(chat.id, ctx.session.groupCategory, function (ticket) {
-
-      if (!isAutoReply)
+      if (!isAutoReply) {
         middleware.msg(chat.id, cache.config.language.contactMessage +
           (cache.config.show_user_ticket ? cache.config.language.yourTicketId + ' #T' +
             ticket.id.toString().padStart(6, '0') : ''), { parse_mode: cache.config.parse_mode });
+      }
 
       // To staff
       middleware.msg(cache.config.staffchat_id, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
@@ -96,15 +96,14 @@ function chat(ctx, bot, chat) {
                   'text': cache.config.language.replyPrivate,
                   'callback_data': ctx.from.id +
                     '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
-                    '---' + ticket.id
-                }
+                    '---' + ticket.id,
+                },
               ],
             ],
           },
         } : {
           parse_mode: 'HTML',
         });
-
       }
     });
     // wait 5 minutes before this message appears again and do not

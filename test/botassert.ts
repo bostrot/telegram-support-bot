@@ -63,11 +63,11 @@ class BotAssert extends TelegrafContext {
         const msg2 = msgsToStaff;
         const msg3 = msgsToUser;
         const msgStaff = msgsToStaff.pop();
-        if (!(new RegExp(expectedStaff, "g").test(msgStaff))) {
+        if (!(new RegExp(expectedStaff, 'g').test(msgStaff))) {
             assert.fail(`${msgStaff} does not match ${expectedStaff}`);
         }
         const msgUser = msgsToUser.pop();
-        if (!(new RegExp(expectedUser, "g").test(msgUser))) {
+        if (!(new RegExp(expectedUser, 'g').test(msgUser))) {
             assert.fail(`${msgUser} does not match ${expectedUser}`);
         }
     }
@@ -76,15 +76,15 @@ class BotAssert extends TelegrafContext {
     userMsg(text, fromId, type = 'private') {
         const ctx = this.ctx;
         bot.hears = function (msg, f) {
-            if (msg == "/(.+)/") {
+            if (msg == '/(.+)/') {
                 ctx.chat.type = type;
                 ctx.message.chat.id = fromId;
                 ctx.message.from.id = fromId;
-                ctx.update.message.text = text
+                ctx.update.message.text = text;
                 ctx.message.text = text;
                 f(ctx);
             }
-        }
+        };
         main(bot, false);
     }
 
@@ -162,5 +162,5 @@ class BotAssert extends TelegrafContext {
 export {
     BotAssert,
     config,
-    lang
+    lang,
 };
