@@ -2,27 +2,21 @@
 //  * Telegram Ticketing System - Telegram Implementation with GrammY
 //  */
 
-import { Bot, Context, SessionFlavor, session } from "grammy";
-import cache from "../cache";
+import {Bot, Context as GrammyContext, SessionFlavor, session} from 'grammy';
+import {Context, SessionData} from './ctx';
 
-interface SessionData {
-  admin: boolean;
-  modeData: any;
-  groupCategory: any; // string
-  group: any;
-  groupAdmin: any;
-  getSessionKey: any;
-}
-
+/**
+ * Telegram Ticketing System - Telegram Implementation with GrammY
+ */
 class TelegramAddon {
   bot: Bot = null;
 
   /**
    * Constructor
-   * @param token Telegram Bot Token
+   * @param {String} token Telegram Bot Token
    */
   constructor(token: string) {
-    type BotContext = Context & SessionFlavor<SessionData>;
+    type BotContext = GrammyContext & SessionFlavor<SessionData>;
     this.bot = new Bot<BotContext>(token);
     this.bot.init().then(() => {
       this.botInfo = this.bot.botInfo;
@@ -31,23 +25,27 @@ class TelegramAddon {
   /**
    * Session middleware provides a persistent data storage for your bot. You can
    * use it to let your bot remember any data you want, for example the messages
-   * it sent or received in the past. This is done by attaching _session data_ to
+   * it sent or received in the past. This is done by attaching _session data_
+   * to
    * every chat. The stored data is then provided on the context object under
    * `ctx.session`.
    *
    * > **What is a session?** Simply put, the session of a chat is a little
-   * > persistent storage that is attached to it. As an example, your bot can send
+   * > persistent storage that is attached to it. As an example, your bot can
+   * send
    * > a message to a chat and store the ID of that message in the corresponding
    * > session. The next time your bot receives an update from that chat, the
    * > session will still contain that ID.
    * >
    * > Session data can be stored in a database, in a file, or simply in memory.
    * > grammY only supports memory sessions out of the box, but you can use
-   * > third-party session middleware to connect to other storage solutions. Note
+   * > third-party session middleware to connect to other storage solutions.
+   * Note
    * > that memory sessions will be lost when you stop your bot and the process
    * > exits, so they are usually not useful in production.
    *
-   * Whenever your bot receives an update, the first thing the session middleware
+   * Whenever your bot receives an update, the first thing the session
+   * middleware
    * will do is to load the correct session from your storage solution. This
    * object is then provided on `ctx.session` while your other middleware is
    * running. As soon as your bot is done handling the update, the middleware
@@ -73,17 +71,24 @@ class TelegramAddon {
    * Check out the [documentation](https://grammy.dev/plugins/session.html) on the
    * website to know more about how sessions work in grammY.
    *
-   * @param options Optional configuration to pass to the session middleware
+   * @param {any} options Optional configuration to pass to the session
+   * middleware
+   * @return {session} SessionData
    */
   initSession() {
+    /**
+     * Init session middleware
+     * @return {session} SessionData
+     */
     function initial(): SessionData {
       return {
         admin: undefined,
         modeData: undefined,
+        mode: undefined,
         groupCategory: undefined,
         group: undefined,
         groupAdmin: undefined,
-        getSessionKey: (ctx) => {
+        getSessionKey: (ctx: Context) => {
           if (ctx.callbackQuery && ctx.callbackQuery.id) {
             return `${ctx.from.id}:${ctx.from.id}`;
           } else if (ctx.from && ctx.inlineQuery) {
@@ -95,29 +100,33 @@ class TelegramAddon {
         },
       };
     }
-    return session({ initial });
+    return session({initial});
   }
   /**
-   * Use this method to send text messages. On success, the sent Message is returned.
+   * Use this method to send text messages. On success, the sent Message
+   * is returned.
    *
-   * @param chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-   * @param text Text of the message to be sent, 1-4096 characters after entities parsing
-   * @param other Optional remaining parameters, confer the official reference below
-   * @param signal Optional `AbortSignal` to cancel the request
+   * @param {any} chatId Unique identifier for the target chat or username
+   * of the target channel (in the format @channelusername)
+   * @param {any} text Text of the message to be sent, 1-4096 characters
+   * after entities parsing
+   * @param {any} other Optional remaining parameters, confer the official
+   * reference below
+   * @param {any} signal Optional `AbortSignal` to cancel the request
    *
    * **Official reference:** https://core.telegram.org/bots/api#sendmessage
    */
   sendMessage = (
-    chat_id: string | number,
-    text: string,
-    other?: any,
-    signal?: any
+      chatId: string | number,
+      text: string,
+      other?: any,
+      signal?: any,
   ) => {
     other = other || {};
     other.disable_web_page_preview = true;
-    this.bot.api.sendMessage(chat_id, text, other, signal); //fsdf
+    this.bot.api.sendMessage(chatId, text, other, signal); // fsdf
   };
-  /**f
+  /** f
    * Registers some middleware that will only be executed when a certain
    * command is found.
    * ```ts
@@ -169,8 +178,8 @@ class TelegramAddon {
    * If you need more freedom matching your commands, check out the
    * `command-filter` plugin.
    *
-   * @param command The command to look for
-   * @param middleware The middleware to register
+   * @param {any} command The command to look for
+   * @param {any} callback The middleware to register
    */
   command = (command: any, callback: any) => {
     this.bot.command(command, (ctx) => {
@@ -211,7 +220,8 @@ class TelegramAddon {
    * It is possible to pass multiple filter queries in an array, i.e.
    * ```ts
    * // Matches all text messages and edited text messages that contain a URL
-   * bot.on(['message:entities:url', 'edited_message:entities:url'], ctx => { ... })
+   * bot.on(['message:entities:url', 'edited_message:entities:url'],
+   * ctx => { ... })
    * ```
    *
    * Your middleware will be executed if _any of the provided filter queries_
@@ -220,12 +230,14 @@ class TelegramAddon {
    * If you instead want to match _all of the provided filter queries_
    * (logical AND), you can chain the `.on` calls:
    * ```ts
-   * // Matches all messages and channel posts that both a) contain a URL and b) are forwards
+   * // Matches all messages and channel posts that both a) contain a URL and b)
+   * are forwards
    * bot.on('::url').on(':forward_date', ctx => { ... })
    * ```
    *
-   * @param filter The filter query to use, may also be an array of queries
-   * @param middleware The middleware to register behind the given filter
+   * @param {any} filter The filter query to use, may also be an array of
+   * queries
+   * @param {any} middleware The middleware to register behind the given filter
    */
   on = (filter: any, ...middleware: any) => {
     this.bot.on(filter, ...middleware);
@@ -262,7 +274,7 @@ class TelegramAddon {
    * [documentation](https://grammy.dev/advanced/scaling.html) about scaling
    * up.
    *
-   * @param options Options to use for simple long polling
+   * @param {any} options Options to use for simple long polling
    */
   start = () => {
     this.bot.start();
@@ -277,7 +289,8 @@ class TelegramAddon {
    * Calling `bot.catch` when using other means of running your bot (or
    * webhooks) has no effect.
    *
-   * @param errorHandler A function that handles potential middleware errors
+   * @param {any} errorHandler A function that handles potential middleware
+   * errors
    */
   catch = (errorHandler: any) => {
     this.bot.catch(errorHandler);
@@ -310,8 +323,8 @@ class TelegramAddon {
    * bot.on(':text').hears(/\/echo (.+)/, ctx => { ... })
    * ```
    *
-   * @param trigger The text to look for
-   * @param middleware The middleware to register
+   * @param {any} trigger The text to look for
+   * @param {any} callback The middleware to register
    */
   hears = (trigger: any, callback) => {
     this.bot.hears(trigger, (ctx) => {
@@ -322,58 +335,81 @@ class TelegramAddon {
     this.bot.use(...middleware);
   };
   /**
-   * Use this method to send general files. On success, the sent Message is returned. Bots can currently send files of any type of up to 50 MB in size, this limit may be changed in the future.
+   * Use this method to send general files. On success, the sent Message
+   * is returned. Bots can currently send files of any type of up to 50
+   * MB in size, this limit may be changed in the future.
    *
-   * @param chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-   * @param document File to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data.
-   * @param other Optional remaining parameters, confer the official reference below
-   * @param signal Optional `AbortSignal` to cancel the request
+   * @param {any} chatId Unique identifier for the target chat or usernam
+   *  of the target channel (in the format @channelusername)
+   * @param {any} document File to send. Pass a file_id as String to sen
+   *  a file that exists on the Telegram servers (recommended), pass a
+   *  HTTP URL as a String for Telegram to get a file from the Internet
+   *  or upload a new one using multipart/form-data.
+   * @param {any} other Optional remaining parameters, confer the officia
+   *  reference below
+   * @param {any} signal Optional `AbortSignal` to cancel the request
    *
    * **Official reference:** https://core.telegram.org/bots/api#senddocument
    */
   sendDocument = (
-    chat_id: string | number,
-    document: any,
-    other?: any,
-    signal?: any
+      chatId: string | number,
+      document: any,
+      other?: any,
+      signal?: any,
   ) => {
-    this.bot.api.sendDocument(chat_id, document, other, signal);
+    this.bot.api.sendDocument(chatId, document, other, signal);
   };
   /**
    * Use this method to send photos. On success, the sent Message is returned.
    *
-   * @param chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-   * @param photo Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20.
-   * @param other Optional remaining parameters, confer the official reference below
-   * @param signal Optional `AbortSignal` to cancel the request
+   * @param {any} chatId Unique identifier for the target chat or usernam
+   *  of the target channel (in the format @channelusername)
+   * @param {any} photo Photo to send. Pass a file_id as String to send
+   *  photo that
+   * exists on the Telegram servers (recommended), pass an HTTP URL as a String
+   * for Telegram to get a photo from the Internet, or upload a new photo using
+   * multipart/form-data. The photo must be at most 10 MB in size. The photo's
+   * width and height must not exceed 10000 in total. Width and height ratio
+   * must be at most 20.
+   * @param {any} other Optional remaining parameters, confer the official
+   * reference below
+   * @param {any} signal Optional `AbortSignal` to cancel the request
    *
    * **Official reference:** https://core.telegram.org/bots/api#sendphoto
    */
   sendPhoto = (
-    chat_id: string | number,
-    photo: any,
-    other?: any,
-    signal?: any
+      chatId: string | number,
+      photo: any,
+      other?: any,
+      signal?: any,
   ) => {
-    this.bot.api.sendPhoto(chat_id, photo, other, signal);
+    this.bot.api.sendPhoto(chatId, photo, other, signal);
   };
   /**
-   * Use this method to send video files, Telegram clients support mp4 videos (other formats may be sent as Document). On success, the sent Message is returned. Bots can currently send video files of up to 50 MB in size, this limit may be changed in the future.
+   * Use this method to send video files, Telegram clients support mp4 videos
+   * (other formats may be sent as Document). On success, the sent Message is
+   * returned. Bots can currently send video files of up to 50 MB in size,
+   * this limit may be changed in the future.
    *
-   * @param chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-   * @param video Video to send. Pass a file_id as String to send a video that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a video from the Internet, or upload a new video using multipart/form-data.
-   * @param other Optional remaining parameters, confer the official reference below
-   * @param signal Optional `AbortSignal` to cancel the request
+   * @param {any} chatId Unique identifier for the target chat or username
+   * of the target channel (in the format @channelusername)
+   * @param {any} video Video to send. Pass a file_id as String to send a
+   * video that exists on the Telegram servers (recommended), pass an HTTP
+   * URL as a String for Telegram to get a video from the Internet, or upload
+   * a new video using multipart/form-data.
+   * @param {any} other Optional remaining parameters, confer the official
+   * reference below
+   * @param {any} signal Optional `AbortSignal` to cancel the request
    *
    * **Official reference:** https://core.telegram.org/bots/api#sendvideo
    */
   sendVideo = (
-    chat_id: string | number,
-    video: any,
-    other?: any,
-    signal?: any
+      chatId: string | number,
+      video: any,
+      other?: any,
+      signal?: any,
   ) => {
-    this.bot.api.sendVideo(chat_id, video, other, signal);
+    this.bot.api.sendVideo(chatId, video, other, signal);
   };
   drop = () => {
     /* this.bot.drop(); */
@@ -388,8 +424,8 @@ class TelegramAddon {
   };
   botInfo = null;
 
-  // fake_ctx.reply = (msg, options) => {
-  //     message(fake_ctx.message.chat.id, msg);
+  // fakectx.reply = (msg, options) => {
+  //     message(fakectx.message.chat.id, msg);
   // }
 }
 
