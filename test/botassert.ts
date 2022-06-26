@@ -1,7 +1,7 @@
 import assert = require('assert');
 
 // override functions
-import { bot, main, msgsToUser, msgsToStaff} from './functions';
+import { bot, main, msgsToUser, msgsToStaff } from './functions';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 
@@ -23,8 +23,8 @@ class TelegrafContext {
     constructor(user: User) {
         const rawdata = fs.readFileSync('./test/context.json').toString();
         const context = JSON.parse(rawdata);
-        
-         // fake ctx setup
+
+        // fake ctx setup
         context.update.message.text = 'Hello, this is some test!';
         context.message = context.update.message;
         context.from = context.update.message.from;
@@ -99,7 +99,7 @@ class BotAssert extends TelegrafContext {
         };
         main(bot, false);
     }
-    
+
     assertCommandWildcard(cmd, expectedStaff, expectedUser) {
         const ctx = this.ctx;
         const wildcardCheck = this.wildcardCheck;
@@ -155,7 +155,7 @@ class BotAssert extends TelegrafContext {
         this.ctx.message.text = msg;
         this.ctx.update.message.text = msg;
         this.userMsg(msg, this.ctx.from.id);
-        this.wildcardCheck(this.ctx, expectedStaff, expectedUser, (t) => {});
+        this.wildcardCheck(this.ctx, expectedStaff, expectedUser, (t) => { });
     }
 }
 

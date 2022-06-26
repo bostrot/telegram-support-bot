@@ -5,9 +5,9 @@ import * as middleware from './middleware';
 
 /**
  * Helper for private reply
- * @param type 
- * @param bot 
- * @param ctx 
+ * @param type
+ * @param bot
+ * @param ctx
  */
 function replyMarkup(ctx) {
   return {
@@ -23,11 +23,11 @@ function replyMarkup(ctx) {
             'text': cache.config.language.replyPrivate,
             'callback_data': ctx.from.id +
               '---' + ctx.message.from.first_name + '---' + ctx.session.modeData.category +
-              '---' + ctx.session.modeData.ticketid
+              '---' + ctx.session.modeData.ticketid,
           },
       ],
     ],
-  }
+  };
 }
 
 /**
@@ -99,7 +99,7 @@ function fileHandler(type, bot, ctx) {
             file_id, {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
-          }
+          },
           );
           if (ctx.session.group !== undefined && ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData) {
@@ -115,12 +115,12 @@ function fileHandler(type, bot, ctx) {
                       'text': cache.config.language.replyPrivate,
                       'callback_data': ctx.from.id +
                         '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
-                        '---' + ticket.id
-                    }
+                        '---' + ticket.id,
+                    },
                   ],
                 ],
               },
-            }
+            },
             );
           }
           break;
@@ -142,8 +142,8 @@ function fileHandler(type, bot, ctx) {
                       'text': cache.config.language.replyPrivate,
                       'callback_data': ctx.from.id +
                         '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
-                        '---' + ticket.id
-                    }
+                        '---' + ticket.id,
+                    },
                   ],
                 ],
               },
@@ -168,8 +168,8 @@ function fileHandler(type, bot, ctx) {
                       'text': cache.config.language.replyPrivate,
                       'callback_data': ctx.from.id +
                         '---' + ctx.message.from.first_name + '---' + ctx.session.groupCategory +
-                        '---' + ticket.id
-                    }
+                        '---' + ticket.id,
+                    },
                   ],
                 ],
               },
