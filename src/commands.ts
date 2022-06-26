@@ -9,7 +9,7 @@ import * as middleware from './middleware';
 function clearCommand(ctx) {
   if (!ctx.session.admin) return;
   db.closeAll();
-  middleware.reply(ctx, 'All tickets closed.', { parse_mode: "HTML" }/* .notifications(false) */);
+  middleware.reply(ctx, 'All tickets closed.', { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
 }
 
 /**
@@ -53,9 +53,9 @@ function openCommand(ctx) {
           '\n';
       }
     }
-    middleware.reply(ctx, `<b>${cache.config.language.openTickets}\n\n</b> ${openTickets}`,
+    middleware.reply(ctx, `*${cache.config.language.openTickets}\n\n* ${openTickets}`,
       // eslint-disable-next-line new-cap
-      { parse_mode: "HTML" }/* .notifications(false) */);
+      { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
   }, groups);
 };
 
@@ -119,12 +119,12 @@ function closeCommand(bot, ctx) {
     ${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}`,
       // eslint-disable-next-line new-cap
-      { parse_mode: "HTML" }/* .notifications(false) */
+      { parse_mode: cache.config.parse_mode }/* .notifications(false) */
     );
     middleware.msg(userid,
       `${cache.config.language.ticket} #T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}\n\n${cache.config.language.ticketClosed}`,
-      { parse_mode: "HTML" }/* .notifications(false) */);
+      { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
   }, groups);
 };
 
@@ -153,7 +153,7 @@ function banCommand(bot, ctx) {
 
     middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
       ticket.id.toString().padStart(6, '0') +
-      ' ' + cache.config.language.banned, { parse_mode: "HTML" }/* .notifications(false) */);
+      ' ' + cache.config.language.banned, { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
   });
 };
 
@@ -182,7 +182,7 @@ function reopenCommand(bot, ctx) {
 
     middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
       ticket.id.toString().padStart(6, '0') +
-      ' ' + cache.config.language.ticketReopened, { parse_mode: "HTML" }/* .notifications(false) */);
+      ' ' + cache.config.language.ticketReopened, { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
   });
 };
 
@@ -210,7 +210,7 @@ function unbanCommand(bot, ctx) {
     db.add(ticket.userid, 'closed', undefined);
     middleware.msg(ctx.chat.id, cache.config.language.usr_with_ticket + ' #T' +
       ticket.id.toString().padStart(6, '0') +
-      ' ' + 'unbanned', { parse_mode: "HTML" }/* .notifications(false) */);
+      ' ' + 'unbanned', { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
   });
 };
 

@@ -1,4 +1,4 @@
-import {BotAssert, config, lang} from './botassert';
+import { BotAssert, config, lang } from './botassert';
 import { msgsToStaff, msgsToUser } from './functions';
 
 // override functions
@@ -10,13 +10,13 @@ describe('Messages', function () {
       let botAssert = new BotAssert();
       const ctx = botAssert.get();
       const expected = `${lang.ticket} #T` +
-          `(.*)` + 
-          ` ${lang.from} ` +
-          `<a href="">` +
-          `${ctx.message.from.first_name}</a> ${lang.language}: ` +
-          `${ctx.message.from.language_code}\n\n` +
-          `${ctx.message.text}\n\n` + 
-          `<i></i>`;
+        `(.*)` +
+        ` ${lang.from} ` +
+        `<a href="">` +
+        `${ctx.message.from.first_name}</a> ${lang.language}: ` +
+        `${ctx.message.from.language_code}\n\n` +
+        `${ctx.message.text}\n\n` +
+        `__`;
       botAssert.assertMsgWildcard('Hello, this is some test!', expected, lang.contactMessage);
     });
   });
@@ -26,7 +26,7 @@ describe('Messages', function () {
 describe('Commands', function () {
   describe('User sends /open command', function () {
     it('should return a message with open ticket ids', function () {
-      let botAssert = new BotAssert({admin: true, group: true});
+      let botAssert = new BotAssert({ admin: true, group: true });
       botAssert.assertCommandAlike("open", "Open Tickets");
       // TODO: open
     });
@@ -34,17 +34,17 @@ describe('Commands', function () {
 
   describe('User sends /close command', function () {
     it('should send a message to the staff chat', function () {
-      let botAssert = new BotAssert({admin: true, group: true, id: config.staffchat_id});
+      let botAssert = new BotAssert({ admin: true, group: true, id: config.staffchat_id });
       botAssert.ctx.message.reply_to_message = {};
       botAssert.ctx.message.reply_to_message.text = `${lang.ticket} #T000001` +
         ` ${lang.from} ` +
         `<a href="">` +
         `${botAssert.ctx.message.from.first_name}</a> ${lang.language}: ` +
         `${botAssert.ctx.message.from.language_code}\n\n` +
-        `${botAssert.ctx.message.text}\n\n` + 
-        `<i></i>`;
+        `${botAssert.ctx.message.text}\n\n` +
+        `__`;
       botAssert.assertCommandWildcard("close", `${lang.ticket} #T(.*) ${lang.closed}`,
-      `${lang.ticket} #T(.*) ${lang.closed}\n\n${lang.ticketClosed}`);
+        `${lang.ticket} #T(.*) ${lang.closed}\n\n${lang.ticketClosed}`);
     });
   });
 

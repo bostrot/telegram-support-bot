@@ -47,7 +47,7 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.use((ctx, next) => {
     // Check dev mode
     if (cache.config.dev_mode) {
-      middleware.reply(ctx, '<i>Dev mode is on: You might notice some delay in messages, no replies or other errors.</i>', { parse_mode: "HTML" });
+      middleware.reply(ctx, '_Dev mode is on: You might notice some delay in messages, no replies or other errors._', { parse_mode: cache.config.parse_mode });
     }
     permissions.checkPermissions(ctx, next, cache.config)
   });
@@ -76,8 +76,8 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   });
   bot.command('id', (ctx) => middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`));
   bot.command('faq', (ctx) =>
-    middleware.reply(ctx, cache.config.language.faqCommandText, { parse_mode: "HTML" }));
-  bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, { parse_mode: "HTML" }));
+    middleware.reply(ctx, cache.config.language.faqCommandText, { parse_mode: cache.config.parse_mode }));
+  bot.command('help', (ctx) => middleware.reply(ctx, cache.config.language.helpCommandText, { parse_mode: cache.config.parse_mode }));
   bot.command('links', (ctx) => {
     let links = '';
     const subcategories = [];
@@ -97,7 +97,7 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
         }
       }
     }
-    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: "HTML" })
+    middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, { parse_mode: cache.config.parse_mode })
   });
 
   // Bot ons

@@ -220,14 +220,14 @@ function forwardFile(bot, ctx, callback) {
         cache.ticketSent[cache.ticketID] = 0;
       } else if (cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg) {
         cache.ticketSent[cache.ticketID]++;
-        // TODO: add { parse_mode: "HTML" }/* .notifications(false) */
+        // TODO: add { parse_mode: cache.config.parse_mode }/* .notifications(false) */
         // property for silent notifications
         fowardHandler(ctx, function (userInfo) {
           callback(userInfo);
         });
       } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
         cache.ticketSent[cache.ticketID]++;
-        middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, { parse_mode: "HTML" });
+        middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, { parse_mode: cache.config.parse_mode });
       }
     }
   });

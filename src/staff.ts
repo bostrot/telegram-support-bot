@@ -10,8 +10,8 @@ import * as db from './db';
  */
 function ticketMsg(name, message) {
   return `${cache.config.language.dear} ` +
-    `${middleware.escapeText(name)},\n\n` +
-    `${middleware.escapeText(message.text)}\n\n` +
+    `${(name)},\n\n` +
+    `${(message.text)}\n\n` +
     `${cache.config.language.regards}\n` +
     `${message.from.first_name}`;
 }
@@ -111,14 +111,14 @@ function chat(ctx, bot) {
           cache.io.to(socket_id).emit('chat_staff', ticketMsg(name[1], ctx.message));
         } catch (e) {
           // To staff msg error
-          middleware.msg(ctx.chat.id, `Web chat already closed.`, { parse_mode: "HTML" }/* .notifications(false) */);
+          middleware.msg(ctx.chat.id, `Web chat already closed.`, { parse_mode: cache.config.parse_mode }/* .notifications(false) */);
           console.log(e);
         }
       } else {
         middleware.msg(ticket.userid,
           ticketMsg(name[1], ctx.message),
           // eslint-disable-next-line new-cap
-          { parse_mode: "HTML" }
+          { parse_mode: cache.config.parse_mode }
         );
       }
 
@@ -126,7 +126,7 @@ function chat(ctx, bot) {
       middleware.msg(ctx.chat.id,
         `${cache.config.language.msg_sent} ${name[1]}`,
         // eslint-disable-next-line new-cap
-        { parse_mode: "HTML" }/* .notifications(false) */
+        { parse_mode: cache.config.parse_mode }/* .notifications(false) */
       );
       console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
       cache.ticketSent[userid[1]] = undefined;
@@ -141,7 +141,7 @@ function chat(ctx, bot) {
       cache.config.staffchat_id, `An error occured, please 
           report this to your admin: \n\n ${e}`,
       // eslint-disable-next-line new-cap
-      { parse_mode: "HTML" }/* .notifications(false) */
+      { parse_mode: cache.config.parse_mode }/* .notifications(false) */
     );
   }
 }

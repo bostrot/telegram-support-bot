@@ -15,11 +15,11 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
   }
   return `${cache.config.language.ticket} ` +
     `#T${ticket.toString().padStart(6, '0')} ${cache.config.language.from} ` +
-    `<a href="${link}">` +
-    `${middleware.escapeText(message.from.first_name)}</a> ${cache.config.language.language}: ` +
+    `[${middleware.strictEscape(message.from.first_name)}](${link})` +
+    ` ${cache.config.language.language}: ` +
     `${message.from.language_code}\n\n` +
-    `${middleware.escapeText(message.text)}\n\n` +
-    `<i>${autoReplyInfo}</i>`;
+    `${middleware.strictEscape(message.text)}\n\n` +
+    (autoReplyInfo ? `_${autoReplyInfo}_` : '');
 }
 
 /** Ticket auto reply for common questions
@@ -33,14 +33,14 @@ function autoReply(ctx, bot, chat) {
     if (ctx.message.text.toString().indexOf(strings[i]["question"]) > -1) {
       // Define message
       let msg = `${cache.config.language.dear} ` +
-        `${middleware.escapeText(ctx.message.from.first_name)},\n\n` +
-        `${middleware.escapeText(strings[i]["answer"])}\n\n` +
+        `${(ctx.message.from.first_name)},\n\n` +
+        `${(strings[i]["answer"])}\n\n` +
         `${cache.config.language.regards}\n` +
         `${cache.config.language.automatedReplyAuthor}\n\n` +
-        `<i>${cache.config.language.automatedReply}</i>`;
+        `_${cache.config.language.automatedReply}_`;
 
       // Send message with keyboard
-      middleware.reply(ctx, msg, { parse_mode: "HTML" });
+      middleware.reply(ctx, msg, { parse_mode: cache.config.parse_mode });
       return true;
     }
   }
@@ -57,9 +57,13 @@ function chat(ctx, bot, chat) {
   cache.ticketID = ctx.message.from.id;
   // Check if auto reply works
   let isAutoReply = false;
-  if (autoReply(ctx, bot, chat))
+  if (autoReply(ctx, bot, chat)) {
     isAutoReply = true;
-  const autoReplyInfo = isAutoReply ? `<i>${cache.config.language.automatedReplySent}</i>` : ''
+    if (!cache.config.show_auto_replied) {
+      return;
+    }
+  }
+  const autoReplyInfo = isAutoReply ? cache.config.language.automatedReplySent : undefined;
 
   if (cache.ticketIDs[cache.ticketID] === undefined) {
     cache.ticketIDs.push(cache.ticketID);
@@ -72,11 +76,11 @@ function chat(ctx, bot, chat) {
       if (!isAutoReply)
         middleware.msg(chat.id, cache.config.language.contactMessage +
           (cache.config.show_user_ticket ? cache.config.language.yourTicketId + ' #T' +
-            ticket.id.toString().padStart(6, '0') : ''), { parse_mode: "HTML" });
+            ticket.id.toString().padStart(6, '0') : ''), { parse_mode: cache.config.parse_mode });
 
       // To staff
       middleware.msg(cache.config.staffchat_id, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        { parse_mode: "HTML" });
+        { parse_mode: cache.config.parse_mode });
 
       // Check if group flag is set and is not admin chat
       if (ctx.session.group !== undefined &&
@@ -114,17 +118,17 @@ function chat(ctx, bot, chat) {
     db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
       middleware.msg(cache.config.staffchat_id,
         ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-        { parse_mode: "HTML" });
+        { parse_mode: cache.config.parse_mode });
       if (ctx.session.group !== undefined) {
         middleware.msg(ctx.session.group, ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo),
-          { parse_mode: "HTML" });
+          { parse_mode: cache.config.parse_mode });
       }
     });
   } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
 
-    middleware.msg(chat.id, cache.config.language.blockedSpam, { parse_mode: "HTML" });
+    middleware.msg(chat.id, cache.config.language.blockedSpam, { parse_mode: cache.config.parse_mode });
   }
   db.getOpen(cache.ticketID, ctx.session.groupCategory, function (ticket) {
     console.log(ticketMsg(ticket.id, ctx.message, cache.config.anonymous_tickets, autoReplyInfo));
