@@ -1,3 +1,5 @@
+import {Context} from './addons/ctx';
+import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
 
@@ -6,7 +8,7 @@ import * as middleware from './middleware';
  * @param {Array} keys
  * @return {Object} reply_markup
  */
-function replyKeyboard(keys) {
+function replyKeyboard(keys: any[]) {
   return {
     parse_mode: 'html',
     reply_markup: {
@@ -34,7 +36,7 @@ function removeKeyboard() {
  * @param {Object} config
  * @return {Array} keys
  */
-function initInline(bot, config) {
+function initInline(bot: TelegramAddon) {
   const keys = [];
   // Get categories from config file
   for (const i in cache.config.categories) {
@@ -160,10 +162,9 @@ function initInline(bot, config) {
 
 /**
  * Callback query handler
- * @param {Object} bot
  * @param {Object} ctx
  */
-function callbackQuery(bot, ctx) {
+function callbackQuery(ctx: Context) {
   // Check whether to end callback session
   if (ctx.callbackQuery.data === 'R') {
     ctx.session.mode = undefined;

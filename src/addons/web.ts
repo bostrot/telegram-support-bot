@@ -1,11 +1,12 @@
 import fakectx from './fakectx';
 import {ticketHandler} from '../text';
 import cache from '../cache';
+import TelegramAddon from './telegram';
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>
 */
-const init = function(bot) {
+const init = function(bot: TelegramAddon) {
   // Enable web server with socketio
   if (cache.config.web_server) {
     const express = require('express');

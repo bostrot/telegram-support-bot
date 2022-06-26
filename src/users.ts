@@ -1,3 +1,4 @@
+import {Context} from './addons/ctx';
 import cache from './cache';
 import * as db from './db';
 import * as middleware from './middleware';
@@ -9,7 +10,15 @@ import * as middleware from './middleware';
  * @param {String} autoReplyInfo
  * @return {String} text
  */
-function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
+function ticketMsg(
+    ticket: { toString: () => string },
+    message: {
+    from: { first_name: string | any[]; language_code: any };
+    text: string | any[];
+  },
+    anon = true,
+    autoReplyInfo: any,
+) {
   let link = '';
   if (!anon) {
     link = `tg://user?id=${cache.ticketID}`;
@@ -31,7 +40,7 @@ function ticketMsg(ticket, message, anon = true, autoReplyInfo) {
  * @param {chat} chat Bot chat.
  * @return {boolean}
  */
-function autoReply(ctx, bot, chat) {
+function autoReply(ctx: Context) {
   const strings = cache.config.autoreply;
   for (const i in strings) {
     if (ctx.message.text.toString().indexOf(strings[i]['question']) > -1) {
@@ -55,14 +64,13 @@ function autoReply(ctx, bot, chat) {
 /**
  * Ticket handling and spam protection.
  * @param {context} ctx Bot context.
- * @param {bot} bot Bot object.
  * @param {chat} chat Bot chat.
  */
-function chat(ctx, bot, chat) {
+function chat(ctx: Context, chat: { id: string }) {
   cache.ticketID = ctx.message.from.id;
   // Check if auto reply works
   let isAutoReply = false;
-  if (autoReply(ctx, bot, chat)) {
+  if (autoReply(ctx)) {
     isAutoReply = true;
     if (!cache.config.show_auto_replied) {
       return;
@@ -186,16 +194,20 @@ function chat(ctx, bot, chat) {
       parse_mode: cache.config.parse_mode,
     });
   }
-  db.getOpen(cache.ticketID, ctx.session.groupCategory, function(ticket) {
-    console.log(
-        ticketMsg(
-            ticket.id,
-            ctx.message,
-            cache.config.anonymous_tickets,
-            autoReplyInfo,
-        ),
-    );
-  });
+  db.getOpen(
+      cache.ticketID,
+      ctx.session.groupCategory,
+      function(ticket: { id: { toString: () => string } }) {
+        console.log(
+            ticketMsg(
+                ticket.id,
+                ctx.message,
+                cache.config.anonymous_tickets,
+                autoReplyInfo,
+            ),
+        );
+      },
+  );
 }
 
 export {chat};

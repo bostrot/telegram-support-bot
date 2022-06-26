@@ -2,16 +2,8 @@
 //  * Telegram Ticketing System - Telegram Implementation with GrammY
 //  */
 
-import {Bot, Context, SessionFlavor, session} from 'grammy';
-
-interface SessionData {
-  admin: boolean;
-  modeData: any;
-  groupCategory: any; // string
-  group: any;
-  groupAdmin: any;
-  getSessionKey: any;
-}
+import {Bot, Context as GrammyContext, SessionFlavor, session} from 'grammy';
+import {Context, SessionData} from './ctx';
 
 /**
  * Telegram Ticketing System - Telegram Implementation with GrammY
@@ -24,7 +16,7 @@ class TelegramAddon {
    * @param {String} token Telegram Bot Token
    */
   constructor(token: string) {
-    type BotContext = Context & SessionFlavor<SessionData>;
+    type BotContext = GrammyContext & SessionFlavor<SessionData>;
     this.bot = new Bot<BotContext>(token);
     this.bot.init().then(() => {
       this.botInfo = this.bot.botInfo;
@@ -92,10 +84,11 @@ class TelegramAddon {
       return {
         admin: undefined,
         modeData: undefined,
+        mode: undefined,
         groupCategory: undefined,
         group: undefined,
         groupAdmin: undefined,
-        getSessionKey: (ctx) => {
+        getSessionKey: (ctx: Context) => {
           if (ctx.callbackQuery && ctx.callbackQuery.id) {
             return `${ctx.from.id}:${ctx.from.id}`;
           } else if (ctx.from && ctx.inlineQuery) {

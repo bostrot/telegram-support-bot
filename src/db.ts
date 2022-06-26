@@ -12,7 +12,11 @@ db.prepare(
     `userid TEXT, status TEXT, category TEXT);`,
 ).run();
 
-const check = function(userid, category, callback) {
+const check = function(
+    userid: any,
+    category: any,
+    callback: (arg0: any) => void,
+) {
   const searchDB = db
       .prepare(
           `select * from supportees where (userid = ` +
@@ -23,7 +27,7 @@ const check = function(userid, category, callback) {
   callback(searchDB);
 };
 
-const getOpen = function(userid, category, callback) {
+const getOpen = function(userid: string, category: any, callback: Function) {
   const searchDB = db
       .prepare(
           `select * from supportees where (userid = ` +
@@ -34,7 +38,19 @@ const getOpen = function(userid, category, callback) {
   callback(searchDB);
 };
 
-const getId = function(userid, callback) {
+const getId = function(
+    userid: number,
+    callback: {
+    (ticket: { userid: any; id: { toString: () => string } }): void;
+    (ticket: {
+      userid: any;
+      /* verbose: console.log */
+      id: /* verbose: console.log */ { toString: () => string };
+    }): void;
+    (ticket: { userid: any; id: { toString: () => string } }): void;
+    (arg0: any): void;
+  },
+) {
   const searchDB = db
       .prepare(
           `select * from supportees where (userid = ` +
@@ -44,7 +60,10 @@ const getId = function(userid, callback) {
   callback(searchDB);
 };
 
-const checkBan = function(userid, callback) {
+const checkBan = function(
+    userid: any,
+    callback: { (ticket: any): any; (arg0: any): void },
+) {
   const searchDB = db
       .prepare(
           `select * from supportees where (userid = ` +
@@ -58,7 +77,7 @@ const closeAll = function() {
   db.prepare(`UPDATE supportees SET status='closed'`).run();
 };
 
-const reopen = function(userid, category) {
+const reopen = function(userid: any, category: any) {
   db.prepare(
       `UPDATE supportees SET status='open'` +
       `WHERE userid='${userid}' or id='${userid}'` +
@@ -66,7 +85,7 @@ const reopen = function(userid, category) {
   ).run();
 };
 
-const add = function(userid, status, category) {
+const add = function(userid: string, status: string, category: any) {
   let msg;
   if (status == 'closed') {
     console.log(
@@ -104,7 +123,36 @@ const add = function(userid, status, category) {
   return msg.changes;
 };
 
-const open = function(callback, category) {
+const open = function(
+    callback: {
+    (userList: {
+      [x: string]: {
+        [x: string]: {
+          toString: () => {
+            (): any;
+            new (): any;
+            indexOf(/* verbose: console.log */ arg0: string): any;
+            padStart: {
+              (
+                // debugging
+                arg0: number,
+                arg1: string
+              ): {
+                (): any;
+                new (): any;
+                toString: { (): string; new (): any };
+              };
+              new (): any;
+            };
+          };
+        };
+      };
+    }): void;
+    (tickets: string | any[]): void;
+    (arg0: any): void;
+  },
+    category: string | any[],
+) {
   let searchText = '';
   for (let i = 0; i < category.length; i++) {
     if (i == 0) {

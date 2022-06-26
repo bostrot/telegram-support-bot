@@ -1,12 +1,16 @@
+import {Context} from './addons/ctx';
 import * as db from './db';
 
 /**
  * Check permissions of group and admin
- * @param {Object} ctx
+ * @param {Context} ctx
  * @param {Object} config
  * @return {Promise} promise
  */
-function checkRights(ctx, config) {
+function checkRights(
+    ctx: Context,
+    config: { categories: any[]; staffchat_id: any },
+) {
   return new Promise(function(resolve, reject) {
     // Is staff - category group
     if (config.categories) {
@@ -17,11 +21,17 @@ function checkRights(ctx, config) {
             ctx.session.groupAdmin = config.categories[index].name;
           }
         } else {
-          config.categories[index].subgroups.forEach((innerElement, index) => {
-            if (innerElement.group_id == ctx.chat.id) {
-              ctx.session.groupAdmin = innerElement.name;
-            }
-          });
+          config.categories[index].subgroups.forEach(
+              (
+              // eslint-disable-next-line max-len
+                  innerElement: { group_id: { toString: () => any }; name: any },
+                  index: any,
+              ) => {
+                if (innerElement.group_id == ctx.chat.id) {
+                  ctx.session.groupAdmin = innerElement.name;
+                }
+              },
+          );
         }
       });
     }
@@ -41,11 +51,15 @@ function checkRights(ctx, config) {
 
 /**
  * Define user permission
- * @param {Object} ctx
+ * @param {Context} ctx
  * @param {Function} next
  * @param {Object} config
  */
-function checkPermissions(ctx, next, config) {
+function checkPermissions(
+    ctx: Context,
+    next: () => any,
+    config: { categories: any[]; staffchat_id: any },
+) {
   ctx.session.admin = false;
   checkRights(ctx, config)
       .then((access) => {
@@ -61,8 +75,4 @@ function checkPermissions(ctx, next, config) {
       });
 }
 
-export {
-  checkRights,
-  // currentSession,
-  checkPermissions,
-};
+export {checkRights, checkPermissions};

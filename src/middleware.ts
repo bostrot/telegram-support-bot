@@ -1,35 +1,9 @@
 import cache from './cache';
 import * as signal from './addons/signal';
-
-// download photos
-const downloadPhotoMiddleware = async function(bot, ctx, next) {
-  const file = await ctx.getFile();
-  return file.getUrl(ctx.message.photo[0]).then((link) => {
-    ctx.state.fileLink = link;
-    return next();
-  });
-};
-
-// download videos
-const downloadVideoMiddleware = async function(bot, ctx, next) {
-  const file = await ctx.getFile();
-  return file.getUrl(ctx.message.video).then((link) => {
-    ctx.state.fileLink = link;
-    return next();
-  });
-};
-
-// download documents
-const downloadDocumentMiddleware = async function(bot, ctx, next) {
-  const file = await ctx.getFile();
-  return file.getUrl(ctx.message.document).then((link) => {
-    ctx.state.fileLink = link;
-    return next();
-  });
-};
+import {Context} from './addons/ctx';
 
 // strict escape
-const strictEscape = function(str) {
+const strictEscape = function(str: string | any[]) {
   let newStr = '';
   const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
   for (let i = 0; i < str.length; i++) {
@@ -44,9 +18,10 @@ const strictEscape = function(str) {
 };
 
 // escape special characters
-const escapeText = function(str) {
+const escapeText = function(str: string | string[]) {
   if (cache.config.parse_mode == 'HTML' || cache.config.parse_mode == 'html') {
     return str
+        .toString()
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -81,13 +56,13 @@ const escapeText = function(str) {
 };
 
 // handle messages to web socket
-const msg = function(id, msg, extra = {}) {
+const msg = function(id: string | number, msg: string | string[], extra = {}) {
   msg = escapeText(msg);
   // Check web message
   if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
     // Web message
     console.log('Web message');
-    const socketId = id.split('WEB')[1];
+    const socketId = id.toString().split('WEB')[1];
     cache.io.to(socketId).emit('chat_staff', msg);
   } else if (
     id.toString().indexOf('SIGNAL') > -1 &&
@@ -95,21 +70,18 @@ const msg = function(id, msg, extra = {}) {
   ) {
     // Signal message
     console.log('Signal message');
-    signal.message(id.split('SIGNAL')[1], msg);
+    signal.message(id.toString().split('SIGNAL')[1], msg);
   } else {
     cache.bot.sendMessage(id, msg, extra);
   }
 };
 
-const reply = function(ctx, msgtext, extra = null) {
+const reply = function(
+    ctx: Context,
+    msgtext: string | string[],
+    extra = null,
+) {
   msg(ctx.message.chat.id, msgtext, extra);
 };
 
-export {
-  downloadPhotoMiddleware,
-  downloadVideoMiddleware,
-  downloadDocumentMiddleware,
-  strictEscape,
-  msg,
-  reply,
-};
+export {strictEscape, msg, reply};

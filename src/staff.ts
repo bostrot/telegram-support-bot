@@ -1,6 +1,7 @@
 import cache from './cache';
 import * as middleware from './middleware';
 import * as db from './db';
+import {Context} from './addons/ctx';
 
 /** Message template helper
  * @param {String} name
@@ -8,7 +9,10 @@ import * as db from './db';
  * @param {Boolean} anon
  * @return {String} text
  */
-function ticketMsg(name, message) {
+function ticketMsg(
+    name: string,
+    message: { text: any; from: { first_name: any } },
+) {
   return (
     `${cache.config.language.dear} ` +
     `${name},\n\n` +
@@ -20,11 +24,10 @@ function ticketMsg(name, message) {
 
 /**
  * Private chat
- * @param {Object} bot
  * @param {Object} ctx
  * @param {Object} msg
  */
-function privateReply(bot, ctx, msg = undefined) {
+function privateReply(ctx: Context, msg = undefined) {
   if (msg == undefined) {
     msg = ctx.message;
   }
@@ -65,10 +68,9 @@ function privateReply(bot, ctx, msg = undefined) {
 
 /**
  * Reply to tickets in staff chat.
- * @param {context} ctx Bot context.
- * @param {bot} bot Bot object.
+ * @param {Context} ctx Bot context.
  */
-function chat(ctx, bot) {
+function chat(ctx: Context) {
   let replyText = '';
   // check whether person is an admin
   if (!ctx.session.admin) {

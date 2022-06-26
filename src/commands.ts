@@ -1,12 +1,13 @@
 import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
+import {Context} from './addons/ctx';
 
 /**
  * Close all open tickets
  * @param {Object} ctx
  */
-function clearCommand(ctx) {
+function clearCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   db.closeAll();
   middleware.reply(
@@ -20,12 +21,12 @@ function clearCommand(ctx) {
  * Display open tickets
  * @param {Object} ctx
  */
-function openCommand(ctx) {
+function openCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   const groups = [];
   // Search all labels for this group
   if (cache.config.categories != undefined) {
-    cache.config.categories.forEach((element, index) => {
+    cache.config.categories.forEach((element: any, index: string | number) => {
       // No subgroup
       if (cache.config.categories[index].subgroups == undefined) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
@@ -33,7 +34,7 @@ function openCommand(ctx) {
         }
       } else {
         cache.config.categories[index].subgroups.forEach(
-            (innerElement, index) => {
+            (innerElement: { group_id: any; name: any }, index: any) => {
               if (innerElement.group_id == ctx.chat.id) {
                 groups.push(innerElement.name);
               }
@@ -43,7 +44,7 @@ function openCommand(ctx) {
     });
   }
   // Get open tickets for any maintained label
-  db.open(function(userList) {
+  db.open(function(userList: any) {
     let openTickets = '';
     for (const i in userList) {
       if (
@@ -51,10 +52,10 @@ function openCommand(ctx) {
         userList[i]['userid'] !== undefined
       ) {
         let ticketInfo = '';
-        if (userList[i]['userid'].indexOf('WEB') > -1) {
+        if (userList[i]['userid'].toString().indexOf('WEB') > -1) {
           ticketInfo = '(web)';
         }
-        if (userList[i]['userid'].indexOf('SIGNAL') > -1) {
+        if (userList[i]['userid'].toString().indexOf('SIGNAL') > -1) {
           ticketInfo = '(signal)';
         }
         openTickets +=
@@ -76,15 +77,14 @@ function openCommand(ctx) {
 
 /**
  * Close ticket
- * @param {Object} bot
  * @param {Object} ctx
  */
-function closeCommand(bot, ctx) {
+function closeCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   const groups = [];
   // Search all labels for this group
   if (cache.config.categories) {
-    cache.config.categories.forEach((element, index) => {
+    cache.config.categories.forEach((element: any, index: string | number) => {
       // No subgroup
       if (cache.config.categories[index].subgroups == undefined) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
@@ -92,7 +92,7 @@ function closeCommand(bot, ctx) {
         }
       } else {
         cache.config.categories[index].subgroups.forEach(
-            (innerElement, index) => {
+            (innerElement: { group_id: any; name: any }, index: any) => {
               if (innerElement.group_id == ctx.chat.id) {
                 groups.push(innerElement.name);
               }
@@ -112,7 +112,7 @@ function closeCommand(bot, ctx) {
     replyText = ctx.message.reply_to_message.caption;
   }
   // Ticket ID
-  let ticketId = -1;
+  let ticketId: any = -1;
   try {
     ticketId = replyText.match(
         new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
@@ -122,7 +122,7 @@ function closeCommand(bot, ctx) {
     return;
   }
   // get userid from ticketid
-  db.open(function(tickets) {
+  db.open(function(tickets: any) {
     if (tickets == undefined) {
       console.log('Close command: tickets undefined');
       return;
@@ -156,15 +156,14 @@ function closeCommand(bot, ctx) {
 
 /**
  * Ban user
- * @param {Object} bot
  * @param {Object} ctx
  */
-function banCommand(bot, ctx) {
+function banCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   // Get open tickets for any maintained label
   const replyText = ctx.message.reply_to_message.text;
 
-  let ticketId = -1;
+  let ticketId: any = -1;
   try {
     ticketId = replyText.match(
         new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
@@ -175,32 +174,34 @@ function banCommand(bot, ctx) {
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function(ticket) {
-    db.add(ticket.userid, 'banned', undefined);
+  db.getId(
+      ticketId,
+      function(ticket: { userid: any; id: { toString: () => string } }) {
+        db.add(ticket.userid, 'banned', undefined);
 
-    middleware.msg(
-        ctx.chat.id,
-        cache.config.language.usr_with_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        ' ' +
-        cache.config.language.banned,
-        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
-    );
-  });
+        middleware.msg(
+            ctx.chat.id,
+            cache.config.language.usr_with_ticket +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0') +
+          ' ' +
+          cache.config.language.banned,
+            {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+        );
+      },
+  );
 }
 
 /**
  * Reopen ticket
- * @param {Object} bot
  * @param {Object} ctx
  */
-function reopenCommand(bot, ctx) {
+function reopenCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   // Get open tickets for any maintained label
   const replyText = ctx.message.reply_to_message.text;
 
-  let ticketId = -1;
+  let ticketId: any = -1;
   try {
     ticketId = replyText.match(
         new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
@@ -211,32 +212,34 @@ function reopenCommand(bot, ctx) {
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function(ticket) {
-    db.reopen(ticket.userid, undefined);
+  db.getId(
+      ticketId,
+      function(ticket: { userid: any; id: { toString: () => string } }) {
+        db.reopen(ticket.userid, undefined);
 
-    middleware.msg(
-        ctx.chat.id,
-        cache.config.language.usr_with_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        ' ' +
-        cache.config.language.ticketReopened,
-        {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
-    );
-  });
+        middleware.msg(
+            ctx.chat.id,
+            cache.config.language.usr_with_ticket +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0') +
+          ' ' +
+          cache.config.language.ticketReopened,
+            {parse_mode: cache.config.parse_mode}, /* .notifications(false) */
+        );
+      },
+  );
 }
 
 /**
  * Unban user
- * @param {Object} bot
  * @param {Object} ctx
  */
-function unbanCommand(bot, ctx) {
+function unbanCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   // Get open tickets for any maintained label
   const replyText = ctx.message.reply_to_message.text;
 
-  let ticketId = -1;
+  let ticketId: any = -1;
   try {
     ticketId = replyText.match(
         new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
@@ -247,19 +250,22 @@ function unbanCommand(bot, ctx) {
   }
 
   // get userid from ticketid
-  db.getId(ticketId, function(ticket) {
-    db.add(ticket.userid, 'closed', undefined);
-    middleware.msg(
-        ctx.chat.id,
-        cache.config.language.usr_with_ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        ' ' +
-        'unbanned',
-        {parse_mode: cache.config.parse_mode},
+  db.getId(
+      ticketId,
+      function(ticket: { userid: any; id: { toString: () => string } }) {
+        db.add(ticket.userid, 'closed', undefined);
+        middleware.msg(
+            ctx.chat.id,
+            cache.config.language.usr_with_ticket +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0') +
+          ' ' +
+          'unbanned',
+            {parse_mode: cache.config.parse_mode},
         /* .notifications(false) */
-    );
-  });
+        );
+      },
+  );
 }
 
 export {

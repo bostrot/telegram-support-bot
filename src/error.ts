@@ -7,10 +7,9 @@ const logStdout = process.stdout;
 
 /**
  * Init error logger
- * @param {Bot} bot
  * @param {boolean} logs
  */
-function init(bot, logs = true) {
+function init(logs = true) {
   // overload logging to file
   console.log = function(d) {
     if (logs) {
@@ -43,7 +42,7 @@ function init(bot, logs = true) {
   });
 
   // catch uncaught rejections to log
-  process.on('unhandledRejection', (err, p) => {
+  process.on('unhandledRejection', (err) => {
     rateLimit();
     console.log('=== UNHANDLED REJECTION ===');
     fs.appendFile(debugFile, err + '\n', 'utf8', function(err) {
@@ -100,7 +99,7 @@ function init(bot, logs = true) {
    * @param {number} seconds
    * @return {Promise} resolve after seconds
    */
-  function sleep(seconds) {
+  function sleep(seconds: number) {
     return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
   }
 }

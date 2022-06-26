@@ -1,13 +1,15 @@
 import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
+import TelegramAddon from './addons/telegram';
+import {Context} from './addons/ctx';
 
 /**
  * Helper for private reply
  * @param {Object} ctx
  * @return {Object}
  */
-function replyMarkup(ctx) {
+function replyMarkup(ctx: Context): object {
   return {
     html: '',
     inline_keyboard: [
@@ -39,10 +41,10 @@ function replyMarkup(ctx) {
  * @param {bot} bot Bot object.
  * @param {context} ctx Bot context.
  */
-function fileHandler(type, bot, ctx) {
+function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
   // replying to non-ticket
-  let userid;
-  let replyText;
+  let userid: string[];
+  let replyText: string;
   if (
     ctx.message !== undefined &&
     ctx.message.reply_to_message !== undefined &&
@@ -65,7 +67,7 @@ function fileHandler(type, bot, ctx) {
       return;
     }
   }
-  forwardFile(bot, ctx, function(userInfo) {
+  forwardFile(ctx, function(userInfo: string) {
     let receiverId = cache.config.staffchat_id;
     let msgId = ctx.message.chat.id;
     let isPrivate = false;
@@ -138,7 +140,7 @@ function fileHandler(type, bot, ctx) {
           }
           break;
         case 'photo':
-          bot.sendPhoto(receiverId, ctx.message.photo[0].fileId, {
+          bot.sendPhoto(receiverId, fileId, {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
@@ -171,7 +173,7 @@ function fileHandler(type, bot, ctx) {
           }
           break;
         case 'video':
-          bot.sendVideo(receiverId, ctx.message.video.fileId, {
+          bot.sendVideo(receiverId, fileId, {
             caption: captionText,
             reply_markup: isPrivate ? replyMarkup(ctx) : {},
           });
@@ -180,7 +182,7 @@ function fileHandler(type, bot, ctx) {
             ctx.session.group !== cache.config.staffchat_id &&
             !ctx.session.modeData
           ) {
-            bot.sendVideo(ctx.session.group, ctx.message.video.fileId, {
+            bot.sendVideo(ctx.session.group, fileId, {
               caption: captionText,
               reply_markup: {
                 html: '',
@@ -232,52 +234,58 @@ function fileHandler(type, bot, ctx) {
 
 /**
  * Handle caching for sent files.
- * @param {bot} bot Bot object.
  * @param {context} ctx Bot context.
  * @param {callback} callback Bot callback.
  */
-function forwardFile(bot, ctx, callback) {
-  db.getOpen(ctx.message.from.id, ctx.session.groupCategory, function(ticket) {
-    let ok = false;
-    if (
-      ticket == undefined ||
-      ticket.status == undefined ||
-      ticket.status == 'closed'
-    ) {
-      db.add(ctx.message.from.id, 'open', undefined);
-      ok = true;
-    }
-    if (ok || (ticket !== undefined && ticket.status !== 'banned')) {
-      if (cache.ticketSent[cache.ticketID] === undefined) {
-        fowardHandler(ctx, function(userInfo) {
-          callback(userInfo);
-        });
-        // wait 5 minutes before this message appears again and do not
-        // send notificatoin sounds in that time to avoid spam
-        setTimeout(function() {
-          cache.ticketSent[cache.ticketID] = undefined;
-        }, cache.config.spam_time);
-        cache.ticketSent[cache.ticketID] = 0;
-      } else if (
-        cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg
-      ) {
-        cache.ticketSent[cache.ticketID]++;
-        // TODO: add { parse_mode: cache.config.
-        // parse_mode }/* .notifications(false) */
-        // property for silent notifications
-        fowardHandler(ctx, function(userInfo) {
-          callback(userInfo);
-        });
-      } else if (
-        cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg
-      ) {
-        cache.ticketSent[cache.ticketID]++;
-        middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, {
-          parse_mode: cache.config.parse_mode,
-        });
-      }
-    }
-  });
+function forwardFile(
+    ctx: Context,
+    callback: { (userInfo: any): void; (arg0: any): void },
+) {
+  db.getOpen(
+      ctx.message.from.id,
+      ctx.session.groupCategory,
+      function(ticket: any) {
+        let ok = false;
+        if (
+          ticket == undefined ||
+        ticket.status == undefined ||
+        ticket.status == 'closed'
+        ) {
+          db.add(ctx.message.from.id, 'open', undefined);
+          ok = true;
+        }
+        if (ok || (ticket !== undefined && ticket.status !== 'banned')) {
+          if (cache.ticketSent[cache.ticketID] === undefined) {
+            fowardHandler(ctx, function(userInfo) {
+              callback(userInfo);
+            });
+            // wait 5 minutes before this message appears again and do not
+            // send notificatoin sounds in that time to avoid spam
+            setTimeout(function() {
+              cache.ticketSent[cache.ticketID] = undefined;
+            }, cache.config.spam_time);
+            cache.ticketSent[cache.ticketID] = 0;
+          } else if (
+            cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg
+          ) {
+            cache.ticketSent[cache.ticketID]++;
+            // TODO: add { parse_mode: cache.config.
+            // parse_mode }/* .notifications(false) */
+            // property for silent notifications
+            fowardHandler(ctx, function(userInfo) {
+              callback(userInfo);
+            });
+          } else if (
+            cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg
+          ) {
+            cache.ticketSent[cache.ticketID]++;
+            middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, {
+              parse_mode: cache.config.parse_mode,
+            });
+          }
+        }
+      },
+  );
 }
 
 /**
@@ -285,7 +293,14 @@ function forwardFile(bot, ctx, callback) {
  * @param {context} ctx Bot context.
  * @param {callback} callback Bot callback.
  */
-function fowardHandler(ctx, callback) {
+function fowardHandler(
+    ctx: Context,
+    callback: {
+    (userInfo: any): void;
+    (userInfo: any): void;
+    (arg0: undefined): void;
+  },
+) {
   let userInfo;
   ctx.getChat().then(function(chat) {
     if (chat.type === 'private') {
@@ -303,7 +318,7 @@ function fowardHandler(ctx, callback) {
       }
       callback(userInfo);
     } else {
-      callback();
+      callback(undefined);
     }
   });
 }
