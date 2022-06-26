@@ -25,7 +25,10 @@ function openCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   const groups: any = [];
   // Search all labels for this group
-  if (cache.config.categories.length > 0) {
+  if (
+    cache.config.categories !== undefined &&
+    cache.config.categories.length > 0
+  ) {
     cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
       if (cache.config.categories[index].subgroups.length > 0) {
