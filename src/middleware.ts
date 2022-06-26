@@ -1,6 +1,6 @@
 import cache from './cache';
 import * as signal from './addons/signal';
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
 
 // strict escape
 const strictEscape = function(str: string | any[]) {
@@ -72,15 +72,12 @@ const msg = function(id: string | number, msg: string | string[], extra = {}) {
     console.log('Signal message');
     signal.message(id.toString().split('SIGNAL')[1], msg);
   } else {
+    msg = msg.replace(/  /g, '');
     cache.bot.sendMessage(id, msg, extra);
   }
 };
 
-const reply = function(
-    ctx: Context,
-    msgtext: string | string[],
-    extra = null,
-) {
+const reply = function(ctx: Context, msgtext: string | string[], extra?: any) {
   msg(ctx.message.chat.id, msgtext, extra);
 };
 

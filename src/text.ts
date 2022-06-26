@@ -4,7 +4,7 @@ import * as staff from './staff';
 import * as users from './users';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
 
 /**
  * Text handler

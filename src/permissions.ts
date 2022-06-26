@@ -1,5 +1,6 @@
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
 import * as db from './db';
+import {Config} from './interfaces';
 
 /**
  * Check permissions of group and admin
@@ -53,13 +54,9 @@ function checkRights(
  * Define user permission
  * @param {Context} ctx
  * @param {Function} next
- * @param {Object} config
+ * @param {Config} config
  */
-function checkPermissions(
-    ctx: Context,
-    next: () => any,
-    config: { categories: any[]; staffchat_id: any },
-) {
+function checkPermissions(ctx: Context, next: () => any, config: Config) {
   ctx.session.admin = false;
   checkRights(ctx, config)
       .then((access) => {

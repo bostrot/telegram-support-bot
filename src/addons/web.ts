@@ -19,24 +19,34 @@ const init = function(bot: TelegramAddon) {
     const io = new Server(server);
     cache.io = io;
 
-    app.get('/', (req, res) => {
+    app.get('/', (_req: any, res: { sendFile: (arg0: string) => void }) => {
       res.sendFile(__dirname + '/web/index.html');
     });
 
-    app.get('/chat.js', (req, res) => {
-      res.sendFile(__dirname + '/web/chat.js');
-    });
+    app.get(
+        '/chat.js',
+        (_req: any, res: { sendFile: (arg0: string) => void }) => {
+          res.sendFile(__dirname + '/web/chat.js');
+        },
+    );
 
-    io.on('connection', (socket) => {
-      socket.on('chat', (msg) => {
-        socket.emit('chat_user', msg);
-        fakectx.message.from.id = 'WEB' + socket.id;
-        fakectx.message.chat.id = 'WEB' + socket.id;
-        fakectx.message.text = msg;
-        ticketHandler(bot, fakectx);
-      });
-      socket.on('disconnect', () => console.log('Disconnected'));
-    });
+    io.on(
+        'connection',
+        (socket: {
+        on: (arg0: string, arg1: any) => void;
+        emit: (arg0: string, arg1: any) => void;
+        id: string;
+      }) => {
+          socket.on('chat', (msg: string) => {
+            socket.emit('chat_user', msg);
+            fakectx.message.from.id = 'WEB' + socket.id;
+            fakectx.message.chat.id = 'WEB' + socket.id;
+            fakectx.message.text = msg;
+            ticketHandler(bot, fakectx);
+          });
+          socket.on('disconnect', () => console.log('Disconnected'));
+        },
+    );
 
     server.listen(port, () => console.log(`Server started on port ${port}`));
   }

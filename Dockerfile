@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:18.4-alpine
 WORKDIR /bot
 
 COPY ./src /bot/src

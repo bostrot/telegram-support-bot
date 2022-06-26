@@ -42,7 +42,7 @@ function init(logs = true) {
   });
 
   // catch uncaught rejections to log
-  process.on('unhandledRejection', (err) => {
+  process.on('unhandledRejection', (err: any) => {
     rateLimit();
     console.log('=== UNHANDLED REJECTION ===');
     fs.appendFile(debugFile, err + '\n', 'utf8', function(err) {

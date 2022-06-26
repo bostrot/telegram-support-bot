@@ -1,4 +1,4 @@
-import {Context} from './ctx';
+import {Context, SessionData} from '../interfaces';
 
 const fakectx: Context = {
   update_id: 617718635,
@@ -20,9 +20,15 @@ const fakectx: Context = {
     },
     date: 1630660070,
     text: 'hello',
-    reply_to_message: undefined,
-    getFile: undefined,
-    caption: undefined,
+    reply_to_message: {
+      from: {
+        is_bot: false,
+      },
+      text: '',
+      caption: '',
+    },
+    getFile: () => {},
+    caption: '',
   },
   chat: {
     id: 'WEB12345678',
@@ -30,25 +36,25 @@ const fakectx: Context = {
     username: 'webuser',
     type: 'private',
   },
-  session: undefined,
-  reply: undefined,
+  session: {} as SessionData,
   callbackQuery: {
     data: '',
     from: {
-      id: undefined,
+      id: '',
     },
-    id: undefined,
-  },
-  from: {
-    username: undefined,
     id: '',
   },
-  inlineQuery: undefined,
+  from: {
+    username: '',
+    id: '',
+  },
+  inlineQuery: () => {},
   answerCbQuery: function(arg0: any, arg1: boolean): void {
     throw new Error('Function not implemented.');
   },
-  getChat: undefined,
-  getFile: undefined,
+  reply: () => {},
+  getChat: () => {},
+  getFile: () => {},
 };
 
 export default fakectx;

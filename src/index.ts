@@ -1,7 +1,11 @@
 import * as fs from 'fs';
 import * as YAML from 'yaml';
+import {Context, Config} from './interfaces';
 import cache from './cache';
-cache.config = YAML.parse(fs.readFileSync('./config/config.yaml', 'utf8'));
+
+cache.config = YAML.parse(
+    fs.readFileSync('./config/config.yaml', 'utf8'),
+) as Config;
 
 import * as middleware from './middleware';
 import * as commands from './commands';
@@ -10,7 +14,6 @@ import * as inline from './inline';
 import * as text from './text';
 import * as files from './files';
 import * as error from './error';
-import {Context} from './addons/ctx';
 
 import * as webserver from './addons/web';
 import * as signal from './addons/signal';
@@ -20,11 +23,16 @@ let defaultBot: TelegramAddon;
 
 /**
  * Create Bot
- * @param {boolean} noCache if true, don't use cache
  * @return {Bot}
  */
-function createBot(noCache = false) {
-  defaultBot = new TelegramAddon(cache.config.bot_token);
+function createBot() {
+  if (cache.config != null && cache.config.bot_token != null) {
+    if (cache.config.bot_token == 'YOUR_BOT_TOKEN') {
+      console.error('Please change your bot token in config/config.yaml');
+      process.exit(1);
+    }
+    defaultBot = new TelegramAddon(cache.config.bot_token);
+  }
 
   return defaultBot;
 }
@@ -82,8 +90,6 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.command('unban', (ctx: Context) => commands.unbanCommand(ctx));
   bot.command('clear', (ctx: Context) => commands.clearCommand(ctx));
   bot.command('start', (ctx: Context) => {
-    ctx.session.mode = undefined;
-    ctx.session.modeData = undefined;
     if (ctx.chat.type == 'private') {
       middleware.reply(ctx, cache.config.language.startCommandText);
       if (cache.config.categories && cache.config.categories.length > 0) {
@@ -128,7 +134,9 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
                 .substr(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
-              links += `${catName} - https://t.me/${bot.botInfo.username}?start=${id}\n`;
+              if (bot.botInfo != null) {
+                links += `${catName} - https://t.me/${bot.botInfo.username}?start=${id}\n`;
+              }
             }
           }
         }

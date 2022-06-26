@@ -27,7 +27,11 @@ const check = function(
   callback(searchDB);
 };
 
-const getOpen = function(userid: string, category: any, callback: Function) {
+const getOpen = function(
+    userid: string | number,
+    category: string | null,
+    callback: Function,
+) {
   const searchDB = db
       .prepare(
           `select * from supportees where (userid = ` +
@@ -77,7 +81,7 @@ const closeAll = function() {
   db.prepare(`UPDATE supportees SET status='closed'`).run();
 };
 
-const reopen = function(userid: any, category: any) {
+const reopen = function(userid: any, category: string) {
   db.prepare(
       `UPDATE supportees SET status='open'` +
       `WHERE userid='${userid}' or id='${userid}'` +
@@ -85,7 +89,11 @@ const reopen = function(userid: any, category: any) {
   ).run();
 };
 
-const add = function(userid: string, status: string, category: any) {
+const add = function(
+    userid: string | number,
+    status: string,
+    category: string | number | null,
+) {
   let msg;
   if (status == 'closed') {
     console.log(
