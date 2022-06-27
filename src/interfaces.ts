@@ -63,6 +63,7 @@ interface Language {
   automatedReplySent: string;
   ticketReopened: string;
   yourTicketId: string;
+  helpCommandStaffText: string;
   autoreply: Autoreply[];
 }
 

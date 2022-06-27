@@ -4,6 +4,22 @@ import * as middleware from './middleware';
 import {Context} from './interfaces';
 
 /**
+ * Display help depending on the group
+ * @param {Object} ctx
+ */
+function helpCommand(ctx: Context) {
+  if (!ctx.session.admin) {
+    middleware.reply(ctx, cache.config.language.helpCommandText, {
+      parse_mode: cache.config.parse_mode,
+    });
+  } else {
+    middleware.reply(ctx, cache.config.language.helpCommandStaffText, {
+      parse_mode: cache.config.parse_mode,
+    });
+  }
+}
+
+/**
  * Close all open tickets
  * @param {Object} ctx
  */
@@ -282,4 +298,5 @@ export {
   unbanCommand,
   clearCommand,
   reopenCommand,
+  helpCommand,
 };
