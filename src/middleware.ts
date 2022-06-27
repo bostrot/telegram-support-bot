@@ -31,21 +31,16 @@ const escapeText = function(str: string | string[]) {
     // '_', '*', '~', '`', are used for actualy markdown
     const chars = ['>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
     let newStr = '';
-    let urlNameStarted = false;
     let urlStarted = false;
     for (let i = 0; i < str.length; i++) {
       // do not escape in urls
-      if (str[i] == '[') {
+      if (str[i] == '(') {
         urlStarted = true;
-      } else if (str[i] == '(') {
-        urlNameStarted = true;
-      } else if (urlStarted && str[i] == ']') {
+      } else if (urlStarted && str[i] == ')') {
         urlStarted = false;
-      } else if (urlNameStarted && str[i] == ')') {
-        urlNameStarted = false;
       }
       // escape special characters
-      if (!urlStarted && !urlNameStarted && chars.includes(str[i])) {
+      if (!urlStarted && chars.includes(str[i])) {
         newStr += '\\' + str[i];
       } else {
         newStr += str[i];
