@@ -106,7 +106,9 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     } else middleware.reply(ctx, cache.config.language.prvChatOnly);
   });
   bot.command('id', (ctx: Context) =>
-    middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`),
+    middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
+      parse_mode: cache.config.parse_mode,
+    }),
   );
   bot.command('faq', (ctx: Context) =>
     middleware.reply(ctx, cache.config.language.faqCommandText, {
