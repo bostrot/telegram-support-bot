@@ -19,8 +19,6 @@ signal_number: '+12345689' # Your signal number / account
 
 web_server: false # Enable/disable web server
 web_server_port: 8080 # Port for web server
-web_server_ssl_cert: '../src/web/ssl.crt' # Path for SSL cert
-web_server_ssl_key: '../src/web/ssl.key' # Path for SSL key
 
 dev_mode: true # Enable/disable dev mode
 

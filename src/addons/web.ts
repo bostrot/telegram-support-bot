@@ -2,6 +2,7 @@ import fakectx from './fakectx';
 import {ticketHandler} from '../text';
 import cache from '../cache';
 import TelegramAddon from './telegram';
+import rateLimit from 'express-rate-limit';
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>
@@ -9,6 +10,14 @@ import TelegramAddon from './telegram';
 const init = function(bot: TelegramAddon) {
   // Enable web server with socketio
   if (cache.config.web_server) {
+    // Set up rate limiter
+    const limiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
+
     const express = require('express');
     const http = require('http');
     const app = express();
@@ -18,17 +27,19 @@ const init = function(bot: TelegramAddon) {
     const {Server} = require('socket.io');
     const io = new Server(server);
     cache.io = io;
+    app.use(limiter);
 
-    app.get('/', (_req: any, res: { sendFile: (arg0: string) => void }) => {
+    // app.get('/', (req, res) => {
+    //   res.writeHead(200, {'Content-Type': 'text/html'});
+    // });
+
+    app.get('/', (_req: any, res: any) => {
       res.sendFile(__dirname + '/web/index.html');
     });
 
-    app.get(
-        '/chat.js',
-        (_req: any, res: { sendFile: (arg0: string) => void }) => {
-          res.sendFile(__dirname + '/web/chat.js');
-        },
-    );
+    app.get('/chat.js', (_req: any, res: any) => {
+      res.sendFile(__dirname + '/web/chat.js');
+    });
 
     io.on(
         'connection',
@@ -48,7 +59,7 @@ const init = function(bot: TelegramAddon) {
         },
     );
 
-    server.listen(port, () => console.log(`Server started on port ${port}`));
+    server.listen(8080, () => console.log(`Server started on port ${port}`));
   }
 };
 
