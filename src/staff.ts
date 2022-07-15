@@ -13,12 +13,13 @@ function ticketMsg(
     name: string,
     message: { text: any; from: { first_name: any } },
 ) {
+  let esc: any = middleware.strictEscape;
   return (
     `${cache.config.language.dear} ` +
-    `${name},\n\n` +
-    `${message.text}\n\n` +
+    `${esc(name)},\n\n` +
+    `${esc(message.text)}\n\n` +
     `${cache.config.language.regards}\n` +
-    `${message.from.first_name}`
+    `${esc(message.from.first_name)}`
   );
 }
 
