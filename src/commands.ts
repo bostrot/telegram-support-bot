@@ -1,7 +1,23 @@
 import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
+
+/**
+ * Display help depending on the group
+ * @param {Object} ctx
+ */
+function helpCommand(ctx: Context) {
+  if (!ctx.session.admin) {
+    middleware.reply(ctx, cache.config.language.helpCommandText, {
+      parse_mode: cache.config.parse_mode,
+    });
+  } else {
+    middleware.reply(ctx, cache.config.language.helpCommandStaffText, {
+      parse_mode: cache.config.parse_mode,
+    });
+  }
+}
 
 /**
  * Close all open tickets
@@ -23,12 +39,15 @@ function clearCommand(ctx: Context) {
  */
 function openCommand(ctx: Context) {
   if (!ctx.session.admin) return;
-  const groups = [];
+  const groups: any = [];
   // Search all labels for this group
-  if (cache.config.categories != undefined) {
-    cache.config.categories.forEach((element: any, index: string | number) => {
+  if (
+    cache.config.categories !== undefined &&
+    cache.config.categories.length > 0
+  ) {
+    cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (cache.config.categories[index].subgroups == undefined) {
+      if (cache.config.categories[index].subgroups.length > 0) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
           groups.push(cache.config.categories[index].name);
         }
@@ -81,12 +100,12 @@ function openCommand(ctx: Context) {
  */
 function closeCommand(ctx: Context) {
   if (!ctx.session.admin) return;
-  const groups = [];
+  const groups: any = [];
   // Search all labels for this group
   if (cache.config.categories) {
-    cache.config.categories.forEach((element: any, index: string | number) => {
+    cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (cache.config.categories[index].subgroups == undefined) {
+      if (cache.config.categories[index].subgroups.length > 0) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
           groups.push(cache.config.categories[index].name);
         }
@@ -113,12 +132,13 @@ function closeCommand(ctx: Context) {
   }
   // Ticket ID
   let ticketId: any = -1;
-  try {
-    ticketId = replyText.match(
-        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
-    )[1];
-  } catch (e) {
-    // Not replying to a ticket so return
+  ticketId = replyText.match(
+      new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+  );
+  if (ticketId) {
+    ticketId = ticketId[1];
+  }
+  if (ticketId == undefined) {
     return;
   }
   // get userid from ticketid
@@ -164,12 +184,13 @@ function banCommand(ctx: Context) {
   const replyText = ctx.message.reply_to_message.text;
 
   let ticketId: any = -1;
-  try {
-    ticketId = replyText.match(
-        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
-    )[1];
-  } catch (e) {
-    // Not replying to a ticket so return
+  ticketId = replyText.match(
+      new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+  );
+  if (ticketId) {
+    ticketId = ticketId[1];
+  }
+  if (ticketId == undefined) {
     return;
   }
 
@@ -177,7 +198,7 @@ function banCommand(ctx: Context) {
   db.getId(
       ticketId,
       function(ticket: { userid: any; id: { toString: () => string } }) {
-        db.add(ticket.userid, 'banned', undefined);
+        db.add(ticket.userid, 'banned', '');
 
         middleware.msg(
             ctx.chat.id,
@@ -202,12 +223,13 @@ function reopenCommand(ctx: Context) {
   const replyText = ctx.message.reply_to_message.text;
 
   let ticketId: any = -1;
-  try {
-    ticketId = replyText.match(
-        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
-    )[1];
-  } catch (e) {
-    // Not replying to a ticket so return
+  ticketId = replyText.match(
+      new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+  );
+  if (ticketId) {
+    ticketId = ticketId[1];
+  }
+  if (ticketId == undefined) {
     return;
   }
 
@@ -215,7 +237,7 @@ function reopenCommand(ctx: Context) {
   db.getId(
       ticketId,
       function(ticket: { userid: any; id: { toString: () => string } }) {
-        db.reopen(ticket.userid, undefined);
+        db.reopen(ticket.userid, '');
 
         middleware.msg(
             ctx.chat.id,
@@ -240,12 +262,13 @@ function unbanCommand(ctx: Context) {
   const replyText = ctx.message.reply_to_message.text;
 
   let ticketId: any = -1;
-  try {
-    ticketId = replyText.match(
-        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
-    )[1];
-  } catch (e) {
-    // Not replying to a ticket so return
+  ticketId = replyText.match(
+      new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+  );
+  if (ticketId) {
+    ticketId = ticketId[1];
+  }
+  if (ticketId == undefined) {
     return;
   }
 
@@ -253,7 +276,7 @@ function unbanCommand(ctx: Context) {
   db.getId(
       ticketId,
       function(ticket: { userid: any; id: { toString: () => string } }) {
-        db.add(ticket.userid, 'closed', undefined);
+        db.add(ticket.userid, 'closed', '');
         middleware.msg(
             ctx.chat.id,
             cache.config.language.usr_with_ticket +
@@ -275,4 +298,5 @@ export {
   unbanCommand,
   clearCommand,
   reopenCommand,
+  helpCommand,
 };

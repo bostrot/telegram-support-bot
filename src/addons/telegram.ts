@@ -3,13 +3,13 @@
 //  */
 
 import {Bot, Context as GrammyContext, SessionFlavor, session} from 'grammy';
-import {Context, SessionData} from './ctx';
+import {Context, SessionData} from '../interfaces';
 
 /**
  * Telegram Ticketing System - Telegram Implementation with GrammY
  */
 class TelegramAddon {
-  bot: Bot = null;
+  bot: Bot<any>;
 
   /**
    * Constructor
@@ -82,12 +82,12 @@ class TelegramAddon {
      */
     function initial(): SessionData {
       return {
-        admin: undefined,
-        modeData: undefined,
-        mode: undefined,
-        groupCategory: undefined,
-        group: undefined,
-        groupAdmin: undefined,
+        admin: null,
+        modeData: {} as any,
+        mode: null,
+        groupCategory: null,
+        group: '',
+        groupAdmin: {} as any,
         getSessionKey: (ctx: Context) => {
           if (ctx.callbackQuery && ctx.callbackQuery.id) {
             return `${ctx.from.id}:${ctx.from.id}`;
@@ -124,9 +124,13 @@ class TelegramAddon {
   ) => {
     other = other || {};
     other.disable_web_page_preview = true;
-    this.bot.api.sendMessage(chatId, text, other, signal); // fsdf
+    // TODO: check where sendMessage is called without id
+    if (typeof chatId !== 'string' && typeof chatId !== 'number') {
+      return;
+    }
+    this.bot.api.sendMessage(chatId, text, other, signal);
   };
-  /** f
+  /**
    * Registers some middleware that will only be executed when a certain
    * command is found.
    * ```ts
@@ -326,7 +330,7 @@ class TelegramAddon {
    * @param {any} trigger The text to look for
    * @param {any} callback The middleware to register
    */
-  hears = (trigger: any, callback) => {
+  hears = (trigger: any, callback: any) => {
     this.bot.hears(trigger, (ctx) => {
       callback(ctx);
     });
@@ -422,7 +426,7 @@ class TelegramAddon {
   init = () => {
     this.bot.init();
   };
-  botInfo = null;
+  botInfo: any = {};
 
   // fakectx.reply = (msg, options) => {
   //     message(fakectx.message.chat.id, msg);

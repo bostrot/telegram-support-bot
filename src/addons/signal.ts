@@ -12,11 +12,11 @@ const username = cache.config.signal_number;
  * @param {String} id Chat ID
  * @param {String} msg Msg
  */
-const message = (id, msg) => {
+const message = (id: string, msg: string) => {
   exec(
       `signal-cli -u ${username} send -m 
     '${msg}' ${id}`,
-      (error, stdout, stderr) => {
+      (error: { message: any }, stdout: any, stderr: any) => {
         if (error) {
           console.log(`error: ${error.message}`);
           return;
@@ -34,18 +34,21 @@ const message = (id, msg) => {
  * Receive pipeline
  * @param {Function} result Result
  */
-const receive = (result) => {
-  exec(`signal-cli -u '${username}' receive`, (error, stdout, stderr) => {
-    if (error) {
-      // result(`error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      // result(`stderr: ${stderr}`);
-      return;
-    }
-    result(stdout);
-  });
+const receive = (result: Function) => {
+  exec(
+      `signal-cli -u '${username}' receive`,
+      (error: any, stdout: any, stderr: any) => {
+        if (error) {
+        // result(`error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+        // result(`stderr: ${stderr}`);
+          return;
+        }
+        result(stdout);
+      },
+  );
 };
 
 /**
@@ -55,29 +58,34 @@ const receive = (result) => {
  * @param {String} end End string
  * @return {String} String between start and end
  */
-function strBetween(str, start, end) {
-  return str.split(start).pop().split(end)[0];
+function strBetween(str: string, start: string, end: string): string {
+  try {
+    return str.split(start)[1].split(end)[0];
+  } catch (e) {
+    return '';
+  }
 }
 
-fakectx.reply = (msg, options) => {
+fakectx.reply = (msg: string, options: any) => {
   message(fakectx.message.chat.id, msg);
 };
 
+interface Msg {
+  time: string;
+  sender: string;
+  name: string;
+  body: string;
+}
 /**
  * Init receive pipeline
  * @param {Function} handle Function to do when receiving a message
  */
-const init = (handle) => {
+const init = (handle: Function) => {
   // const timestamps = [];
   setInterval(() => {
-    receive((res) => {
+    receive((res: string) => {
       const lines = res.split('\n');
-      let msg = {
-        time: null,
-        sender: null,
-        name: null,
-        body: null,
-      };
+      let msg = {} as Msg;
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (line.startsWith('Sender')) {
@@ -99,12 +107,7 @@ const init = (handle) => {
             fakectx.message.from.first_name = msg.name;
             handle(fakectx, msg);
           }
-          msg = {
-            time: null,
-            name: null,
-            sender: null,
-            body: null,
-          };
+          msg = {} as Msg;
         }
       }
     });

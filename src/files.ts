@@ -2,7 +2,7 @@ import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
 
 /**
  * Helper for private reply
@@ -43,7 +43,7 @@ function replyMarkup(ctx: Context): object {
  */
 function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
   // replying to non-ticket
-  let userid: string[];
+  let userid: RegExpMatchArray | null;
   let replyText: string;
   if (
     ctx.message !== undefined &&
@@ -71,164 +71,172 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     let receiverId = cache.config.staffchat_id;
     let msgId = ctx.message.chat.id;
     let isPrivate = false;
+
+    if (userid === null || userid === undefined) {
+      return;
+    }
     // if admin
     if (ctx.session.admin && userInfo === undefined) {
       msgId = userid[1];
     }
-    db.getOpen(msgId, ctx.session.groupCategory, async function(ticket) {
-      if (ticket == undefined) {
-        if (ctx.session.admin && userInfo === undefined) {
-          // replying to closed ticket
-          middleware.reply(ctx, cache.config.language.ticketClosedError);
-        } else {
-          middleware.reply(ctx, cache.config.language.textFirst);
-        }
-        return;
-      }
-      let captionText =
-        cache.config.language.ticket +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0') +
-        ' ' +
-        userInfo +
-        '\n' +
-        (ctx.message.caption || '');
-      if (ctx.session.admin && userInfo === undefined) {
-        receiverId = ticket.userid;
-        captionText = ctx.message.caption || '';
-      }
-      if (
-        ctx.session.modeData != undefined &&
-        ctx.session.modeData.userid != undefined
-      ) {
-        receiverId = ctx.session.modeData.userid;
-        isPrivate = true;
-      }
-      const fileId = (await ctx.getFile()).file_id;
-      switch (type) {
-        case 'document':
-          bot.sendDocument(receiverId, fileId, {
-            caption: captionText,
-            reply_markup: isPrivate ? replyMarkup(ctx) : {},
-          });
-          if (
-            ctx.session.group !== undefined &&
-            ctx.session.group !== cache.config.staffchat_id &&
-            !ctx.session.modeData
-          ) {
-            bot.sendDocument(ctx.session.group, fileId, {
-              caption: captionText,
-              reply_markup: {
-                html: '',
-                inline_keyboard: [
-                  [
-                    {
-                      text: cache.config.language.replyPrivate,
-                      callback_data:
-                        ctx.from.id +
-                        '---' +
-                        ctx.message.from.first_name +
-                        '---' +
-                        ctx.session.groupCategory +
-                        '---' +
-                        ticket.id,
-                    },
-                  ],
-                ],
-              },
-            });
+    db.getOpen(
+        msgId,
+        ctx.session.groupCategory,
+        async function(ticket: { id: string; userid: string | number }) {
+          if (ticket == undefined) {
+            if (ctx.session.admin && userInfo === undefined) {
+            // replying to closed ticket
+              middleware.reply(ctx, cache.config.language.ticketClosedError);
+            } else {
+              middleware.reply(ctx, cache.config.language.textFirst);
+            }
+            return;
           }
-          break;
-        case 'photo':
-          bot.sendPhoto(receiverId, fileId, {
-            caption: captionText,
-            reply_markup: isPrivate ? replyMarkup(ctx) : {},
-          });
-          if (
-            ctx.session.group !== undefined &&
-            ctx.session.group !== cache.config.staffchat_id &&
-            !ctx.session.modeData
-          ) {
-            bot.sendPhoto(ctx.session.group, fileId, {
-              caption: captionText,
-              reply_markup: {
-                html: '',
-                inline_keyboard: [
-                  [
-                    {
-                      text: cache.config.language.replyPrivate,
-                      callback_data:
-                        ctx.from.id +
-                        '---' +
-                        ctx.message.from.first_name +
-                        '---' +
-                        ctx.session.groupCategory +
-                        '---' +
-                        ticket.id,
-                    },
-                  ],
-                ],
-              },
-            });
+          let captionText =
+          cache.config.language.ticket +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0') +
+          ' ' +
+          userInfo +
+          '\n' +
+          (ctx.message.caption || '');
+          if (ctx.session.admin && userInfo === undefined) {
+            receiverId = ticket.userid;
+            captionText = ctx.message.caption || '';
           }
-          break;
-        case 'video':
-          bot.sendVideo(receiverId, fileId, {
-            caption: captionText,
-            reply_markup: isPrivate ? replyMarkup(ctx) : {},
-          });
-          if (
-            ctx.session.group !== undefined &&
-            ctx.session.group !== cache.config.staffchat_id &&
-            !ctx.session.modeData
-          ) {
-            bot.sendVideo(ctx.session.group, fileId, {
-              caption: captionText,
-              reply_markup: {
-                html: '',
-                inline_keyboard: [
-                  [
-                    {
-                      text: cache.config.language.replyPrivate,
-                      callback_data:
-                        ctx.from.id +
-                        '---' +
-                        ctx.message.from.first_name +
-                        '---' +
-                        ctx.session.groupCategory +
-                        '---' +
-                        ticket.id,
-                    },
-                  ],
-                ],
-              },
-            });
+          if (ctx.session.modeData.userid != null) {
+            receiverId = ctx.session.modeData.userid;
+            isPrivate = true;
           }
-          break;
-      }
-      // Confirmation message
-      let message =
-        cache.config.language.contactMessage +
-        (cache.config.show_user_ticket ?
-          cache.config.language.yourTicketId :
-          '') +
-        ' #T' +
-        ticket.id.toString().padStart(6, '0');
-      // if admin
-      if (ctx.session.admin && userInfo === undefined) {
-        const name = replyText.match(
-            new RegExp(
-                cache.config.language.from +
-              ' ' +
-              '(.*)' +
-              ' ' +
-              cache.config.language.language,
-            ),
-        );
-        message = `${cache.config.language.file_sent} ${name[1]}`;
-      }
-      middleware.msg(ctx.chat.id, message, {});
-    });
+          const fileId = (await ctx.getFile()).file_id;
+          switch (type) {
+            case 'document':
+              bot.sendDocument(receiverId, fileId, {
+                caption: captionText,
+                reply_markup: isPrivate ? replyMarkup(ctx) : {},
+              });
+              if (
+                ctx.session.group !== '' &&
+              ctx.session.group !== cache.config.staffchat_id &&
+              !ctx.session.modeData
+              ) {
+                bot.sendDocument(ctx.session.group, fileId, {
+                  caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          text: cache.config.language.replyPrivate,
+                          callback_data:
+                          ctx.from.id +
+                          '---' +
+                          ctx.message.from.first_name +
+                          '---' +
+                          ctx.session.groupCategory +
+                          '---' +
+                          ticket.id,
+                        },
+                      ],
+                    ],
+                  },
+                });
+              }
+              break;
+            case 'photo':
+              bot.sendPhoto(receiverId, fileId, {
+                caption: captionText,
+                reply_markup: isPrivate ? replyMarkup(ctx) : {},
+              });
+              if (
+                ctx.session.group !== '' &&
+              ctx.session.group !== cache.config.staffchat_id &&
+              !ctx.session.modeData
+              ) {
+                bot.sendPhoto(ctx.session.group, fileId, {
+                  caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          text: cache.config.language.replyPrivate,
+                          callback_data:
+                          ctx.from.id +
+                          '---' +
+                          ctx.message.from.first_name +
+                          '---' +
+                          ctx.session.groupCategory +
+                          '---' +
+                          ticket.id,
+                        },
+                      ],
+                    ],
+                  },
+                });
+              }
+              break;
+            case 'video':
+              bot.sendVideo(receiverId, fileId, {
+                caption: captionText,
+                reply_markup: isPrivate ? replyMarkup(ctx) : {},
+              });
+              if (
+                ctx.session.group !== '' &&
+              ctx.session.group !== cache.config.staffchat_id &&
+              !ctx.session.modeData
+              ) {
+                bot.sendVideo(ctx.session.group, fileId, {
+                  caption: captionText,
+                  reply_markup: {
+                    html: '',
+                    inline_keyboard: [
+                      [
+                        {
+                          text: cache.config.language.replyPrivate,
+                          callback_data:
+                          ctx.from.id +
+                          '---' +
+                          ctx.message.from.first_name +
+                          '---' +
+                          ctx.session.groupCategory +
+                          '---' +
+                          ticket.id,
+                        },
+                      ],
+                    ],
+                  },
+                });
+              }
+              break;
+          }
+          // Confirmation message
+          let message =
+          cache.config.language.contactMessage +
+          (cache.config.show_user_ticket ?
+            cache.config.language.yourTicketId :
+            '') +
+          ' #T' +
+          ticket.id.toString().padStart(6, '0');
+          // if admin
+          if (ctx.session.admin && userInfo === undefined) {
+            const name = replyText.match(
+                new RegExp(
+                    cache.config.language.from +
+                ' ' +
+                '(.*)' +
+                ' ' +
+                cache.config.language.language,
+                ),
+            );
+            if (name == null && name == undefined) {
+              return;
+            }
+            message = `${cache.config.language.file_sent} ${name[1]}`;
+          }
+          middleware.msg(ctx.chat.id, message, {});
+        },
+    );
   });
 }
 
@@ -251,7 +259,7 @@ function forwardFile(
         ticket.status == undefined ||
         ticket.status == 'closed'
         ) {
-          db.add(ctx.message.from.id, 'open', undefined);
+          db.add(ctx.message.from.id, 'open', null);
           ok = true;
         }
         if (ok || (ticket !== undefined && ticket.status !== 'banned')) {
@@ -302,7 +310,7 @@ function fowardHandler(
   },
 ) {
   let userInfo;
-  ctx.getChat().then(function(chat) {
+  ctx.getChat().then(function(chat: { type: string }) {
     if (chat.type === 'private') {
       cache.ticketID = ctx.message.from.id;
       userInfo =

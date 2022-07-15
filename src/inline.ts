@@ -1,4 +1,4 @@
-import {Context} from './addons/ctx';
+import {Context, ModeData} from './interfaces';
 import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
@@ -42,7 +42,7 @@ function initInline(bot: TelegramAddon) {
   for (const i in cache.config.categories) {
     if (i !== undefined) {
       keys.push([cache.config.categories[i].name]);
-      const subKeys = [];
+      const subKeys: any = [];
       // Check if it has no subcategory
       if (cache.config.categories[i].subgroups == undefined) {
         // Create category button events for start with parameter
@@ -52,9 +52,9 @@ function initInline(bot: TelegramAddon) {
           cache.config.categories[i].name
               .replace(/[\[\]\:\ "]/g, '')
               .substr(0, 63);
-        bot.hears(startStr, (ctx) => {
-          ctx.session.mode = undefined;
-          ctx.session.modeData = undefined;
+        bot.hears(startStr, (ctx: Context) => {
+          ctx.session.mode = '';
+          ctx.session.modeData = {} as ModeData;
           // Info text
           if (cache.config.categories[i].msg != undefined) {
             middleware.reply(ctx, cache.config.categories[i].msg);
@@ -71,9 +71,9 @@ function initInline(bot: TelegramAddon) {
           }
         });
         // Create subcategory button events
-        bot.hears(cache.config.categories[i].name, (ctx) => {
-          ctx.session.mode = undefined;
-          ctx.session.modeData = undefined;
+        bot.hears(cache.config.categories[i].name, (ctx: Context) => {
+          ctx.session.mode = '';
+          ctx.session.modeData = {} as ModeData;
           // Info text
           if (cache.config.categories[i].msg != undefined) {
             middleware.reply(ctx, cache.config.categories[i].msg);
@@ -108,9 +108,9 @@ function initInline(bot: TelegramAddon) {
             JSON.stringify(categoryFullId)
                 .replace(/[\[\]\:\ "]/g, '')
                 .substr(0, 63);
-          bot.hears(startStr, (ctx) => {
-            ctx.session.mode = undefined;
-            ctx.session.modeData = undefined;
+          bot.hears(startStr, (ctx: Context) => {
+            ctx.session.mode = '';
+            ctx.session.modeData = {} as ModeData;
             middleware.reply(
                 ctx,
                 cache.config.language.msgForwarding +
@@ -126,9 +126,9 @@ function initInline(bot: TelegramAddon) {
           });
 
           // Create subcategory button events
-          bot.hears(categoryFullId, (ctx) => {
-            ctx.session.mode = undefined;
-            ctx.session.modeData = undefined;
+          bot.hears(categoryFullId, (ctx: Context) => {
+            ctx.session.mode = '';
+            ctx.session.modeData = {} as ModeData;
             middleware.reply(
                 ctx,
                 cache.config.language.msgForwarding +
@@ -146,9 +146,9 @@ function initInline(bot: TelegramAddon) {
       }
       subKeys.push([cache.config.language.back]);
       // Create subcategory buttons
-      bot.hears(cache.config.categories[i].name, (ctx) => {
-        ctx.session.mode = undefined;
-        ctx.session.modeData = undefined;
+      bot.hears(cache.config.categories[i].name, (ctx: Context) => {
+        ctx.session.mode = '';
+        ctx.session.modeData = {} as ModeData;
         middleware.reply(
             ctx,
             cache.config.language.whatSubCategory,
@@ -167,8 +167,8 @@ function initInline(bot: TelegramAddon) {
 function callbackQuery(ctx: Context) {
   // Check whether to end callback session
   if (ctx.callbackQuery.data === 'R') {
-    ctx.session.mode = undefined;
-    ctx.session.modeData = undefined;
+    ctx.session.mode = '';
+    ctx.session.modeData = {} as ModeData;
     middleware.reply(ctx, cache.config.language.prvChatEnded);
     return;
   }

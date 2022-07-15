@@ -1,6 +1,6 @@
 import cache from './cache';
 import * as signal from './addons/signal';
-import {Context} from './addons/ctx';
+import {Context} from './interfaces';
 
 // strict escape
 const strictEscape = function(str: string | any[]) {
@@ -31,21 +31,16 @@ const escapeText = function(str: string | string[]) {
     // '_', '*', '~', '`', are used for actualy markdown
     const chars = ['>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
     let newStr = '';
-    let urlNameStarted = false;
     let urlStarted = false;
     for (let i = 0; i < str.length; i++) {
       // do not escape in urls
-      if (str[i] == '[') {
+      if (str[i] == '(') {
         urlStarted = true;
-      } else if (str[i] == '(') {
-        urlNameStarted = true;
-      } else if (urlStarted && str[i] == ']') {
+      } else if (urlStarted && str[i] == ')') {
         urlStarted = false;
-      } else if (urlNameStarted && str[i] == ')') {
-        urlNameStarted = false;
       }
       // escape special characters
-      if (!urlStarted && !urlNameStarted && chars.includes(str[i])) {
+      if (!urlStarted && chars.includes(str[i])) {
         newStr += '\\' + str[i];
       } else {
         newStr += str[i];
@@ -72,15 +67,12 @@ const msg = function(id: string | number, msg: string | string[], extra = {}) {
     console.log('Signal message');
     signal.message(id.toString().split('SIGNAL')[1], msg);
   } else {
+    msg = msg.replace(/  /g, '');
     cache.bot.sendMessage(id, msg, extra);
   }
 };
 
-const reply = function(
-    ctx: Context,
-    msgtext: string | string[],
-    extra = null,
-) {
+const reply = function(ctx: Context, msgtext: string | string[], extra?: any) {
   msg(ctx.message.chat.id, msgtext, extra);
 };
 
