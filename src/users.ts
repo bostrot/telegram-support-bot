@@ -23,7 +23,7 @@ function ticketMsg(
   if (!anon) {
     link = `tg://user?id=${cache.ticketID}`;
   }
-  let esc: any = middleware.strictEscape;
+  const esc: any = middleware.strictEscape;
   return (
     `${cache.config.language.ticket} ` +
     `#T${ticket.toString().padStart(6, '0')} ${cache.config.language.from} ` +
