@@ -72,9 +72,9 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     let msgId = ctx.message.chat.id;
     let isPrivate = false;
 
-    if (userid === null || userid === undefined) {
-      return;
-    }
+    // if (userid === null || userid === undefined) {
+    //   return;
+    // }
     // if admin
     if (ctx.session.admin && userInfo === undefined) {
       msgId = userid[1];
@@ -82,7 +82,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     db.getOpen(
         msgId,
         ctx.session.groupCategory,
-        async function(ticket: { id: string; userid: string | number }) {
+        async function(ticket: any) {
           if (ticket == undefined) {
             if (ctx.session.admin && userInfo === undefined) {
             // replying to closed ticket
