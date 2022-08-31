@@ -2,103 +2,116 @@
  * Telegram Ticketing System - Signal Addon
  * works with the unofficial signal cli by @AsamK
  */
-import fake_ctx from './fake_ctx';
+import fakectx from './fakectx';
 import cache from '../cache';
-const { exec } = require("child_process");
+const {exec} = require('child_process');
 const username = cache.config.signal_number;
 
 /**
  * Send message
+ * @param {String} id Chat ID
+ * @param {String} msg Msg
  */
-const message = (id, msg) => {
-    exec(`signal-cli -u ${username} send -m '${msg}' ${id}`, (error, stdout, stderr) => {
+const message = (id: string, msg: string) => {
+  exec(
+      `signal-cli -u ${username} send -m 
+    '${msg}' ${id}`,
+      (error: { message: any }, stdout: any, stderr: any) => {
         if (error) {
-            console.log(`error: ${error.message}`);
-            return;
+          console.log(`error: ${error.message}`);
+          return;
         }
         if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
+          console.log(`stderr: ${stderr}`);
+          return;
         }
         console.log(`stdout: ${stdout}`);
-    });
-}
+      },
+  );
+};
 
 /**
  * Receive pipeline
+ * @param {Function} result Result
  */
-const receive = (result) => {
-    exec(`signal-cli -u '${username}' receive`, (error, stdout, stderr) => {
+const receive = (result: Function) => {
+  exec(
+      `signal-cli -u '${username}' receive`,
+      (error: any, stdout: any, stderr: any) => {
         if (error) {
-            //result(`error: ${error.message}`);
-            return;
+        // result(`error: ${error.message}`);
+          return;
         }
         if (stderr) {
-            //result(`stderr: ${stderr}`);
-            return;
+        // result(`stderr: ${stderr}`);
+          return;
         }
         result(stdout);
-    });
+      },
+  );
+};
+
+/**
+ * String between two strings
+ * @param {String} str String to search in
+ * @param {String} start Start string
+ * @param {String} end End string
+ * @return {String} String between start and end
+ */
+function strBetween(str: string, start: string, end: string): string {
+  try {
+    return str.split(start)[1].split(end)[0];
+  } catch (e) {
+    return '';
+  }
 }
 
-function strBetween(str, start, end) {
-    return str.split(start).pop().split(end)[0];
-}
+fakectx.reply = (msg: string, options: any) => {
+  message(fakectx.message.chat.id, msg);
+};
 
-fake_ctx.reply = (msg, options) => {
-    message(fake_ctx.message.chat.id, msg);
+interface Msg {
+  time: string;
+  sender: string;
+  name: string;
+  body: string;
 }
-
 /**
  * Init receive pipeline
  * @param {Function} handle Function to do when receiving a message
  */
-const init = (handle) => {
-    let timestamps = [];
-    setInterval(() => {
-        receive((res) => {
-            let lines = res.split('\n');
-            let msg = {
-                time: null,
-                sender: null,
-                name: null,
-                body: null,
-            };
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i];
-                if (line.startsWith('Sender')) {
-                    // Msg name and sender
-                    msg.name = strBetween(line, 'Sender: “', '”');
-                    msg.sender = strBetween(line, '” ', ' (');
-                } else if (line.startsWith('Body')) {
-                    msg.body = line.split('Body: ')[1];
-                } else if (line.startsWith('Timestamp')) {
-                    // Message started
-                    msg.time = strBetween(line, 'Timestamp: ', ' (');
-                } else if (line.startsWith('Profile key update')) {
-                    // Message ended
-                    if (msg.time && msg.sender && msg.body) {
-                        // Message received
-                        fake_ctx.message.from.id = 'SIGNAL' + msg.sender;
-                        fake_ctx.message.chat.id = 'SIGNAL' + msg.sender;
-                        fake_ctx.message.text = msg.body;
-                        fake_ctx.message.from.first_name = msg.name;
-                        handle(fake_ctx, msg);
-                    }
-                    msg = {
-                        time: null,
-                        name: null,
-                        sender: null,
-                        body: null,
-                    };
-                }
-            }
-        });
-    }, 10000);
-}
+const init = (handle: Function) => {
+  // const timestamps = [];
+  setInterval(() => {
+    receive((res: string) => {
+      const lines = res.split('\n');
+      let msg = {} as Msg;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.startsWith('Sender')) {
+          // Msg name and sender
+          msg.name = strBetween(line, 'Sender: “', '”');
+          msg.sender = strBetween(line, '” ', ' (');
+        } else if (line.startsWith('Body')) {
+          msg.body = line.split('Body: ')[1];
+        } else if (line.startsWith('Timestamp')) {
+          // Message started
+          msg.time = strBetween(line, 'Timestamp: ', ' (');
+        } else if (line.startsWith('Profile key update')) {
+          // Message ended
+          if (msg.time && msg.sender && msg.body) {
+            // Message received
+            fakectx.message.from.id = 'SIGNAL' + msg.sender;
+            fakectx.message.chat.id = 'SIGNAL' + msg.sender;
+            fakectx.message.text = msg.body;
+            fakectx.message.from.first_name = msg.name;
+            handle(fakectx, msg);
+          }
+          msg = {} as Msg;
+        }
+      }
+    });
+  }, 10000);
+};
 
-export {
-    message,
-    receive,
-    init,
-}
+export {message, receive, init};

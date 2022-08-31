@@ -6,14 +6,14 @@ const fs = require('fs');
 const YAML = require('yaml');
 const config = YAML.parse(fs.readFileSync('./config/config.yaml', 'utf8'));
 
-const msgsToUser = [];
-const msgsToStaff = [];
+const msgsToUser: Array<string> = [];
+const msgsToStaff: Array<string> = [];
 let waiting = true;
 
 const {createBot, main} = require('../build/src/index.js');
 const bot = createBot();
 
-bot.telegram.sendMessage = function(id, text, options) {
+bot.api.sendMessage = function(id, text: string, options) {
   if (id == config.staffchat_id) {
     // msg to staff
     msgsToStaff.push(text);
@@ -30,10 +30,4 @@ bot.launch = function() {
   console.log('not launching');
 };
 
-export {
-  bot,
-  main,
-  waiting,
-  msgsToUser,
-  msgsToStaff
-}
+export {bot, main, waiting, msgsToUser, msgsToStaff};

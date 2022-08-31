@@ -1,4 +1,7 @@
-let cache = {
+import {Cache, Config} from './interfaces';
+import TelegramAddon from './addons/telegram';
+
+const cache: Cache = {
   ticketID: '',
   ticketIDs: [],
   ticketStatus: {},
@@ -6,9 +9,9 @@ let cache = {
   html: '',
   noSound: '',
   markdown: '',
-  io: null,
-  bot: null,
-  config: null,
+  io: {},
+  bot: {} as TelegramAddon,
+  config: {} as Config,
 };
 
 export default cache;

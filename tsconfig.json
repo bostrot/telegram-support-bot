@@ -1,12 +1,14 @@
 {
-    "compilerOptions": {
-      "outDir": "./build",
-      "allowJs": true,
-      "target": "es6",
-      "module": "commonjs",
-      "sourceMap": true,
-      "moduleResolution": "node",
-      "esModuleInterop": true
-    },
-    "include": ["./src/**/**/*"]
+  "compilerOptions": {
+    "outDir": "./build",
+    "allowJs": true,
+    "target": "es6",
+    "module": "commonjs",
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+  },
+  "include": [
+    "./src/**/**/*"
+  ]
 }

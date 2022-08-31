@@ -1,0 +1,31 @@
+FROM registry.gitlab.com/packaging/signal-cli/signal-cli-native:v0-10-2-5
+WORKDIR /bot
+
+ENV SIGNAL_LIB_VERSION=0.17.0
+ENV SIGNAL_CLI_VERSION=0.10.8
+
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+COPY ./src /bot/src
+COPY ./package.json /bot/package.json
+COPY ./package-lock.json /bot/package-lock.json
+
+# RUN apk update
+# RUN apk add wget python3 build-base openjdk17 zip
+# # Install Signal-cli
+# RUN wget https://github.com/AsamK/signal-cli/releases/download/v$SIGNAL_CLI_VERSION/signal-cli-$SIGNAL_CLI_VERSION-Linux.tar.gz
+# RUN tar xf signal-cli-$SIGNAL_CLI_VERSION-Linux.tar.gz -C /opt
+# RUN ln -sf /opt/signal-cli-$SIGNAL_CLI_VERSION/bin/signal-cli /usr/local/bin/
+
+# Install Signal-lib
+# RUN wget https://github.com/exquo/signal-libs-build/releases/download/libsignal-client_v$SIGNAL_LIB_VERSION/libsignal_jni.so-v$SIGNAL_LIB_VERSION-x86_64-unknown-linux-gnu.tar.gz -O libsignal.tar.gz
+# RUN tar -xzf libsignal.tar.gz
+# RUN zip -uj signal-cli-0.10.5/lib/libsignal-client-0.15.0.jar libsignal_jni.so
+
+RUN npm install
+
+ENTRYPOINT ["npm", "run", "prod", "--prefix", "/bot"]
+CMD ["npm", "run", "prod", "--prefix", "/bot"]
