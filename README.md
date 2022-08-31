@@ -7,7 +7,7 @@
 [![pipeline status](https://gitlab.com/botty-group/erics-container-repo/badges/main/pipeline.svg)](https://gitlab.com/botty-group/erics-container-repo/-/pipelines)
 
 # [Telegram Support Bot](https://github.com/bostrot/telegram-support-bot) (Ticketing system for Telegram)
-is a support bot for telegram bots, using the Telegraf framework (by [@dotcypress](https://github.com/dotcypress)). It lets users create tickets which will be send to a staff group and can be answered by a reply.
+is a support bot for telegram bots, using the ~Telegraf framework (by [@dotcypress](https://github.com/dotcypress))~ [grammY Framework](https://grammy.dev/). It lets users create tickets which will be send to a staff group and can be answered by a reply.
 
 Telegram ticketing implementation:
 
@@ -71,7 +71,28 @@ Either with docker-compose:
 docker-compose up -d
 ```
 
-## Upgrading to v3.0.0 or to master
+## Notes about v4.0.0
+
+Since version v4 this bot uses the grammY Telegram Bot Framework instead of the telegraf framework for various reasons.
+
+## Upgrading to v4.0.0 or to master
+
+Make sure you add the new settings strings to your config.yaml file. Check the config-sample.yaml for all configs.
+Here are some of the new settings that you should add when migrating:
+
+    parse_mode: 'MarkdownV2' # DO NOT CHANGE!
+    autoreply: (see config-sample.yaml for an example)
+    
+The config-sample.yaml settings now all use markdown instead of HTML so you have to adjust that. e.g. instead of <br/> line break use \n instead. For a full list check the telegram bot API docs.
+
+Upgrade to the new version. e.g. by pulling the main branch from GitHub or using the docker image bostrot/telegram-support-bot:4.0.0.
+
+Start it.
+
+The old database should work with the new version without changing anything.
+
+
+## Upgrading to v3.0.0
 
 The latest version uses a new config file in YAML format which would break old versions.
 
