@@ -100,7 +100,6 @@ function chat(ctx: Context, chat: { id: string }) {
                   ' #T' +
                   ticket.id.toString().padStart(6, '0') :
                 ''),
-                {parse_mode: cache.config.parse_mode},
             );
           }
 

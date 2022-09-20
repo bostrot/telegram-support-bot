@@ -56,7 +56,8 @@ const escapeText = function(str: string | string[]) {
 };
 
 // handle messages to web socket
-const msg = function(id: string | number, msg: string | string[], extra = {}) {
+const msg = function(id: string | number, msg: string | string[], extra: any = {
+  parse_mode: cache.config.parse_mode}) {
   msg = escapeText(msg);
   // Check web message
   if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
@@ -77,7 +78,8 @@ const msg = function(id: string | number, msg: string | string[], extra = {}) {
   }
 };
 
-const reply = function(ctx: Context, msgtext: string | string[], extra?: any) {
+const reply = function(ctx: Context, msgtext: string | string[], extra: any = {
+  parse_mode: cache.config.parse_mode}) {
   msg(ctx.message.chat.id, msgtext, extra);
 };
 
