@@ -4,17 +4,18 @@ import {Context} from './interfaces';
 
 // strict escape
 const strictEscape = function(str: string | any[]) {
-  let newStr = '';
-  const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
-  for (let i = 0; i < str.length; i++) {
-    // escape special characters
-    if (chars.includes(str[i])) {
-      newStr += '\\' + str[i];
-    } else {
-      newStr += str[i];
-    }
-  }
-  return newStr;
+  // let newStr = '';
+  // const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
+  // for (let i = 0; i < str.length; i++) {
+  //   // escape special characters
+  //   if (chars.includes(str[i])) {
+  //     newStr += '\\' + str[i];
+  //   } else {
+  //     newStr += str[i];
+  //   }
+  // }
+  // return newStr;
+  return str.toString();
 };
 
 // escape special characters
