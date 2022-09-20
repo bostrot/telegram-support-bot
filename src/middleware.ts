@@ -47,7 +47,7 @@ const escapeText = function(str: string | string[]) {
       }
     }
     return newStr;
-  } 
+  }
   return str.toString();
 };
 
