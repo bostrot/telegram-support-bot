@@ -1,8 +1,7 @@
 version: '3'
 services:
   supportbot:
-    #build: .
-    image: "bostrot/telegram-support-bot:4.0.0"
+    build: .
     restart: unless-stopped
     volumes:
       - ${PWD}/config:/bot/config

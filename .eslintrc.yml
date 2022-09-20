@@ -10,6 +10,3 @@ parserOptions:
 plugins:
   - "@typescript-eslint"
   - "prettier"
-rules: {
-  linebreak-style: ["error", "windows"]
-}

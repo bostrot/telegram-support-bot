@@ -63,7 +63,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
       );
     }
     // replying to non-ticket
-    if (userid === null || userid === undefined) {
+    if (userid == null) {
       return;
     }
   }
@@ -77,7 +77,12 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     // }
     // if admin
     if (ctx.session.admin && userInfo === undefined) {
-      msgId = userid[1];
+      // null check here
+      if (userid != null) {
+        msgId = userid[1];
+      } else {
+        return;
+      }
     }
     db.getOpen(
         msgId,

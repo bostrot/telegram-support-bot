@@ -4,17 +4,18 @@ import {Context} from './interfaces';
 
 // strict escape
 const strictEscape = function(str: string | any[]) {
-  let newStr = '';
-  const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
-  for (let i = 0; i < str.length; i++) {
-    // escape special characters
-    if (chars.includes(str[i])) {
-      newStr += '\\' + str[i];
-    } else {
-      newStr += str[i];
-    }
-  }
-  return newStr;
+  // let newStr = '';
+  // const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
+  // for (let i = 0; i < str.length; i++) {
+  //   // escape special characters
+  //   if (chars.includes(str[i])) {
+  //     newStr += '\\' + str[i];
+  //   } else {
+  //     newStr += str[i];
+  //   }
+  // }
+  // return newStr;
+  return str.toString();
 };
 
 // escape special characters
@@ -26,7 +27,7 @@ const escapeText = function(str: string | string[]) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
-  } else {
+  } else if (cache.config.parse_mode == 'MarkdownV2') {
     // '[', ']', '(', ')', are skipped as they are usally for urls
     // '_', '*', '~', '`', are used for actualy markdown
     const chars = ['>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
@@ -48,6 +49,7 @@ const escapeText = function(str: string | string[]) {
     }
     return newStr;
   }
+  return str.toString();
 };
 
 // handle messages to web socket
