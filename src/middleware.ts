@@ -26,7 +26,7 @@ const escapeText = function(str: string | string[]) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
-  } else {
+  } else if (cache.config.parse_mode == 'MarkdownV2') {
     // '[', ']', '(', ')', are skipped as they are usally for urls
     // '_', '*', '~', '`', are used for actualy markdown
     const chars = ['>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
@@ -47,7 +47,8 @@ const escapeText = function(str: string | string[]) {
       }
     }
     return newStr;
-  }
+  } 
+  return str.toString();
 };
 
 // handle messages to web socket
