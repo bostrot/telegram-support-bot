@@ -64,6 +64,7 @@ interface Language {
   ticketReopened: string;
   yourTicketId: string;
   helpCommandStaffText: string;
+  regardsGroup: string;
   autoreply: Autoreply[];
 }
 
@@ -88,6 +89,7 @@ interface Config {
   direct_reply: boolean;
   auto_close_tickets: boolean;
   anonymous_tickets: boolean;
+  anonymous_replies: boolean;
   show_auto_replied: boolean;
   signal_enabled: boolean;
   signal_number: string;
