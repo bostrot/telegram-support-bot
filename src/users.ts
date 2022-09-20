@@ -94,7 +94,7 @@ function chat(ctx: Context, chat: { id: string }) {
           if (!isAutoReply) {
             middleware.msg(
                 chat.id,
-                cache.config.language.contactMessage +
+                cache.config.language.contactMessage + '\n' +
               (cache.config.show_user_ticket ?
                 cache.config.language.ticket +
                   ' #T' +
