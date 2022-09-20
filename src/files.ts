@@ -219,10 +219,10 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
           let message =
           cache.config.language.contactMessage +
           (cache.config.show_user_ticket ?
-            cache.config.language.yourTicketId :
-            '') +
-          ' #T' +
-          ticket.id.toString().padStart(6, '0');
+            cache.config.language.yourTicketId +
+            ' #T' +
+            ticket.id.toString().padStart(6, '0'):
+            '');
           // if admin
           if (ctx.session.admin && userInfo === undefined) {
             const name = replyText.match(
