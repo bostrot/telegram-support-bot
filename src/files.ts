@@ -77,6 +77,9 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     // }
     // if admin
     if (ctx.session.admin && userInfo === undefined) {
+      if (userid == null) {
+        return;
+      }
       msgId = userid[1];
     }
     db.getOpen(
