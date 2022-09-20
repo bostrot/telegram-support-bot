@@ -5,12 +5,13 @@ owner_id: 'YOUR_TELEGRAM_ID'
 spam_time: 5 * 60 * 1000 # time (in MS) in which user may send 5 messages
 spam_cant_msg: 5
 
-parse_mode: 'Markdown' # Experimental. Do not change unless you know what you are doing. Options: Markdown/MarkdownV2/HTML
+parse_mode: 'MarkdownV2' # Experimental. Do not change unless you know what you are doing. Options: Markdown/MarkdownV2/HTML
 
 allow_private: false # Allow / disallow option for staff to chat privately
 direct_reply: false # Set this to true to just forward staff users to a user chat when allow_private
 auto_close_tickets: true # Close tickets after answering
 anonymous_tickets: true # Include userid in tickets or not
+anonymous_replies: true # Include staff member name in response
 show_auto_replied: false # Send auto replied msgs to staff chat
 show_user_ticket: false # Show ticket id to user
 
@@ -26,17 +27,17 @@ dev_mode: true # Enable/disable dev mode
 language:
   startCommandText: 'Welcome in our support chat! Ask your question here.'
   faqCommandText: 'Get this bot at: [github.com](https://github.com/bostrot/telegram-support-bot)'
-  helpCommandText: "*Available commands:*\n/help\n/faq\n/id"
-  helpCommandStaffText: "*Available commands:*\n
-    /start - Get a little introduction\n
-    /faq - Show frequently asked questions\n
-    /open - *Staff* Shows a list of open tickets\n
-    /reopen - *Staff* Reopen a closed ticket\n
-    /close - *Staff* Reply to a ticket with this to close and unban\n
-    /clear - *Staff* Closes all tickets\n
-    /ban - *Staff* Ban a user from the chat\n
+  helpCommandText: "*Available commands:* /help /faq /id"
+  helpCommandStaffText: "*Available commands:* 
+    /start - Get a little introduction 
+    /faq - Show frequently asked questions 
+    /open - *Staff* Shows a list of open tickets 
+    /reopen - *Staff* Reopen a closed ticket 
+    /close - *Staff* Reply to a ticket with this to close and unban 
+    /clear - *Staff* Closes all tickets 
+    /ban - *Staff* Ban a user from the chat 
     /unban - *Staff* Unban a user"
-  contactMessage: "Thank you for contacting us. We will answer as soon as possible.\n"
+  contactMessage: "Thank you for contacting us. We will answer as soon as possible. "
   blockedSpam: 'You sent quite a number of questions in the last while. Please calm down and wait until staff reviews them.'
   ticket: 'Ticket'
   closed: 'closed'
@@ -72,12 +73,13 @@ language:
   doesntHelp: 'This does not help.'
   automatedReplySent: 'Automated reply was send to the user.'
   ticketReopened: 'Ticket reopened.'
+  regardsGroup: 'Botty Group'
 
 autoreply:
   - question: 'install'
-    answer: "If you want to install the bot, you can use the following link:\n\
-      [Getting Started](https://github.com/bostrot/telegram-support-bot/wiki/Getting-started)\n\n\
-      Alternatively you can also use our one-click setup & hosting service:\n\
+    answer: "If you want to install the bot, you can use the following link: \
+      [Getting Started](https://github.com/bostrot/telegram-support-bot/wiki/Getting-started)  \
+      Alternatively you can also use our one-click setup & hosting service: \
       [Botspace](https://botspace.bostrot.com/)"
   - question: 'are you sure?'
     answer: 'Yes.'
