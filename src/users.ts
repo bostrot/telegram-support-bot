@@ -46,7 +46,7 @@ function autoReply(ctx: Context) {
   for (const i in strings) {
     if (ctx.message.text.toString().indexOf(strings[i]['question']) > -1) {
       // Define message
-      const msg =
+      const msg = cache.config.clean_replies ? strings[i]['answer'] :
         `${cache.config.language.dear} ` +
         `${ctx.message.from.first_name},\n\n` +
         `${strings[i]['answer']}\n\n` +

@@ -103,6 +103,7 @@ interface Config {
   language: Language;
   autoreply_confirmation: boolean;
   autoreply: Autoreply[];
+  clean_replies: boolean;
   categories: Category[];
 }
 
