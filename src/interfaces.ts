@@ -26,7 +26,8 @@ interface Language {
   startCommandText: string;
   faqCommandText: string;
   helpCommandText: string;
-  contactMessage: string;
+  confirmationMessage: string;
+  contactMessage: string; // left for backward compatibility
   blockedSpam: string;
   ticket: string;
   closed: string;
@@ -100,6 +101,7 @@ interface Config {
   dev_mode: boolean;
   show_user_ticket: boolean;
   language: Language;
+  autoreply_confirmation: boolean;
   autoreply: Autoreply[];
   categories: Category[];
 }

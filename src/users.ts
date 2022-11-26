@@ -91,10 +91,10 @@ function chat(ctx: Context, chat: { id: string }) {
         chat.id,
         ctx.session.groupCategory,
         function(ticket: { id: string }) {
-          if (!isAutoReply) {
+          if (!isAutoReply && cache.config.autoreply_confirmation) {
             middleware.msg(
                 chat.id,
-                cache.config.language.contactMessage + '\n' +
+                cache.config.language.confirmationMessage + '\n' +
               (cache.config.show_user_ticket ?
                 cache.config.language.ticket +
                   ' #T' +

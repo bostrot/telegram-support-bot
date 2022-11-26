@@ -217,7 +217,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
           }
           // Confirmation message
           let message =
-          cache.config.language.contactMessage +
+          cache.config.language.confirmationMessage +
           (cache.config.show_user_ticket ?
             cache.config.language.yourTicketId +
             ' #T' +

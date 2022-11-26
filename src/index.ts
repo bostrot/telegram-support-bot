@@ -33,6 +33,8 @@ function createBot() {
     }
     defaultBot = new TelegramAddon(cache.config.bot_token);
   }
+  cache.config.autoreply_confirmation = cache.config.autoreply_confirmation === undefined ? true : cache.config.autoreply_confirmation
+  cache.config.language.confirmationMessage = cache.config.language.confirmationMessage || cache.config.language.contactMessage // left for backward compatibility
 
   return defaultBot;
 }
