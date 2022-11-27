@@ -2,7 +2,7 @@
 bot_token: 'YOUR_BOT_TOKEN' # support bot token
 staffchat_id: 'SUPERGROUP_CHAT_ID' # eg. -123456789
 owner_id: 'YOUR_TELEGRAM_ID'
-spam_time: 5 * 60 * 1000 # time (in MS) in which user may send 5 messages
+spam_time: 300000 # time (in MS) in which user may send 5 messages
 spam_cant_msg: 5
 
 parse_mode: 'MarkdownV2' # Experimental. Do not change unless you know what you are doing. Options: Markdown/MarkdownV2/HTML
