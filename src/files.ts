@@ -216,6 +216,9 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
               break;
           }
           // Confirmation message
+          if (!cache.config.autoreply_confirmation) {
+            return;
+          }
           let message =
           cache.config.language.confirmationMessage +
           (cache.config.show_user_ticket ?
