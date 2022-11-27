@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request_target, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: "Hello there! As you are a first time Issuer please check whether your issue description is reasonable and complete. If you are having an issue always include the versions you are using (NodeJs, Typescript, ...) as well as a way to reproduce it. Thank you for reading! Now continue :)"
+        pr-message: "Hello there! As you are a first time Contributor please make sure that you are using the predefined eslint guidelines for your code formatting. Thank you! Now continue :)"
