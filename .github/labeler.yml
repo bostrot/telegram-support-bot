@@ -1,0 +1,31 @@
+# Add 'source' label to any change to src files within the source dir EXCEPT for the docs sub-folder
+source:
+- any: ['src/**/*']
+
+dependency:
+- any: ['package.json', 'package-lock.json']
+
+
+config:
+- any: ['config/**/*']
+
+test:
+- any: ['test/**/*']
+
+docker:
+- any: ['Dockerfile', 'docker-compose.yml', 'Dockerfile.signal']
+
+github:
+- any: ['.github']
+
+githooks:
+- any: ['.githooks']
+
+community:
+- any: ['CODE_OF_CONDUCT.md', 'CONTRIBUTING.md']
+
+license:
+- any: ['LICENSE']
+
+readme:
+- any: ['README.md']
