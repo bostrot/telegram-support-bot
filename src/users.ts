@@ -46,7 +46,7 @@ function autoReply(ctx: Context) {
   for (const i in strings) {
     if (ctx.message.text.toString().indexOf(strings[i]['question']) > -1) {
       // Define message
-      const msg =
+      const msg = cache.config.clean_replies ? strings[i]['answer'] :
         `${cache.config.language.dear} ` +
         `${ctx.message.from.first_name},\n\n` +
         `${strings[i]['answer']}\n\n` +
@@ -91,10 +91,10 @@ function chat(ctx: Context, chat: { id: string }) {
         chat.id,
         ctx.session.groupCategory,
         function(ticket: { id: string }) {
-          if (!isAutoReply) {
+          if (!isAutoReply && cache.config.autoreply_confirmation) {
             middleware.msg(
                 chat.id,
-                cache.config.language.contactMessage + '\n' +
+                cache.config.language.confirmationMessage + '\n' +
               (cache.config.show_user_ticket ?
                 cache.config.language.ticket +
                   ' #T' +

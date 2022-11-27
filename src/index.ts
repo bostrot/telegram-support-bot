@@ -33,6 +33,11 @@ function createBot() {
     }
     defaultBot = new TelegramAddon(cache.config.bot_token);
   }
+  cache.config.autoreply_confirmation = cache.config.autoreply_confirmation === undefined ? true : cache.config.autoreply_confirmation
+  cache.config.language.confirmationMessage = cache.config.language.confirmationMessage || cache.config.language.contactMessage // left for backward compatibility
+  cache.config.clean_replies = cache.config.clean_replies === undefined ? false : cache.config.clean_replies // left for backward compatibility
+  cache.config.pass_start = cache.config.pass_start === undefined ? false : cache.config.pass_start // left for backward compatibility
+
 
   return defaultBot;
 }
@@ -89,22 +94,24 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.command('reopen', (ctx: Context) => commands.reopenCommand(ctx));
   bot.command('unban', (ctx: Context) => commands.unbanCommand(ctx));
   bot.command('clear', (ctx: Context) => commands.clearCommand(ctx));
-  bot.command('start', (ctx: Context) => {
-    if (ctx.chat.type == 'private') {
-      middleware.reply(ctx, cache.config.language.startCommandText);
-      if (cache.config.categories && cache.config.categories.length > 0) {
-        setTimeout(
-            () =>
-              middleware.reply(
-                  ctx,
-                  cache.config.language.services,
-                  inline.replyKeyboard(keys),
-              ),
-            500,
-        );
-      }
-    } else middleware.reply(ctx, cache.config.language.prvChatOnly);
-  });
+  if (cache.config.pass_start == false) {
+    bot.command('start', (ctx: Context) => {
+      if (ctx.chat.type == 'private') {
+        middleware.reply(ctx, cache.config.language.startCommandText);
+        if (cache.config.categories && cache.config.categories.length > 0) {
+          setTimeout(
+              () =>
+                middleware.reply(
+                    ctx,
+                    cache.config.language.services,
+                    inline.replyKeyboard(keys),
+                ),
+              500,
+          );
+        }
+      } else middleware.reply(ctx, cache.config.language.prvChatOnly);
+    });
+  }
   bot.command('id', (ctx: Context) =>
     middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
       parse_mode: cache.config.parse_mode,

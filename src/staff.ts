@@ -14,6 +14,9 @@ function ticketMsg(
     message: { text: any; from: { first_name: any } },
 ) {
   const esc: any = middleware.strictEscape;
+  if (cache.config.clean_replies) {
+    return esc(message.text)
+  }
   if (cache.config.anonymous_replies) {
     return (
       `${cache.config.language.dear} ` +

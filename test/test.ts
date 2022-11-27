@@ -21,7 +21,7 @@ describe('Messages', function() {
       botAssert.assertMsgWildcard(
           'Hello, this is some test!',
           expected,
-          lang.contactMessage,
+          lang.confirmationMessage,
       );
     });
   });
