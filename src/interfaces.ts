@@ -104,6 +104,7 @@ interface Config {
   autoreply_confirmation: boolean;
   autoreply: Autoreply[];
   clean_replies: boolean;
+  pass_start: boolean;
   categories: Category[];
 }
 
