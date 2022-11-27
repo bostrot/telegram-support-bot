@@ -4,6 +4,7 @@
 
 import {Bot, Context as GrammyContext, SessionFlavor, session} from 'grammy';
 import {Context, SessionData} from '../interfaces';
+import { apiThrottler } from "@grammyjs/transformer-throttler";
 
 /**
  * Telegram Ticketing System - Telegram Implementation with GrammY
@@ -18,6 +19,8 @@ class TelegramAddon {
   constructor(token: string) {
     type BotContext = GrammyContext & SessionFlavor<SessionData>;
     this.bot = new Bot<BotContext>(token);
+    const throttler = apiThrottler();
+    this.bot.api.config.use(throttler);
     this.bot.init().then(() => {
       this.botInfo = this.bot.botInfo;
     });
