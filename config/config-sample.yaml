@@ -15,6 +15,7 @@ anonymous_replies: true # Include staff member name in response
 show_auto_replied: false # Send auto replied msgs to staff chat
 show_user_ticket: false # Show ticket id to user
 autoreply_confirmation: true # Reply with language.confirmationMessage on each incoming message
+clean_replies: false # Remove footer and header from response
 
 signal_enabled: false # Enable/disable signal
 signal_number: '+12345689' # Your signal number / account
