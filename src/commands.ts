@@ -151,8 +151,8 @@ function closeCommand(ctx: Context) {
     for (let i = 0; i < tickets.length; i++) {
       if (tickets[i].id.toString().padStart(6, '0') == ticketId) {
         db.add(tickets[i].userid, 'closed', tickets[i].category);
-        userid = tickets[i].userid;
       }
+      userid = tickets[i].userid;
     }
     middleware.reply(
       ctx,
