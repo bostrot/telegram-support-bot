@@ -1,4 +1,4 @@
-import {Context, ModeData} from './interfaces';
+import { Context, ModeData } from './interfaces';
 import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
@@ -10,7 +10,7 @@ import * as middleware from './middleware';
  */
 function replyKeyboard(keys: any[]) {
   return {
-    parse_mode: 'html',
+    parse_mode: cache.config.parse_mode,
     reply_markup: {
       keyboard: keys,
     },
@@ -23,7 +23,7 @@ function replyKeyboard(keys: any[]) {
  */
 function removeKeyboard() {
   return {
-    parse_mode: 'html',
+    parse_mode: cache.config.parse_mode,
     reply_markup: {
       remove_keyboard: true,
     },
@@ -50,8 +50,8 @@ function initInline(bot: TelegramAddon) {
         const startStr =
           '/start ' +
           cache.config.categories[i].name
-              .replace(/[\[\]\:\ "]/g, '')
-              .substr(0, 63);
+            .replace(/[\[\]\:\ "]/g, '')
+            .substr(0, 63);
         bot.hears(startStr, (ctx: Context) => {
           ctx.session.mode = '';
           ctx.session.modeData = {} as ModeData;
@@ -60,11 +60,11 @@ function initInline(bot: TelegramAddon) {
             middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
             middleware.reply(
-                ctx,
-                cache.config.language.msgForwarding +
-                '\n' +
-                `*${cache.config.categories[i].name}*`,
-                removeKeyboard(),
+              ctx,
+              cache.config.language.msgForwarding +
+              '\n' +
+              `*${cache.config.categories[i].name}*`,
+              removeKeyboard(),
             );
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -79,11 +79,11 @@ function initInline(bot: TelegramAddon) {
             middleware.reply(ctx, cache.config.categories[i].msg);
           } else {
             middleware.reply(
-                ctx,
-                cache.config.language.msgForwarding +
-                '\n' +
-                `*${cache.config.categories[i].name}*`,
-                removeKeyboard(),
+              ctx,
+              cache.config.language.msgForwarding +
+              '\n' +
+              `*${cache.config.categories[i].name}*`,
+              removeKeyboard(),
             );
             ctx.session.group = cache.config.categories[i].group_id;
             ctx.session.groupCategory = cache.config.categories[i].name;
@@ -96,8 +96,8 @@ function initInline(bot: TelegramAddon) {
         if (j !== undefined) {
           const categoryFullId = [
             cache.config.categories[i].name +
-              ': ' +
-              cache.config.categories[i].subgroups[j].name,
+            ': ' +
+            cache.config.categories[i].subgroups[j].name,
           ];
           subKeys.push(categoryFullId);
 
@@ -106,17 +106,17 @@ function initInline(bot: TelegramAddon) {
           const startStr =
             '/start ' +
             JSON.stringify(categoryFullId)
-                .replace(/[\[\]\:\ "]/g, '')
-                .substr(0, 63);
+              .replace(/[\[\]\:\ "]/g, '')
+              .substr(0, 63);
           bot.hears(startStr, (ctx: Context) => {
             ctx.session.mode = '';
             ctx.session.modeData = {} as ModeData;
             middleware.reply(
-                ctx,
-                cache.config.language.msgForwarding +
-                '\n' +
-                `*${categoryFullId}*`,
-                removeKeyboard(),
+              ctx,
+              cache.config.language.msgForwarding +
+              '\n' +
+              `*${categoryFullId}*`,
+              removeKeyboard(),
             );
             // Set subgroup
             ctx.session.group =
@@ -130,11 +130,11 @@ function initInline(bot: TelegramAddon) {
             ctx.session.mode = '';
             ctx.session.modeData = {} as ModeData;
             middleware.reply(
-                ctx,
-                cache.config.language.msgForwarding +
-                '\n' +
-                `*${categoryFullId}*`,
-                removeKeyboard(),
+              ctx,
+              cache.config.language.msgForwarding +
+              '\n' +
+              `*${categoryFullId}*`,
+              removeKeyboard(),
             );
             // Set subgroup
             ctx.session.group =
@@ -150,9 +150,9 @@ function initInline(bot: TelegramAddon) {
         ctx.session.mode = '';
         ctx.session.modeData = {} as ModeData;
         middleware.reply(
-            ctx,
-            cache.config.language.whatSubCategory,
-            replyKeyboard(subKeys),
+          ctx,
+          cache.config.language.whatSubCategory,
+          replyKeyboard(subKeys),
         );
       });
     }
@@ -185,15 +185,15 @@ function callbackQuery(ctx: Context) {
     category: category,
   };
   middleware.msg(
-      ctx.callbackQuery.from.id,
+    ctx.callbackQuery.from.id,
     ctx.chat.type !== 'private' ?
       `${cache.config.language.ticket} ` +
-          `#T${ticketid.toString().padStart(6, '0')}` +
-          `\n\n` +
-          cache.config.language.prvChatOpened :
+      `#T${ticketid.toString().padStart(6, '0')}` +
+      `\n\n` +
+      cache.config.language.prvChatOpened :
       cache.config.language.prvChatOpenedCustomer,
     {
-      parse_mode: 'html',
+      parse_mode: cache.config.parse_mode,
       reply_markup: {
         html: '',
         inline_keyboard: [
@@ -211,12 +211,12 @@ function callbackQuery(ctx: Context) {
   // TODO: forward to bot? not possible without triggering start command
   // var t = ('https://t.me/' + bot.options.username + '?start=X');
   ctx.answerCbQuery(
-      cache.config.language.instructionsSent,
-      true,
-      /* {
-    'url': t,
-  } */
+    cache.config.language.instructionsSent,
+    true,
+    /* {
+  'url': t,
+} */
   );
 }
 
-export {callbackQuery, initInline, replyKeyboard, removeKeyboard};
+export { callbackQuery, initInline, replyKeyboard, removeKeyboard };

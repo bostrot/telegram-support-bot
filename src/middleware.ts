@@ -1,10 +1,10 @@
 import cache from './cache';
 import * as signal from './addons/signal';
-import {Context} from './interfaces';
+import { Context } from './interfaces';
 
 // strict escape
-const strictEscape = function(str: string | any[]) {
-  if (cache.config.parse_mode == 'MarkdownV2'){
+const strictEscape = function (str: string | any[]) {
+  if (cache.config.parse_mode == 'MarkdownV2') {
     let newStr = '';
     const chars = ['[', ']', '(', ')', '_', '*', '~', '`'];
     for (let i = 0; i < str.length; i++) {
@@ -18,18 +18,18 @@ const strictEscape = function(str: string | any[]) {
     return newStr;
   } else {
     return str.toString();
-  } 
+  }
 };
 
 // escape special characters
-const escapeText = function(str: string | string[]) {
+const escapeText = function (str: string | string[]) {
   if (cache.config.parse_mode == 'HTML' || cache.config.parse_mode == 'html') {
     return str
-        .toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      .toString()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   } else if (cache.config.parse_mode == 'MarkdownV2') {
     // '[', ']', '(', ')', are skipped as they are usally for urls
     // '_', '*', '~', '`', are used for actualy markdown
@@ -52,12 +52,16 @@ const escapeText = function(str: string | string[]) {
     }
     return newStr;
   }
+  if (str == undefined) {
+    return '';
+  }
   return str.toString();
 };
 
 // handle messages to web socket
-const msg = function(id: string | number, msg: string | string[], extra: any = {
-  parse_mode: cache.config.parse_mode}) {
+const msg = function (id: string | number, msg: string | string[], extra: any = {
+  parse_mode: cache.config.parse_mode
+}) {
   msg = escapeText(msg);
   // Check web message
   if (id.toString().indexOf('WEB') > -1 && id != cache.config.staffchat_id) {
@@ -78,9 +82,10 @@ const msg = function(id: string | number, msg: string | string[], extra: any = {
   }
 };
 
-const reply = function(ctx: Context, msgtext: string | string[], extra: any = {
-  parse_mode: cache.config.parse_mode}) {
+const reply = function (ctx: Context, msgtext: string | string[], extra: any = {
+  parse_mode: cache.config.parse_mode
+}) {
   msg(ctx.message.chat.id, msgtext, extra);
 };
 
-export {strictEscape, msg, reply};
+export { strictEscape, msg, reply };

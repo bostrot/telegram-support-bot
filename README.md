@@ -80,9 +80,9 @@ Since version v4 this bot uses the grammY Telegram Bot Framework instead of the 
 Make sure you add the new settings strings to your config.yaml file. Check the config-sample.yaml for all configs.
 Here are some of the new settings that you should add when migrating:
 
-    parse_mode: 'MarkdownV2' # DO NOT CHANGE!
+    parse_mode: 'Markdown' # DO NOT CHANGE!
     autoreply: (see config-sample.yaml for an example)
-    
+
 The config-sample.yaml settings now all use markdown instead of HTML so you have to adjust that. e.g. instead of <br/> line break use \n instead. For a full list check the telegram bot API docs.
 
 Upgrade to the new version. e.g. by pulling the main branch from GitHub or using the docker image bostrot/telegram-support-bot:4.0.0.

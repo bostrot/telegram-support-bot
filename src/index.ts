@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import * as YAML from 'yaml';
-import {Context, Config} from './interfaces';
+import { Context, Config } from './interfaces';
 import cache from './cache';
 
 cache.config = YAML.parse(
-    fs.readFileSync('./config/config.yaml', 'utf8'),
+  fs.readFileSync('./config/config.yaml', 'utf8'),
 ) as Config;
 
 import * as middleware from './middleware';
@@ -52,7 +52,7 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   // bot.sendMessage(cache.config.staffchat_id, 'Bot started');
   // Check addon
   if (cache.config.signal_enabled) {
-    signal.init(function(ctx: Context, msg: any[]) {
+    signal.init(function (ctx: Context, msg: any[]) {
       console.log(msg);
       text.handleText(bot, ctx, msg);
     });
@@ -72,10 +72,10 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     // Check dev mode
     if (cache.config.dev_mode) {
       middleware.reply(
-          ctx,
-          `_Dev mode is on: You might notice 
+        ctx,
+        `_Dev mode is on: You might notice 
       some delay in messages, no replies or other errors._`,
-          {parse_mode: cache.config.parse_mode},
+        { parse_mode: cache.config.parse_mode },
       );
     }
     permissions.checkPermissions(ctx, next, cache.config);
@@ -94,24 +94,6 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   bot.command('reopen', (ctx: Context) => commands.reopenCommand(ctx));
   bot.command('unban', (ctx: Context) => commands.unbanCommand(ctx));
   bot.command('clear', (ctx: Context) => commands.clearCommand(ctx));
-  if (cache.config.pass_start == false) {
-    bot.command('start', (ctx: Context) => {
-      if (ctx.chat.type == 'private') {
-        middleware.reply(ctx, cache.config.language.startCommandText);
-        if (cache.config.categories && cache.config.categories.length > 0) {
-          setTimeout(
-              () =>
-                middleware.reply(
-                    ctx,
-                    cache.config.language.services,
-                    inline.replyKeyboard(keys),
-                ),
-              500,
-          );
-        }
-      } else middleware.reply(ctx, cache.config.language.prvChatOnly);
-    });
-  }
   bot.command('id', (ctx: Context) =>
     middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
       parse_mode: cache.config.parse_mode,
@@ -135,8 +117,8 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
               cache.config.categories[i].name +
               cache.config.categories[i].subgroups[j].name
             )
-                .replace(/[\[\]\:\ "]/g, '')
-                .substr(0, 63);
+              .replace(/[\[\]\:\ "]/g, '')
+              .substr(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
               if (bot.botInfo != null) {
@@ -152,6 +134,25 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
     });
   });
 
+  if (cache.config.pass_start == false) {
+    bot.command('start', (ctx: Context) => {
+      if (ctx.chat.type == 'private') {
+        middleware.reply(ctx, cache.config.language.startCommandText);
+        if (cache.config.categories && cache.config.categories.length > 0) {
+          setTimeout(
+            () =>
+              middleware.reply(
+                ctx,
+                cache.config.language.services,
+                inline.replyKeyboard(keys),
+              ),
+            500,
+          );
+        }
+      } else middleware.reply(ctx, cache.config.language.prvChatOnly);
+    });
+  }
+
   // Bot ons
   bot.on('callback_query', (ctx: Context) => inline.callbackQuery(ctx));
   bot.on([':photo'], (ctx: Context) => files.fileHandler('photo', bot, ctx));
@@ -163,9 +164,9 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
   // Bot regex
   bot.hears(cache.config.language.back, (ctx: Context) =>
     middleware.reply(
-        ctx,
-        cache.config.language.services,
-        inline.replyKeyboard(keys),
+      ctx,
+      cache.config.language.services,
+      inline.replyKeyboard(keys),
     ),
   );
   bot.hears('testing', (ctx: Context) => text.handleText(bot, ctx, keys));
@@ -192,4 +193,4 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
 createBot();
 main();
 
-export {createBot, main};
+export { createBot, main };
