@@ -1,11 +1,5 @@
-import * as fs from 'fs';
-import * as YAML from 'yaml';
 import { Context, Config } from './interfaces';
 import cache from './cache';
-
-cache.config = YAML.parse(
-  fs.readFileSync('./config/config.yaml', 'utf8'),
-) as Config;
 
 import * as middleware from './middleware';
 import * as commands from './commands';
