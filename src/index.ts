@@ -112,7 +112,7 @@ function main(bot: TelegramAddon = defaultBot, logs = true) {
               cache.config.categories[i].subgroups[j].name
             )
               .replace(/[\[\]\:\ "]/g, '')
-              .substr(0, 63);
+              .substring(0, 63);
             if (subcategories.indexOf(id) == -1) {
               subcategories.push(id);
               if (bot.botInfo != null) {
