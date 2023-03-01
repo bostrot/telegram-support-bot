@@ -47,7 +47,7 @@ function openCommand(ctx: Context) {
   ) {
     cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (element.subgroups.length == 0) {
+      if (element.subgroups == undefined) {
         if (element.group_id == ctx.chat.id) {
           groups.push(element.name);
         }
