@@ -108,6 +108,7 @@ autoreply:
 #  - name: "Admin Chat"
 #    group_id: "-12345678910"
 #  - name: "Other issues"
+#    tag: "#other"
 #    msg: "Please specify your order number and describe the problem in as much detail as possible"
 #    group_id: "-12345678910"
 #  - name: "Contact"

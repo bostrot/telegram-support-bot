@@ -12,6 +12,7 @@ interface SessionData {
   mode: string | null;
   modeData: ModeData;
   groupCategory: string | null;
+  groupTag: string;
   group: string;
   groupAdmin: any;
   getSessionKey: Function;
@@ -72,6 +73,7 @@ interface Language {
 interface Category {
   name: string;
   msg: string;
+  tag: string;
   group_id: string;
   subgroups: {
     name: string;

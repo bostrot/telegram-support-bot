@@ -16,6 +16,7 @@ function ticketMsg(
     from: { first_name: string | any[]; language_code: any };
     text: string | any[];
   },
+  tag: string,
   anon = true,
   autoReplyInfo: any,
 ) {
@@ -29,7 +30,7 @@ function ticketMsg(
     `#T${ticket.toString().padStart(6, '0')} ${cache.config.language.from} ` +
     `[${esc(message.from.first_name)}](${link})` +
     ` ${cache.config.language.language}: ` +
-    `${message.from.language_code}\n\n` +
+    `${message.from.language_code} ${tag}\n\n` +
     `${esc(message.text)}\n\n` +
     (autoReplyInfo ? `_${autoReplyInfo}_` : '')
   );
@@ -109,6 +110,7 @@ function chat(ctx: Context, chat: { id: string }) {
           ticketMsg(
             ticket.id,
             ctx.message,
+            ctx.session.groupTag,
             cache.config.anonymous_tickets,
             autoReplyInfo,
           ),
@@ -126,6 +128,7 @@ function chat(ctx: Context, chat: { id: string }) {
             ticketMsg(
               ticket.id,
               ctx.message,
+              ctx.session.groupTag,
               cache.config.anonymous_tickets,
               autoReplyInfo,
             ),
@@ -175,6 +178,7 @@ function chat(ctx: Context, chat: { id: string }) {
           ticketMsg(
             ticket.id,
             ctx.message,
+            ctx.session.groupTag,
             cache.config.anonymous_tickets,
             autoReplyInfo,
           ),
@@ -189,6 +193,7 @@ function chat(ctx: Context, chat: { id: string }) {
             ticketMsg(
               ticket.id,
               ctx.message,
+              ctx.session.groupTag,
               cache.config.anonymous_tickets,
               autoReplyInfo,
             ),
@@ -213,6 +218,7 @@ function chat(ctx: Context, chat: { id: string }) {
         ticketMsg(
           ticket.id,
           ctx.message,
+          ctx.session.groupTag,
           cache.config.anonymous_tickets,
           autoReplyInfo,
         ),
