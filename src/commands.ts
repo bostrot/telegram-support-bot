@@ -105,7 +105,7 @@ function closeCommand(ctx: Context) {
   if (cache.config.categories) {
     cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (cache.config.categories[index].subgroups.length > 0) {
+      if (cache.config.categories[index].subgroups == undefined) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
           groups.push(cache.config.categories[index].name);
         }
