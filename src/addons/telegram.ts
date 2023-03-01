@@ -89,6 +89,7 @@ class TelegramAddon {
         modeData: {} as any,
         mode: null,
         groupCategory: null,
+        groupTag: '',
         group: '',
         groupAdmin: {} as any,
         getSessionKey: (ctx: Context) => {

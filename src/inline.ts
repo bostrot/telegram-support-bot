@@ -68,6 +68,7 @@ function initInline(bot: TelegramAddon) {
             );
           }
           ctx.session.group = cache.config.categories[i].group_id;
+          ctx.session.groupTag = cache.config.categories[i].tag || '';
           ctx.session.groupCategory = cache.config.categories[i].name;
         });
         // Create subcategory button events
@@ -87,6 +88,7 @@ function initInline(bot: TelegramAddon) {
             );
           }
           ctx.session.group = cache.config.categories[i].group_id;
+          ctx.session.groupTag = cache.config.categories[i].tag || '';
           ctx.session.groupCategory = cache.config.categories[i].name;
         });
         continue;
