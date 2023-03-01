@@ -180,7 +180,10 @@ function chat(ctx: Context, chat: { id: string }) {
           ),
           { parse_mode: cache.config.parse_mode },
         );
-        if (ctx.session.group !== '') {
+        if (
+          ctx.session.group !== '' &&
+          ctx.session.group != cache.config.staffchat_id
+        ) {
           middleware.msg(
             ctx.session.group,
             ticketMsg(
