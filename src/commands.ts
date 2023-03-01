@@ -26,6 +26,9 @@ function helpCommand(ctx: Context) {
 function clearCommand(ctx: Context) {
   if (!ctx.session.admin) return;
   db.closeAll();
+  cache.ticketIDs.length = 0;
+  cache.ticketStatus.length = 0;
+  cache.ticketSent.length = 0;
   middleware.reply(
     ctx,
     'All tickets closed.',
@@ -47,7 +50,7 @@ function openCommand(ctx: Context) {
   ) {
     cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (element.subgroups.length == 0) {
+      if (element.subgroups == undefined) {
         if (element.group_id == ctx.chat.id) {
           groups.push(element.name);
         }
@@ -105,7 +108,7 @@ function closeCommand(ctx: Context) {
   if (cache.config.categories) {
     cache.config.categories.forEach((element: any, index: number) => {
       // No subgroup
-      if (cache.config.categories[index].subgroups.length > 0) {
+      if (cache.config.categories[index].subgroups == undefined) {
         if (cache.config.categories[index].group_id == ctx.chat.id) {
           groups.push(cache.config.categories[index].name);
         }
@@ -156,21 +159,23 @@ function closeCommand(ctx: Context) {
     }
     middleware.reply(
       ctx,
-      `
-    ${cache.config.language.ticket} 
-    #T${ticketId.toString().padStart(6, '0')} ` +
+      `${cache.config.language.ticket} ` +
+      `#T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}`,
       // eslint-disable-next-line new-cap
       { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
     );
     middleware.msg(
       userid,
-      `${cache.config.language.ticket} 
-        #T${ticketId.toString().padStart(6, '0')} ` +
+      `${cache.config.language.ticket} ` +
+      `#T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}\n\n
       ${cache.config.language.ticketClosed}`,
       { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
     );
+    delete cache.ticketIDs[userid];
+    delete cache.ticketStatus[userid];
+    delete cache.ticketSent[userid];
   }, groups);
 }
 

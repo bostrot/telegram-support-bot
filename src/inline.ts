@@ -51,7 +51,7 @@ function initInline(bot: TelegramAddon) {
           '/start ' +
           cache.config.categories[i].name
             .replace(/[\[\]\:\ "]/g, '')
-            .substr(0, 63);
+            .substring(0, 63);
         bot.hears(startStr, (ctx: Context) => {
           ctx.session.mode = '';
           ctx.session.modeData = {} as ModeData;
@@ -66,9 +66,9 @@ function initInline(bot: TelegramAddon) {
               `*${cache.config.categories[i].name}*`,
               removeKeyboard(),
             );
-            ctx.session.group = cache.config.categories[i].group_id;
-            ctx.session.groupCategory = cache.config.categories[i].name;
           }
+          ctx.session.group = cache.config.categories[i].group_id;
+          ctx.session.groupCategory = cache.config.categories[i].name;
         });
         // Create subcategory button events
         bot.hears(cache.config.categories[i].name, (ctx: Context) => {
@@ -85,9 +85,9 @@ function initInline(bot: TelegramAddon) {
               `*${cache.config.categories[i].name}*`,
               removeKeyboard(),
             );
-            ctx.session.group = cache.config.categories[i].group_id;
-            ctx.session.groupCategory = cache.config.categories[i].name;
           }
+          ctx.session.group = cache.config.categories[i].group_id;
+          ctx.session.groupCategory = cache.config.categories[i].name;
         });
         continue;
       }
@@ -107,7 +107,7 @@ function initInline(bot: TelegramAddon) {
             '/start ' +
             JSON.stringify(categoryFullId)
               .replace(/[\[\]\:\ "]/g, '')
-              .substr(0, 63);
+              .substring(0, 63);
           bot.hears(startStr, (ctx: Context) => {
             ctx.session.mode = '';
             ctx.session.modeData = {} as ModeData;
