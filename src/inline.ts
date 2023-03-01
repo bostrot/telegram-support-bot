@@ -51,7 +51,7 @@ function initInline(bot: TelegramAddon) {
           '/start ' +
           cache.config.categories[i].name
             .replace(/[\[\]\:\ "]/g, '')
-            .substr(0, 63);
+            .substring(0, 63);
         bot.hears(startStr, (ctx: Context) => {
           ctx.session.mode = '';
           ctx.session.modeData = {} as ModeData;
@@ -107,7 +107,7 @@ function initInline(bot: TelegramAddon) {
             '/start ' +
             JSON.stringify(categoryFullId)
               .replace(/[\[\]\:\ "]/g, '')
-              .substr(0, 63);
+              .substring(0, 63);
           bot.hears(startStr, (ctx: Context) => {
             ctx.session.mode = '';
             ctx.session.modeData = {} as ModeData;
