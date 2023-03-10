@@ -2,7 +2,7 @@ import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import {Context} from './interfaces';
+import {Context, ModeData} from './interfaces';
 
 /**
  * Helper for private reply
@@ -123,7 +123,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
               if (
                 ctx.session.group !== '' &&
               ctx.session.group !== cache.config.staffchat_id &&
-              !ctx.session.modeData
+              ctx.session.modeData != {} as ModeData
               ) {
                 bot.sendDocument(ctx.session.group, fileId, {
                   caption: captionText,
@@ -156,7 +156,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
               if (
                 ctx.session.group !== '' &&
               ctx.session.group !== cache.config.staffchat_id &&
-              !ctx.session.modeData
+              ctx.session.modeData != {} as ModeData
               ) {
                 bot.sendPhoto(ctx.session.group, fileId, {
                   caption: captionText,
@@ -189,7 +189,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
               if (
                 ctx.session.group !== '' &&
               ctx.session.group !== cache.config.staffchat_id &&
-              !ctx.session.modeData
+              ctx.session.modeData != {} as ModeData
               ) {
                 bot.sendVideo(ctx.session.group, fileId, {
                   caption: captionText,
