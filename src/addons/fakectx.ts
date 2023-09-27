@@ -36,7 +36,11 @@ const fakectx: Context = {
     username: 'webuser',
     type: 'private',
   },
-  session: {} as SessionData,
+  session: {
+    group: '',
+    groupTag: '',
+    groupCategory: null
+  } as SessionData,
   callbackQuery: {
     data: '',
     from: {
