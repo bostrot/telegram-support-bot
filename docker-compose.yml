@@ -4,6 +4,9 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./config:/bot/config
+      - config:/bot/config
     ports:
       - 8080
+
+volumes:
+  config:
