@@ -132,7 +132,7 @@ class TelegramAddon {
     if (typeof chatId !== 'string' && typeof chatId !== 'number') {
       return;
     }
-    this.bot.api.sendMessage(chatId, text, other, signal);
+    this.bot.api.sendMessage(chatId.toString(), text, other, signal);
   };
   /**
    * Registers some middleware that will only be executed when a certain
