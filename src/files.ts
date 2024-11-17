@@ -84,7 +84,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
         return;
       }
     }
-    db.getOpen(
+    db.getTicketById(
         msgId,
         ctx.session.groupCategory,
         async function(ticket: any) {
@@ -257,7 +257,7 @@ function forwardFile(
     ctx: Context,
     callback: { (userInfo: any): void; (arg0: any): void },
 ) {
-  db.getOpen(
+  db.getTicketById(
       ctx.message.from.id,
       ctx.session.groupCategory,
       function(ticket: any) {

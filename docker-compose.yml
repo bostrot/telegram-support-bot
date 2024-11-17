@@ -7,3 +7,28 @@ services:
       - ./config:/bot/config
     ports:
       - "8080:8080"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/support
+
+  mongodb:
+    image: mongo:8.0
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  # mongodb web interface
+  mongo-express:
+    image: mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=password  
+
+volumes:
+  mongodb_data:

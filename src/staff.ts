@@ -114,7 +114,7 @@ function chat(ctx: Context) {
       return;
     }
 
-    db.getOpen(
+    db.getTicketById(
       userid[1],
       ctx.session.groupCategory,
       function (ticket: { userid: string }) {

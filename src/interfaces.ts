@@ -108,6 +108,7 @@ interface Config {
   clean_replies: boolean;
   pass_start: boolean;
   categories: Category[];
+  mongodb_uri: string;
 }
 
 interface Cache {

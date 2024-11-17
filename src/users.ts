@@ -88,10 +88,10 @@ function chat(ctx: Context, chat: { id: string }) {
   cache.ticketStatus[cache.ticketID] = true;
   if (cache.ticketSent[cache.ticketID] === undefined) {
     // Get Ticket ID from DB
-    db.getOpen(
+    db.getTicketById(
       chat.id,
       ctx.session.groupCategory,
-      function (ticket: { id: string }) {
+      function (ticket: { ticketId: string }) {
         if (!isAutoReply && cache.config.autoreply_confirmation) {
           middleware.msg(
             chat.id,
@@ -99,7 +99,7 @@ function chat(ctx: Context, chat: { id: string }) {
             (cache.config.show_user_ticket ?
               cache.config.language.ticket +
               ' #T' +
-              ticket.id.toString().padStart(6, '0') :
+              ticket.ticketId.toString().padStart(6, '0') :
               ''),
           );
         }
@@ -108,7 +108,7 @@ function chat(ctx: Context, chat: { id: string }) {
         middleware.msg(
           cache.config.staffchat_id,
           ticketMsg(
-            ticket.id,
+            ticket.ticketId,
             ctx.message,
             ctx.session.groupTag,
             cache.config.anonymous_tickets,
@@ -126,7 +126,7 @@ function chat(ctx: Context, chat: { id: string }) {
           middleware.msg(
             ctx.session.group,
             ticketMsg(
-              ticket.id,
+              ticket.ticketId,
               ctx.message,
               ctx.session.groupTag,
               cache.config.anonymous_tickets,
@@ -148,7 +148,7 @@ function chat(ctx: Context, chat: { id: string }) {
                           '---' +
                           ctx.session.groupCategory +
                           '---' +
-                          ticket.id,
+                          ticket.ticketId,
                       },
                     ],
                   ],
@@ -169,14 +169,14 @@ function chat(ctx: Context, chat: { id: string }) {
     cache.ticketSent[cache.ticketID] = 0;
   } else if (cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg) {
     cache.ticketSent[cache.ticketID]++;
-    db.getOpen(
+    db.getTicketById(
       cache.ticketID,
       ctx.session.groupCategory,
-      function (ticket: { id: { toString: () => string } }) {
+      function (ticket: { ticketId: { toString: () => string } }) {
         middleware.msg(
           cache.config.staffchat_id,
           ticketMsg(
-            ticket.id,
+            ticket.ticketId,
             ctx.message,
             ctx.session.groupTag,
             cache.config.anonymous_tickets,
@@ -191,7 +191,7 @@ function chat(ctx: Context, chat: { id: string }) {
           middleware.msg(
             ctx.session.group,
             ticketMsg(
-              ticket.id,
+              ticket.ticketId,
               ctx.message,
               ctx.session.groupTag,
               cache.config.anonymous_tickets,
@@ -210,13 +210,13 @@ function chat(ctx: Context, chat: { id: string }) {
       parse_mode: cache.config.parse_mode,
     });
   }
-  db.getOpen(
+  db.getTicketById(
     cache.ticketID,
     ctx.session.groupCategory,
-    function (ticket: { id: { toString: () => string } }) {
+    function (ticket: { ticketId: { toString: () => string } }) {
       console.log(
         ticketMsg(
-          ticket.id,
+          ticket.ticketId,
           ctx.message,
           ctx.session.groupTag,
           cache.config.anonymous_tickets,

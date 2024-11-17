@@ -2,6 +2,7 @@
 config.ts
 config.yaml
 support.db
+support.old.db
 build/
 *.rsls
 

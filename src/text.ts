@@ -41,7 +41,7 @@ function handleText(bot: TelegramAddon, ctx: any, keys: any[]) {
  */
 function ticketHandler(bot: TelegramAddon, ctx: Context) {
   if (ctx.chat.type === 'private') {
-    db.getOpen(
+    db.getTicketById(
         ctx.message.from.id,
         ctx.session.groupCategory,
         function(ticket: any) {

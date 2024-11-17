@@ -212,7 +212,7 @@ function banCommand(ctx: Context) {
         ctx.chat.id,
         cache.config.language.usr_with_ticket +
         ' #T' +
-        ticket.id.toString().padStart(6, '0') +
+        ticketId.toString().padStart(6, '0') +
         ' ' +
         cache.config.language.banned,
         { parse_mode: cache.config.parse_mode }, /* .notifications(false) */

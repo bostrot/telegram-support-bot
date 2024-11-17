@@ -1,6 +1,7 @@
-import { Context, Config } from './interfaces';
+import fs from 'fs';
+import { migrateData } from './migrate';
 import cache from './cache';
-
+import { Context } from './interfaces';
 import * as middleware from './middleware';
 import * as commands from './commands';
 import * as permissions from './permissions';
@@ -8,7 +9,6 @@ import * as inline from './inline';
 import * as text from './text';
 import * as files from './files';
 import * as error from './error';
-
 import * as webserver from './addons/web';
 import * as signal from './addons/signal';
 import TelegramAddon from './addons/telegram';
@@ -37,11 +37,34 @@ function createBot() {
 }
 
 /**
+ * Check and migrate SQLite database to MongoDB
+ */
+async function checkAndMigrateDatabase() {
+  const sqliteDbPath = './config/support.db';
+  const migratedDbPath = './config/support.old.db';
+
+  if (fs.existsSync(sqliteDbPath)) {
+    console.log('SQLite database detected. Starting migration...');
+    try {
+      await migrateData();
+      fs.renameSync(sqliteDbPath, migratedDbPath);
+      console.log('Migration completed successfully. Renamed support.db to support.old.db');
+    } catch (error) {
+      console.error('Migration failed:', error);
+      process.exit(1);
+    }
+  } else {
+    console.log('No SQLite database detected. Skipping migration.');
+  }
+}
+
+/**
  * Main function
  * @param {TelegramAddon} bot
  * @param {boolean} logs
  */
-function main(bot: TelegramAddon = defaultBot, logs = true) {
+async function main(bot: TelegramAddon = defaultBot, logs = true) {
+  await checkAndMigrateDatabase();
   cache.bot = defaultBot;
   // bot.sendMessage(cache.config.staffchat_id, 'Bot started');
   // Check addon
