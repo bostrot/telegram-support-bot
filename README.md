@@ -6,7 +6,8 @@
 ![js-google-style](https://img.shields.io/badge/code%20style-google-brightgreen.svg?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/DOCUMENTATION-WIKI-green?style=for-the-badge)](https://github.com/bostrot/telegram-support-bot/wiki)
 
-> TSB is a support bot for telegram bots, using the [grammY Framework](https://grammy.dev/). It lets users create tickets which will be send to a staff group and can be answered by a reply.
+> TSB is a support bot for telegram bots, using the [grammY Framework](https://grammy.dev/). It lets users create tickets which will be sent to a staff group and can be answered by a reply.  
+> Now also supports LLMs (e.g. OpenAI) to automatically assist users.
 
 <table>
 <tr>
@@ -19,7 +20,7 @@
 
 ## ✨ Features
 
-When a user sends a message to the support chat it will create a ticket which will be forwarded to the staff group. Any admin in the staff group may answer that ticket by just replying to it. Salutation is added automatically. Photos will be forwared too.
+When a user sends a message to the support chat it will create a ticket which will be forwarded to the staff group. Any admin in the staff group may answer that ticket by just replying to it. Salutation is added automatically. Photos will be forwarded too.
 
 - [x] File forwarding from and to user
 - [x] Database for handling open and closed tickets
@@ -29,13 +30,35 @@ When a user sends a message to the support chat it will create a ticket which wi
 - [x] Private reply to user
 - [x] Anonymize users
 - [x] Auto reply based on keywords [beta]
-- [x] Web chat [beta]]  
+- [x] Web chat [beta]
+- [x] **LLM support (OpenAI, OpenAI-compatible APIs)** – generate automatic responses using large language models
+
+## 🤖 LLM Integration
+
+The bot can now optionally connect to an LLM like OpenAI (or any OpenAI-compatible API) to automatically respond to users, especially for common questions or when no staff is available.
+
+You can enable this by configuring the following in your `config.yaml`:
+
+```yaml
+use_llm: true # Will enable show_auto_replied when set to true
+llm_api_key: 'API_KEY'
+llm_base_url: 'https://api.openai.com/v1'
+llm_model: 'gpt-4o-mini'
+llm_knowledge: >
+    Q: What is Botspace?
+    A: Botspace is a cloud-based project management tool designed for teams to collaborate, track tasks, and manage workflows efficiently.
+
+    Q: What platforms are supported?
+    A: Web, iOS, and Android.
+```
+
+> Use cases: FAQ generation, fallback replies when no staff replies, 24/7 automated assistant, hybrid staff-AI workflows.
 
 ## 📜 Commands
 
 Currently the support chat offers these commands (staff commands):
 
-- `/open` - lists all open tickets (messages where noone has replied yet)
+- `/open` - lists all open tickets (messages where no one has replied yet)
 - `/reopen` - reopen a closed ticket
 - `/close` - close a ticket manually (in case someone writes 'thank you')
 - `/ban` - ban a person from writing to your chat
@@ -113,7 +136,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📝 License
 
-Copyright © 2023 [Eric Trenkel](https://github.com/bostrot).<br />
+Copyright © 2023 [Eric Trenkel](https://github.com/bostrot).  
 This project is [GPL-3.0](https://github.com/bostrot/telegram-support-bot/blob/master/LICENSE) licensed.
 
 ---

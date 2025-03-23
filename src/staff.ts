@@ -45,7 +45,7 @@ function privateReply(ctx: Context, msg: any = {}) {
     msg = ctx.message;
   }
   // Msg to other end
-  middleware.msg(
+  middleware.sendMessage(
     ctx.session.modeData.userid,
     ticketMsg(` ${ctx.session.modeData.name}`, msg),
     {
@@ -76,7 +76,7 @@ function privateReply(ctx: Context, msg: any = {}) {
     },
   );
   // Confirmation message
-  middleware.msg(ctx.chat.id, cache.config.language.msg_sent, {});
+  middleware.sendMessage(ctx.chat.id, cache.config.language.msg_sent, {});
 }
 
 /**
@@ -151,21 +151,21 @@ function chat(ctx: Context) {
               .emit('chat_staff', ticketMsg(name[1], ctx.message));
           } catch (e) {
             // To staff msg error
-            middleware.msg(
+            middleware.sendMessage(
               ctx.chat.id,
               `Web chat already closed.`
             );
             console.log(e);
           }
         } else {
-          middleware.msg(
+          middleware.sendMessage(
             ticket.userid,
             ticketMsg(name[1], ctx.message)
           );
         }
         const esc: any = middleware.strictEscape;
         // To staff msg sent
-        middleware.msg(
+        middleware.sendMessage(
           ctx.chat.id,
           `${cache.config.language.msg_sent} ${esc(name[1])}`,
         );
@@ -179,7 +179,7 @@ function chat(ctx: Context) {
     );
   } catch (e) {
     console.log(e);
-    middleware.msg(
+    middleware.sendMessage(
       cache.config.staffchat_id,
       `An error occured, please report this to your admin: \n\n ${e}`
     );

@@ -110,6 +110,11 @@ interface Config {
   pass_start: boolean;
   categories: Category[];
   mongodb_uri: string;
+  use_llm: boolean;
+  llm_api_key: string;
+  llm_base_url: string;
+  llm_model: string;
+  llm_knowledge: string;
 }
 
 interface Cache {

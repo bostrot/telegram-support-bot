@@ -13,7 +13,9 @@ const cache: Cache = {
   markdown: '',
   io: {},
   bot: {} as TelegramAddon,
-  config: {} as Config,
+  config: {
+    use_llm: false
+  } as Config,
 };
 
 cache.config = YAML.parse(

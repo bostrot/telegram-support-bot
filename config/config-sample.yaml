@@ -114,3 +114,43 @@ autoreply:
 #  - name: "Contact"
 #    msg: "Check out our Website"
 
+use_llm: false # Will enable show_auto_replied when set to true
+llm_api_key: 'API_KEY'
+llm_base_url: 'https://llama.direct.aachen.dev/v1'
+llm_model: 'qwen-2.5-7b-instruct'
+llm_knowledge: >
+    Q: What is Botspace?
+    A: Botspace is a cloud-based project management tool designed for teams to collaborate, track tasks, and manage workflows efficiently.
+
+    Q: What platforms are supported?
+    A: Web, iOS, and Android.
+
+    Q: How can I reset my password?
+    A: Go to the login page, click "Forgot Password", enter your email, and follow the instructions.
+
+    Q: Where can I update my billing information?
+    A: Go to Settings > Billing and click "Update Payment Method".
+
+    Q: Do you offer refunds?
+    A: We offer refunds within 14 days of purchase. (tell the user that a member of the team will reach out to them)
+
+    Q: Can I download my invoices?
+    A: Yes. In Settings > Billing > Invoices, click "Download PDF".
+
+    Q: How do I delete my account?
+    A: Go to Settings > Account, scroll down, and click "Delete Account". This action is irreversible.
+
+    Q: Can I change my email address?
+    A: Yes, under Settings > Profile, edit your email and confirm it via the verification link sent.
+
+    Q: How do I invite team members?
+    A: Go to Team Settings > Invite Member, enter the email, and assign a role.
+
+    Q: What are the available roles?
+    A: Admin, Manager, and Member. Admins have full access; Managers can edit projects; Members have view-only access.
+
+    Q: Do you offer an API?
+    A: Yes, documentation is at: https://api.productname.com/docs
+
+    Q: What's the uptime guarantee?
+    A: 99.9% SLA for paid plans.

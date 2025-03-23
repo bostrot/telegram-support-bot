@@ -33,7 +33,7 @@ function init(logs = true) {
       if (err) throw err;
     });
     console.error(new Date() + ': ' + 'Error: ', err);
-    middleware.msg(
+    middleware.sendMessage(
         cache.config.staffchat_id,
         `An error occured, please report this to your admin: \n\n ${err}`,
         {},
@@ -50,7 +50,7 @@ function init(logs = true) {
     });
     console.dir(new Date() + ': ' + err['stack']);
     if (currentErrors == 0) {
-      middleware.msg(
+      middleware.sendMessage(
           cache.config.staffchat_id,
           `An error occured, please report this 
           to your admin: \n\n ${err}`

@@ -186,7 +186,7 @@ function callbackQuery(ctx: Context) {
     name: name,
     category: category,
   };
-  middleware.msg(
+  middleware.sendMessage(
     ctx.callbackQuery.from.id,
     ctx.chat.type !== 'private' ?
       `${cache.config.language.ticket} ` +

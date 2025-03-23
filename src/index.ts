@@ -27,6 +27,7 @@ function createBot() {
     }
     defaultBot = new TelegramAddon(cache.config.bot_token);
   }
+  cache.config.show_auto_replied = cache.config.use_llm ? true : cache.config.show_auto_replied;
   cache.config.autoreply_confirmation = cache.config.autoreply_confirmation === undefined ? true : cache.config.autoreply_confirmation
   cache.config.language.confirmationMessage = cache.config.language.confirmationMessage || cache.config.language.contactMessage // left for backward compatibility
   cache.config.clean_replies = cache.config.clean_replies === undefined ? false : cache.config.clean_replies // left for backward compatibility

@@ -242,7 +242,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
             }
             message = `${cache.config.language.file_sent} ${name[1]}`;
           }
-          middleware.msg(ctx.chat.id, message);
+          middleware.sendMessage(ctx.chat.id, message);
         },
     );
   });
