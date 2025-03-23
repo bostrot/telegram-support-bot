@@ -1,7 +1,9 @@
 import { Context } from './interfaces';
 import cache from './cache';
 import * as db from './db';
-import * as middleware from './middleware';
+import { strictEscape as esc, reply, sendMessage } from './middleware';
+
+const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
 
 /** Message template helper
  * @param {String} ticket
@@ -92,8 +94,10 @@ function chat(ctx: Context, chat: { id: string }) {
       chat.id,
       ctx.session.groupCategory,
       function (ticket: { ticketId: string }) {
-        if (!isAutoReply && cache.config.autoreply_confirmation) {
-          middleware.msg(
+        if (!isAutoReply && cache.config.autoreply_confirmation &&
+          ctx.session.lastContactDate < Date.now() - TIME_BETWEEN_CONFIRMATION_MESSAGES) {
+          ctx.session.lastContactDate = Date.now();
+          sendMessage(
             chat.id,
             cache.config.language.confirmationMessage + '\n' +
             (cache.config.show_user_ticket ?

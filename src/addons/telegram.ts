@@ -88,6 +88,7 @@ class TelegramAddon {
         admin: null,
         modeData: {} as any,
         mode: null,
+        lastContactDate: null,
         groupCategory: null,
         groupTag: '',
         group: '',

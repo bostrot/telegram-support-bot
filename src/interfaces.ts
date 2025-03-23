@@ -11,6 +11,7 @@ interface SessionData {
   admin: boolean | null;
   mode: string | null;
   modeData: ModeData;
+  lastContactDate: number;
   groupCategory: string | null;
   groupTag: string;
   group: string;

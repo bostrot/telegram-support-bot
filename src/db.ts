@@ -5,7 +5,14 @@ const MONGO_URI = cache.config.mongodb_uri || 'mongodb://localhost:27017/support
 const botTokenSuffix = cache.config.bot_token.slice(-5);
 const collectionName = `bot_${cache.config.owner_id}_${botTokenSuffix}`;
 
-const SupporteeSchema = new mongoose.Schema({
+interface ISupportee extends Document {
+  ticketId: number;
+  userid: string;
+  status: string;
+  category: string | null;
+}
+
+const SupporteeSchema = new mongoose.Schema<ISupportee>({
   ticketId: { type: Number, required: true, unique: true, alias: 'id' },
   userid: { type: String, required: true },
   status: { type: String, default: 'open' },
@@ -109,4 +116,4 @@ const open = async (callback: Function, category: string[]) => {
   callback(result);
 };
 
-export { open, add, check, getTicketById, checkBan, getId, closeAll, reopen };
+export { open, add, check, getTicketById, checkBan, getId, closeAll, reopen, ISupportee, SupporteeSchema };
