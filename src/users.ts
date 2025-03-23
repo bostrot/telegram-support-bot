@@ -206,9 +206,7 @@ function chat(ctx: Context, chat: { id: string }) {
     cache.ticketSent[cache.ticketID]++;
     // eslint-disable-next-line new-cap
 
-    middleware.msg(chat.id, cache.config.language.blockedSpam, {
-      parse_mode: cache.config.parse_mode,
-    });
+    sendMessage(chat.id, cache.config.language.blockedSpam);
   }
   db.getTicketById(
     cache.ticketID,

@@ -53,8 +53,7 @@ function init(logs = true) {
       middleware.msg(
           cache.config.staffchat_id,
           `An error occured, please report this 
-          to your admin: \n\n ${err}`,
-          {},
+          to your admin: \n\n ${err}`
       );
     }
   });

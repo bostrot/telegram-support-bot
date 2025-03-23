@@ -153,19 +153,14 @@ function chat(ctx: Context) {
             // To staff msg error
             middleware.msg(
               ctx.chat.id,
-              `Web chat already closed.`,
-              {
-                parse_mode: cache.config.parse_mode,
-              }, /* .notifications(false) */
+              `Web chat already closed.`
             );
             console.log(e);
           }
         } else {
           middleware.msg(
             ticket.userid,
-            ticketMsg(name[1], ctx.message),
-            // eslint-disable-next-line new-cap
-            { parse_mode: cache.config.parse_mode },
+            ticketMsg(name[1], ctx.message)
           );
         }
         const esc: any = middleware.strictEscape;
@@ -173,8 +168,6 @@ function chat(ctx: Context) {
         middleware.msg(
           ctx.chat.id,
           `${cache.config.language.msg_sent} ${esc(name[1])}`,
-          // eslint-disable-next-line new-cap
-          { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
         );
         console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
         cache.ticketSent[userid[1]] = null;
@@ -188,10 +181,7 @@ function chat(ctx: Context) {
     console.log(e);
     middleware.msg(
       cache.config.staffchat_id,
-      `An error occured, please 
-          report this to your admin: \n\n ${e}`,
-      // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+      `An error occured, please report this to your admin: \n\n ${e}`
     );
   }
 }

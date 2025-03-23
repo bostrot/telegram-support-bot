@@ -31,8 +31,7 @@ function clearCommand(ctx: Context) {
   cache.ticketSent.length = 0;
   middleware.reply(
     ctx,
-    'All tickets closed.',
-    { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+    'All tickets closed.'
   );
 }
 
@@ -90,9 +89,7 @@ function openCommand(ctx: Context) {
     }
     middleware.reply(
       ctx,
-      `*${cache.config.language.openTickets}\n\n* ${openTickets}`,
-      // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+      `*${cache.config.language.openTickets}\n\n* ${openTickets}`
     );
   }, groups);
 }
@@ -165,16 +162,13 @@ function closeCommand(ctx: Context) {
       `${cache.config.language.ticket} ` +
       `#T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}`,
-      // eslint-disable-next-line new-cap
-      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
     );
-    middleware.msg(
+    middleware.sendMessage(
       userid,
       `${cache.config.language.ticket} ` +
       `#T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}\n\n
-      ${cache.config.language.ticketClosed}`,
-      { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+      ${cache.config.language.ticketClosed}`
     );
     delete cache.ticketIDs[userid];
     delete cache.ticketStatus[userid];
@@ -208,14 +202,13 @@ function banCommand(ctx: Context) {
     function (ticket: { userid: any; id: { toString: () => string } }) {
       db.add(ticket.userid, 'banned', '');
 
-      middleware.msg(
+      middleware.sendMessage(
         ctx.chat.id,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticketId.toString().padStart(6, '0') +
         ' ' +
-        cache.config.language.banned,
-        { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+        cache.config.language.banned
       );
     },
   );
@@ -247,14 +240,13 @@ function reopenCommand(ctx: Context) {
     function (ticket: { userid: any; id: { toString: () => string } }) {
       db.reopen(ticket.userid, '');
 
-      middleware.msg(
+      middleware.sendMessage(
         ctx.chat.id,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
         ' ' +
-        cache.config.language.ticketReopened,
-        { parse_mode: cache.config.parse_mode }, /* .notifications(false) */
+        cache.config.language.ticketReopened
       );
     },
   );
@@ -285,15 +277,13 @@ function unbanCommand(ctx: Context) {
     ticketId,
     function (ticket: { userid: any; id: { toString: () => string } }) {
       db.add(ticket.userid, 'closed', '');
-      middleware.msg(
+      middleware.sendMessage(
         ctx.chat.id,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
         ' ' +
-        'unbanned',
-        { parse_mode: cache.config.parse_mode },
-        /* .notifications(false) */
+        'unbanned'
       );
     },
   );

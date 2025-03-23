@@ -295,8 +295,8 @@ function forwardFile(
             cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg
           ) {
             cache.ticketSent[cache.ticketID]++;
-            middleware.msg(ctx.chat.id, cache.config.language.blockedSpam, {
-              parse_mode: cache.config.parse_mode,
+            middleware.sendMessage(ctx.chat.id, cache.config.language.blockedSpam, {
+
             });
           }
         }

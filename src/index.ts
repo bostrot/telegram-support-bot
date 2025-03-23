@@ -91,8 +91,7 @@ async function main(bot: TelegramAddon = defaultBot, logs = true) {
       middleware.reply(
         ctx,
         `_Dev mode is on: You might notice 
-      some delay in messages, no replies or other errors._`,
-        { parse_mode: cache.config.parse_mode },
+      some delay in messages, no replies or other errors._`
       );
     }
     permissions.checkPermissions(ctx, next, cache.config);
