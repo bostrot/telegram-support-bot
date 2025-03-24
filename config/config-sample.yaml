@@ -116,7 +116,7 @@ autoreply:
 
 use_llm: false # Will enable show_auto_replied when set to true
 llm_api_key: 'API_KEY'
-llm_base_url: 'https://llama.direct.aachen.dev/v1'
+llm_base_url: 'https://api.openai.com/v1'
 llm_model: 'qwen-2.5-7b-instruct'
 llm_knowledge: >
     Q: What is Botspace?
