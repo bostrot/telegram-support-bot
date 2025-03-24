@@ -33,7 +33,7 @@ When a user sends a message to the support chat it will create a ticket which wi
 - [x] Web chat [beta]
 - [x] **LLM support (OpenAI, OpenAI-compatible APIs)** – generate automatic responses using large language models
 
-## 🤖 LLM Integration
+## 🤖 OpenAi Integration
 
 The bot can now optionally connect to an LLM like OpenAI (or any OpenAI-compatible API) to automatically respond to users, especially for common questions or when no staff is available.
 
