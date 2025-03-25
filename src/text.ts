@@ -4,56 +4,64 @@ import * as staff from './staff';
 import * as users from './users';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import {Context} from './interfaces';
+import { Context } from './interfaces';
 
 /**
- * Text handler
- * @param {Object} bot
- * @param {Object} ctx
- * @param {Array} keys
+ * Checks if the given message text exists in the configured categories.
+ * @param message - The text of the incoming message.
+ * @returns True if the message is one of the categories, false otherwise.
  */
-function handleText(bot: TelegramAddon, ctx: any, keys: any[]) {
-  if (ctx.session.mode == 'private_reply') {
-    staff.privateReply(ctx);
-  } else if (
-    cache.config.categories &&
+function isMessageInCategories(message: string): boolean {
+  const { categories } = cache.config;
+  return Array.isArray(categories) && categories.length > 0 &&
+    categories.findIndex(category => category.msg.includes(message)) !== -1;
+}
+
+/**
+ * Handles incoming text messages.
+ * @param bot - Instance of the Telegram addon.
+ * @param ctx - The context of the message.
+ * @param keys - Keyboard keys to use for replies.
+ */
+export function handleText(bot: TelegramAddon, ctx: any, keys: any[]) {
+  // If the session is in private reply mode, handle via staff.
+  if (ctx.session.mode === 'private_reply') {
+    return staff.privateReply(ctx);
+  }
+
+  if (shouldReplyWithCategoryKeyboard(ctx)) {
+    return middleware.reply(ctx, cache.config.language.services, {
+      reply_markup: { keyboard: keys },
+    });
+  }
+
+  // In all other cases, process the ticket.
+  return ticketHandler(bot, ctx);
+}
+
+function shouldReplyWithCategoryKeyboard(ctx: any) {
+  return cache.config.categories &&
     cache.config.categories.length > 0 &&
-    !(JSON.stringify(cache.config.categories).indexOf(ctx.message.text) > -1)
-  ) {
-    if (!ctx.session.admin && cache.config.categories && !ctx.session.group) {
-      middleware.reply(ctx, cache.config.language.services, {
-        reply_markup: {
-          keyboard: keys,
-        },
-      });
-    } else {
-      ticketHandler(bot, ctx);
-    }
-  } else {
-    ticketHandler(bot, ctx);
-  }
+    !isMessageInCategories(ctx.message.text) &&
+    !ctx.session.admin && !ctx.session.group;
 }
 
 /**
- * Decide whether to forward or stop the message.
- * @param {Bot} bot Bot object.
- * @param {Context} ctx Bot context.
+ * Determines whether to forward the message or to handle it as a ticket.
+ * @param bot - Instance of the Telegram addon.
+ * @param ctx - The context of the message.
  */
-function ticketHandler(bot: TelegramAddon, ctx: Context) {
+export function ticketHandler(bot: TelegramAddon, ctx: Context) {
+  // For private chats, check for an existing ticket; otherwise, create one.
   if (ctx.chat.type === 'private') {
-    db.getTicketById(
-        ctx.message.from.id,
-        ctx.session.groupCategory,
-        function(ticket: any) {
-          if (ticket == undefined) {
-            db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
-          }
-          users.chat(ctx, ctx.message.chat);
-        },
-    );
-  } else {
-    staff.chat(ctx);
+    return db.getTicketById(ctx.message.from.id, ctx.session.groupCategory, (ticket: any) => {
+      if (!ticket) {
+        db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
+      }
+      users.chat(ctx, ctx.message.chat);
+    });
   }
-}
 
-export {handleText, ticketHandler};
+  // For non-private chats, use the staff chat handler.
+  return staff.chat(ctx);
+}
