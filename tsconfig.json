@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "strictNullChecks" : false,
     "skipLibCheck": true,
+    "isolatedModules": true,
   },
   "include": [
     "./src/**/**/*"
