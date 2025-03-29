@@ -33,7 +33,7 @@ function ticketMsg(
  * @param msg - The message object (defaults to ctx.message if empty).
  */
 function privateReply(ctx: Context, msg: any = {}) {
-  if (!msg || msg.length === 0) {
+  if (Object.keys(msg).length === 0) {
     msg = ctx.message;
   }
 
