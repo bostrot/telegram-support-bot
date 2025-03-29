@@ -156,4 +156,4 @@ function chat(ctx: Context) {
   });
 }
 
-export { privateReply, chat };
+export { privateReply, chat, ticketMsg };

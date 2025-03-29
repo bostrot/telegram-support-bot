@@ -6,7 +6,7 @@ import * as db from './db';
 import * as error from './error';
 import * as webserver from './addons/web';
 import TelegramAddon from './addons/telegram';
-import SignalAddon from './addons/signal/addon';
+import SignalAddon from './addons/signal';
 
 /**
  * Check and migrate SQLite database to MongoDB.

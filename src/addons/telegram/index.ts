@@ -1,14 +1,14 @@
 import { Bot, Context as GrammyContext, SessionFlavor, session } from 'grammy';
-import { Addon, Context, Messenger, SessionData } from '../interfaces';
+import { Addon, Context, Messenger, SessionData } from '../../interfaces';
 import { apiThrottler } from '@grammyjs/transformer-throttler';
-import * as middleware from '../middleware';
-import * as commands from '../commands';
-import * as permissions from '../permissions';
-import * as inline from '../inline';
-import * as text from '../text';
-import * as files from '../files';
-import * as error from '../error';
-import cache from '../cache';
+import * as middleware from '../../middleware';
+import * as commands from '../../commands';
+import * as permissions from '../../permissions';
+import * as inline from '../../inline';
+import * as text from '../../text';
+import * as files from '../../files';
+import * as error from '../../error';
+import cache from '../../cache';
 
 type BotContext = GrammyContext & SessionFlavor<SessionData>;
 

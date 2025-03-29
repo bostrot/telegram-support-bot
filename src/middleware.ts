@@ -1,5 +1,5 @@
 import cache from './cache';
-import SignalAddon from './addons/signal/addon';
+import SignalAddon from './addons/signal';
 import { Context, Messenger } from './interfaces';
 import TelegramAddon from './addons/telegram';
 
@@ -25,8 +25,8 @@ const strictEscape = (str: string): string => {
     case 'Markdown':
       // Escape special Markdown characters (square brackets separately for safety)
       return str
-        .replace(/([[\]_*`])/g, '\\$1')
-        .replace(/(\[|\])/g, '\\$1');
+        .replace(/([[\]_*`])/g, '\$1')
+        .replace(/(\[|\])/g, '\$1');
     default:
       return str.toString();
   }

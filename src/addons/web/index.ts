@@ -1,7 +1,7 @@
-import fakectx from './fakectx';
-import {ticketHandler} from '../text';
-import cache from '../cache';
-import TelegramAddon from './telegram';
+import fakectx from '../fakectx';
+import {ticketHandler} from '../../text';
+import cache from '../../cache';
+import TelegramAddon from '../telegram';
 import rateLimit from 'express-rate-limit';
 
 /* include script
