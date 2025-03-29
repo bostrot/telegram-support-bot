@@ -1,6 +1,7 @@
 import cache from './cache';
-import * as signal from './addons/signal';
-import { Context } from './interfaces';
+import SignalAddon from './addons/signal/addon';
+import { Context, Messenger } from './interfaces';
+import TelegramAddon from './addons/telegram';
 
 // Strict escape for MarkdownV2
 const strictEscape = (str: string): string => {
@@ -22,18 +23,22 @@ const strictEscape = (str: string): string => {
 };
 
 // Function to send a message
-function sendMessage(id: string | number,
+function sendMessage(
+  id: string | number,
+  messenger: string,
   msg: string,
   extra: any = { parse_mode: cache.config.parse_mode }) {
-  if (id.toString().includes('WEB') && id !== cache.config.staffchat_id) {
+  var messengerType = messenger as Messenger
+  msg = msg.replace(/ {2,}/g, ' '); // Remove extra spaces
+  if (messengerType === Messenger.TELEGRAM) {
+    TelegramAddon.getInstance().sendMessage(id, msg, extra);
+  } else if (messengerType === Messenger.SIGNAL) {
+    SignalAddon.getInstance().sendMessage(id, msg, extra);
+  } else if (messengerType === Messenger.WEB) {
     const socketId = id.toString().split('WEB')[1];
     cache.io.to(socketId).emit('chat_staff', msg);
-  } else if (id.toString().includes('SIGNAL') && id !== cache.config.staffchat_id) {
-    const signalId = id.toString().split('SIGNAL')[1];
-    signal.message(signalId, msg);
   } else {
-    msg = msg.replace(/ {2,}/g, ' '); // Remove extra spaces
-    cache.bot.sendMessage(id, msg, extra);
+    throw new Error('Invalid messenger type');
   }
 }
 
@@ -43,7 +48,7 @@ const reply = (
   msgText: string,
   extra: any = { parse_mode: cache.config.parse_mode }
 ) => {
-  sendMessage(ctx.message.chat.id, msgText, extra);
+  sendMessage(ctx.message.chat.id, ctx.messenger, msgText, extra);
 };
 
 export { strictEscape, sendMessage, reply };

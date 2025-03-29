@@ -86,6 +86,7 @@ interface Config {
   bot_token: string;
   spam_cant_msg: number;
   staffchat_id: string | number;
+  staffchat_type: Messenger;
   owner_id: string;
   spam_time: number;
   parse_mode: string;
@@ -118,7 +119,7 @@ interface Config {
 }
 
 interface Cache {
-  ticketID: string;
+  userId: string;
   ticketIDs: any;
   ticketStatus: any;
   ticketSent: any;
@@ -126,7 +127,6 @@ interface Cache {
   noSound: string;
   markdown: string;
   io: any;
-  bot: TelegramAddon;
   config: Config;
 }
 
@@ -134,6 +134,7 @@ interface Cache {
  * Context
  */
 class Context {
+  messenger: Messenger = null;
   update_id: number;
   message: {
     web_msg: boolean;
@@ -176,5 +177,71 @@ class Context {
   getChat: Function;
   getFile: Function;
 }
+
+export interface Addon {
+  /**
+   * Sends a text message.
+   * @param chatId The target chat identifier.
+   * @param text The text message to send.
+   * @param options Optional parameters.
+   */
+  sendMessage(chatId: string | number, text: string, options?: any): void;
+
+  /**
+   * Sends a photo.
+   * @param chatId The target chat identifier.
+   * @param photo The photo content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendPhoto(chatId: string | number, photo: any, options?: any): void;
+
+  /**
+   * Sends a document.
+   * @param chatId The target chat identifier.
+   * @param document The document content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendDocument(chatId: string | number, document: any, options?: any): void;
+
+  /**
+   * Sends a video.
+   * @param chatId The target chat identifier.
+   * @param video The video content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendVideo(chatId: string | number, video: any, options?: any): void;
+
+  /**
+   * Registers a command handler.
+   * @param command The command string (e.g. 'start', 'help').
+   * @param callback The function to handle the command.
+   */
+  command(command: string, callback: (ctx: any) => void): void;
+
+  /**
+   * Registers an event handler.
+   * @param event The event name or an array of event names.
+   * @param callback The function to handle the event.
+   */
+  on(event: string | string[], callback: (ctx: any) => void): void;
+
+  /**
+   * Starts the addon (e.g. begin processing incoming messages).
+   */
+  start(): void;
+
+  /**
+   * Sets up an error handler.
+   * @param handler The error handler function.
+   */
+  catch(handler: (error: any, ctx?: any) => void): void;
+}
+
+export enum Messenger {
+  TELEGRAM = 'telegram',
+  SIGNAL = 'signal',
+  WEB = 'web',
+}
+
 
 export {SessionData, Context, Language, Config, Cache, ModeData};

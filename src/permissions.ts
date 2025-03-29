@@ -63,7 +63,9 @@ function checkPermissions(ctx: Context, next: () => any, config: Config) {
         if (access) ctx.session.admin = true;
       })
       .finally(() => {
-        db.checkBan(ctx.chat.id, function(ticket) {
+        db.checkBan(ctx.chat.id, 
+          ctx.messenger,
+          function(ticket) {
           if (ticket != undefined && ticket.status == 'banned') {
             return;
           }

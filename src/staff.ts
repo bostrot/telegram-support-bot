@@ -2,6 +2,7 @@ import cache from './cache';
 import * as middleware from './middleware';
 import * as db from './db';
 import { Context } from './interfaces';
+import { ISupportee } from './db';
 
 /** Message template helper
  * @param {String} name
@@ -47,6 +48,7 @@ function privateReply(ctx: Context, msg: any = {}) {
   // Msg to other end
   middleware.sendMessage(
     ctx.session.modeData.userid,
+    ctx.messenger, // TODO: check this
     ticketMsg(` ${ctx.session.modeData.name}`, msg),
     {
       parse_mode: cache.config.parse_mode,
@@ -76,7 +78,7 @@ function privateReply(ctx: Context, msg: any = {}) {
     },
   );
   // Confirmation message
-  middleware.sendMessage(ctx.chat.id, cache.config.language.msg_sent, {});
+  middleware.sendMessage(ctx.chat.id, ctx.messenger, cache.config.language.msg_sent, {});
 }
 
 /**
@@ -100,25 +102,25 @@ function chat(ctx: Context) {
       replyText = ctx.message.reply_to_message.caption;
     }
 
-    let userid = replyText.match(
+    let ticketId = replyText.match(
       new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
     );
-    if (userid === null || userid === undefined) {
-      userid = replyText.match(
+    if (ticketId === null || ticketId === undefined) {
+      ticketId = replyText.match(
         new RegExp('#T' + '(.*)' + '\n' + cache.config.language.from),
       );
     }
 
     // replying to non-ticket
-    if (userid === null || userid === undefined) {
+    if (ticketId === null || ticketId === undefined) {
       return;
     }
 
     db.getTicketById(
-      userid[1],
+      ticketId[1],
       ctx.session.groupCategory,
-      function (ticket: { userid: string }) {
-        if (userid === null || userid === undefined) {
+      function (ticket: ISupportee) {
+        if (ticketId === null || ticketId === undefined) {
           return;
         }
         const name = replyText.match(
@@ -131,7 +133,7 @@ function chat(ctx: Context) {
           ),
         );
         // replying to closed ticket
-        if (userid === null || ticket == undefined) {
+        if (ticketId === null || ticket == undefined) {
           middleware.reply(ctx, cache.config.language.ticketClosedError);
         }
 
@@ -139,7 +141,7 @@ function chat(ctx: Context) {
         if (ticket == undefined || name == null || name == undefined) {
           return;
         }
-        cache.ticketStatus[userid[1]] = false;
+        cache.ticketStatus[ticketId[1]] = false;
 
         // To user
         // Web user
@@ -153,6 +155,7 @@ function chat(ctx: Context) {
             // To staff msg error
             middleware.sendMessage(
               ctx.chat.id,
+              ticket.messenger,
               `Web chat already closed.`
             );
             console.log(e);
@@ -160,6 +163,7 @@ function chat(ctx: Context) {
         } else {
           middleware.sendMessage(
             ticket.userid,
+            ticket.messenger,
             ticketMsg(name[1], ctx.message)
           );
         }
@@ -167,13 +171,14 @@ function chat(ctx: Context) {
         // To staff msg sent
         middleware.sendMessage(
           ctx.chat.id,
+          cache.config.staffchat_type,
           `${cache.config.language.msg_sent} ${esc(name[1])}`,
         );
         console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
-        cache.ticketSent[userid[1]] = null;
+        cache.ticketSent[ticketId[1]] = null;
         // Check if auto close ticket
         if (cache.config.auto_close_tickets) {
-          db.add(userid[1], 'closed', null);
+          db.add(ticketId[1], 'closed', null, ticket.messenger);
         }
       },
     );
@@ -181,6 +186,7 @@ function chat(ctx: Context) {
     console.log(e);
     middleware.sendMessage(
       cache.config.staffchat_id,
+      cache.config.staffchat_type,
       `An error occured, please report this to your admin: \n\n ${e}`
     );
   }

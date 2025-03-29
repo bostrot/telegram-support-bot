@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import cache from './cache';
 import * as middleware from './middleware';
+import { Messenger } from './interfaces';
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
 
@@ -35,6 +36,7 @@ function init(logs = true) {
     console.error(new Date() + ': ' + 'Error: ', err);
     middleware.sendMessage(
         cache.config.staffchat_id,
+        cache.config.staffchat_type,
         `An error occured, please report this to your admin: \n\n ${err}`,
         {},
     );
@@ -52,6 +54,7 @@ function init(logs = true) {
     if (currentErrors == 0) {
       middleware.sendMessage(
           cache.config.staffchat_id,
+          cache.config.staffchat_type,
           `An error occured, please report this 
           to your admin: \n\n ${err}`
       );

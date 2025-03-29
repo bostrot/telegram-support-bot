@@ -1,7 +1,8 @@
-import {Context, SessionData} from '../interfaces';
+import {Context, Messenger, SessionData} from '../interfaces';
 
 const fakectx: Context = {
   update_id: 617718635,
+  messenger: null,
   message: {
     web_msg: true,
     message_id: 4260,

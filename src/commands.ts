@@ -2,6 +2,7 @@ import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
 import { Context } from './interfaces';
+import { ISupportee } from './db';
 
 /**
  * Display help depending on the group
@@ -40,7 +41,7 @@ function clearCommand(ctx: Context) {
  * @param {Object} ctx
  */
 function openCommand(ctx: Context) {
-  if (!ctx.session.admin) return;
+  if (!ctx.session.admin) return; 
   const groups: any = [];
   // Search all labels for this group
   if (
@@ -145,15 +146,16 @@ function closeCommand(ctx: Context) {
     return;
   }
   // get userid from ticketid
-  db.open(function (tickets: any) {
+  db.open(
+    function (tickets: ISupportee[]) {
     if (tickets == undefined) {
       console.log('Close command: tickets undefined');
       return;
     }
-    let userid = 0;
+    let userid = null;
     for (let i = 0; i < tickets.length; i++) {
       if (tickets[i].id.toString().padStart(6, '0') == ticketId) {
-        db.add(tickets[i].userid, 'closed', tickets[i].category);
+        db.add(tickets[i].userid, 'closed', tickets[i].category, ctx.messenger);
       }
       userid = tickets[i].userid;
     }
@@ -165,6 +167,7 @@ function closeCommand(ctx: Context) {
     );
     middleware.sendMessage(
       userid,
+      ctx.messenger,
       `${cache.config.language.ticket} ` +
       `#T${ticketId.toString().padStart(6, '0')} ` +
       `${cache.config.language.closed}\n\n
@@ -197,13 +200,14 @@ function banCommand(ctx: Context) {
   }
 
   // get userid from ticketid
-  db.getId(
+  db.getByTicketId(
     ticketId,
     function (ticket: { userid: any; id: { toString: () => string } }) {
-      db.add(ticket.userid, 'banned', '');
+      db.add(ticket.userid, 'banned', '', ctx.messenger);
 
       middleware.sendMessage(
         ctx.chat.id,
+        ctx.messenger,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticketId.toString().padStart(6, '0') +
@@ -235,13 +239,14 @@ function reopenCommand(ctx: Context) {
   }
 
   // get userid from ticketid
-  db.getId(
+  db.getByTicketId(
     ticketId,
     function (ticket: { userid: any; id: { toString: () => string } }) {
-      db.reopen(ticket.userid, '');
+      db.reopen(ticket.userid, '', ctx.messenger);
 
       middleware.sendMessage(
         ctx.chat.id,
+        ctx.messenger,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +
@@ -273,12 +278,13 @@ function unbanCommand(ctx: Context) {
   }
 
   // get userid from ticketid
-  db.getId(
+  db.getByTicketId(
     ticketId,
     function (ticket: { userid: any; id: { toString: () => string } }) {
-      db.add(ticket.userid, 'closed', '');
+      db.add(ticket.userid, 'closed', '', ctx.messenger);
       middleware.sendMessage(
         ctx.chat.id,
+        ctx.messenger,
         cache.config.language.usr_with_ticket +
         ' #T' +
         ticket.id.toString().padStart(6, '0') +

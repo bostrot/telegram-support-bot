@@ -2,7 +2,8 @@ import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import {Context, ModeData} from './interfaces';
+import {Addon, Context, ModeData} from './interfaces';
+import { ISupportee } from './db';
 
 /**
  * Helper for private reply
@@ -41,7 +42,7 @@ function replyMarkup(ctx: Context): object {
  * @param {bot} bot Bot object.
  * @param {context} ctx Bot context.
  */
-function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
+function fileHandler(type: string, bot: Addon, ctx: Context) {
   // replying to non-ticket
   let userid: RegExpMatchArray | null;
   let replyText: string;
@@ -87,7 +88,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
     db.getTicketById(
         msgId,
         ctx.session.groupCategory,
-        async function(ticket: any) {
+        async function(ticket: ISupportee) {
           if (ticket == undefined) {
             if (ctx.session.admin && userInfo === undefined) {
             // replying to closed ticket
@@ -242,7 +243,7 @@ function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
             }
             message = `${cache.config.language.file_sent} ${name[1]}`;
           }
-          middleware.sendMessage(ctx.chat.id, message);
+          middleware.sendMessage(ctx.chat.id, ticket.messenger, message);
         },
     );
   });
@@ -257,34 +258,34 @@ function forwardFile(
     ctx: Context,
     callback: { (userInfo: any): void; (arg0: any): void },
 ) {
-  db.getTicketById(
+  db.getTicketByUserId(
       ctx.message.from.id,
       ctx.session.groupCategory,
-      function(ticket: any) {
+      function(ticket: ISupportee) {
         let ok = false;
         if (
           ticket == undefined ||
         ticket.status == undefined ||
         ticket.status == 'closed'
         ) {
-          db.add(ctx.message.from.id, 'open', null);
+          db.add(ctx.message.from.id, 'open', null, ctx.messenger);
           ok = true;
         }
         if (ok || (ticket !== undefined && ticket.status !== 'banned')) {
-          if (cache.ticketSent[cache.ticketID] === undefined) {
+          if (cache.ticketSent[cache.userId] === undefined) {
             fowardHandler(ctx, function(userInfo) {
               callback(userInfo);
             });
             // wait 5 minutes before this message appears again and do not
             // send notificatoin sounds in that time to avoid spam
             setTimeout(function() {
-              cache.ticketSent[cache.ticketID] = undefined;
+              cache.ticketSent[cache.userId] = undefined;
             }, cache.config.spam_time);
-            cache.ticketSent[cache.ticketID] = 0;
+            cache.ticketSent[cache.userId] = 0;
           } else if (
-            cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg
+            cache.ticketSent[cache.userId] < cache.config.spam_cant_msg
           ) {
-            cache.ticketSent[cache.ticketID]++;
+            cache.ticketSent[cache.userId]++;
             // TODO: add { parse_mode: cache.config.
             // parse_mode }/* .notifications(false) */
             // property for silent notifications
@@ -292,10 +293,10 @@ function forwardFile(
               callback(userInfo);
             });
           } else if (
-            cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg
+            cache.ticketSent[cache.userId] === cache.config.spam_cant_msg
           ) {
-            cache.ticketSent[cache.ticketID]++;
-            middleware.sendMessage(ctx.chat.id, cache.config.language.blockedSpam, {
+            cache.ticketSent[cache.userId]++;
+            middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {
 
             });
           }
@@ -320,7 +321,7 @@ function fowardHandler(
   let userInfo;
   ctx.getChat().then(function(chat: { type: string }) {
     if (chat.type === 'private') {
-      cache.ticketID = ctx.message.from.id;
+      cache.userId = ctx.message.from.id;
       userInfo =
         `${cache.config.language.from} ${ctx.message.from.first_name} ` +
         `${cache.config.language.language}: ` +

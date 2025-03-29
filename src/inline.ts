@@ -1,4 +1,4 @@
-import { Context, ModeData } from './interfaces';
+import { Context, Messenger, ModeData } from './interfaces';
 import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
@@ -188,6 +188,7 @@ function callbackQuery(ctx: Context) {
   };
   middleware.sendMessage(
     ctx.callbackQuery.from.id,
+    Messenger.TELEGRAM,
     ctx.chat.type !== 'private' ?
       `${cache.config.language.ticket} ` +
       `#T${ticketid.toString().padStart(6, '0')}` +

@@ -1,8 +1,9 @@
-import { Context } from './interfaces';
+import { Context, Messenger } from './interfaces';
 import cache from './cache';
 import * as llm from './addons/llm';
 import * as db from './db';
 import { strictEscape as esc, reply, sendMessage } from './middleware';
+import { ISupportee } from './db';
 
 const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
 
@@ -25,7 +26,7 @@ function ticketMsg(
 ) {
   let link = '';
   if (!anon) {
-    link = `tg://user?id=${cache.ticketID}`;
+    link = `tg://user?id=${cache.userId}`;
   }
   return (
     `${cache.config.language.ticket} ` +
@@ -81,7 +82,7 @@ async function autoReply(ctx: Context) {
  * @param {chat} chat Bot chat.
  */
 async function chat(ctx: Context, chat: { id: string }) {
-  cache.ticketID = ctx.message.from.id;
+  cache.userId = ctx.message.from.id;
   // Check if auto reply works
   let isAutoReply = false;
   if (await autoReply(ctx)) {
@@ -94,21 +95,22 @@ async function chat(ctx: Context, chat: { id: string }) {
     cache.config.language.automatedReplySent :
     undefined;
 
-  if (cache.ticketIDs[cache.ticketID] === undefined) {
-    cache.ticketIDs.push(cache.ticketID);
+  if (cache.ticketIDs[cache.userId] === undefined) {
+    cache.ticketIDs.push(cache.userId);
   }
-  cache.ticketStatus[cache.ticketID] = true;
-  if (cache.ticketSent[cache.ticketID] === undefined) {
+  cache.ticketStatus[cache.userId] = true;
+  if (cache.ticketSent[cache.userId] === undefined) {
     // Get Ticket ID from DB
-    db.getTicketById(
+    db.getTicketByUserId(
       chat.id,
       ctx.session.groupCategory,
-      function (ticket: { ticketId: string }) {
+      function (ticket: ISupportee) {
         if (!isAutoReply && cache.config.autoreply_confirmation &&
           ctx.session.lastContactDate < Date.now() - TIME_BETWEEN_CONFIRMATION_MESSAGES) {
           ctx.session.lastContactDate = Date.now();
           sendMessage(
             chat.id,
+            ticket.messenger,
             cache.config.language.confirmationMessage + '\n' +
             (cache.config.show_user_ticket ?
               cache.config.language.ticket +
@@ -121,6 +123,7 @@ async function chat(ctx: Context, chat: { id: string }) {
         // To staff
         sendMessage(
           cache.config.staffchat_id,
+          cache.config.staffchat_type,
           ticketMsg(
             ticket.ticketId,
             ctx.message,
@@ -138,6 +141,7 @@ async function chat(ctx: Context, chat: { id: string }) {
           // Send to group-staff chat
           sendMessage(
             ctx.session.group,
+            ticket.messenger,
             ticketMsg(
               ticket.ticketId,
               ctx.message,
@@ -174,17 +178,18 @@ async function chat(ctx: Context, chat: { id: string }) {
     // wait 5 minutes before this message appears again and do not
     // send notification sounds in that time to avoid spam
     setTimeout(function () {
-      cache.ticketSent[cache.ticketID] = undefined;
+      cache.ticketSent[cache.userId] = undefined;
     }, cache.config.spam_time);
-    cache.ticketSent[cache.ticketID] = 0;
-  } else if (cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg) {
-    cache.ticketSent[cache.ticketID]++;
-    db.getTicketById(
-      cache.ticketID,
+    cache.ticketSent[cache.userId] = 0;
+  } else if (cache.ticketSent[cache.userId] < cache.config.spam_cant_msg) {
+    cache.ticketSent[cache.userId]++;
+    db.getTicketByUserId(
+      cache.userId,
       ctx.session.groupCategory,
-      function (ticket: { ticketId: { toString: () => string } }) {
+      function (ticket: ISupportee) {
         sendMessage(
           cache.config.staffchat_id,
+          cache.config.staffchat_type,
           ticketMsg(
             ticket.ticketId,
             ctx.message,
@@ -199,6 +204,7 @@ async function chat(ctx: Context, chat: { id: string }) {
         ) {
           sendMessage(
             ctx.session.group,
+            ticket.messenger,
             ticketMsg(
               ticket.ticketId,
               ctx.message,
@@ -210,16 +216,16 @@ async function chat(ctx: Context, chat: { id: string }) {
         }
       },
     );
-  } else if (cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg) {
-    cache.ticketSent[cache.ticketID]++;
+  } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
+    cache.ticketSent[cache.userId]++;
     // eslint-disable-next-line new-cap
 
-    sendMessage(chat.id, cache.config.language.blockedSpam);
+    sendMessage(chat.id, ctx.messenger, cache.config.language.blockedSpam);
   }
-  db.getTicketById(
-    cache.ticketID,
+  db.getTicketByUserId(
+    cache.userId,
     ctx.session.groupCategory,
-    function (ticket: { ticketId: { toString: () => string } }) {
+    function (ticket: ISupportee) {
       console.log(
         ticketMsg(
           ticket.ticketId,

@@ -1,10 +1,9 @@
-import { Cache, Config } from './interfaces';
-import TelegramAddon from './addons/telegram';
+import { Cache, Config, Addon } from './interfaces';
 import * as YAML from 'yaml';
 import * as fs from 'fs';
 
 const cache: Cache = {
-  ticketID: '',
+  userId: '',
   ticketIDs: [],
   ticketStatus: {},
   ticketSent: [],
@@ -12,7 +11,6 @@ const cache: Cache = {
   noSound: '',
   markdown: '',
   io: {},
-  bot: {} as TelegramAddon,
   config: {
     use_llm: false
   } as Config,

@@ -4,7 +4,7 @@ import * as staff from './staff';
 import * as users from './users';
 import * as middleware from './middleware';
 import TelegramAddon from './addons/telegram';
-import { Context } from './interfaces';
+import { Addon, Context } from './interfaces';
 
 /**
  * Checks if the given message text exists in the configured categories.
@@ -23,7 +23,7 @@ function isMessageInCategories(message: string): boolean {
  * @param ctx - The context of the message.
  * @param keys - Keyboard keys to use for replies.
  */
-export function handleText(bot: TelegramAddon, ctx: any, keys: any[]) {
+export function handleText(bot: Addon, ctx: any, keys: any[] = []) {
   // If the session is in private reply mode, handle via staff.
   if (ctx.session.mode === 'private_reply') {
     return staff.privateReply(ctx);
@@ -51,12 +51,12 @@ function shouldReplyWithCategoryKeyboard(ctx: any) {
  * @param bot - Instance of the Telegram addon.
  * @param ctx - The context of the message.
  */
-export function ticketHandler(bot: TelegramAddon, ctx: Context) {
+export function ticketHandler(bot: Addon, ctx: Context) {
   // For private chats, check for an existing ticket; otherwise, create one.
   if (ctx.chat.type === 'private') {
-    return db.getTicketById(ctx.message.from.id, ctx.session.groupCategory, (ticket: any) => {
+    return db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory, (ticket: any) => {
       if (!ticket) {
-        db.add(ctx.message.from.id, 'open', ctx.session.groupCategory);
+        db.add(ctx.message.from.id, 'open', ctx.session.groupCategory, ctx.messenger);
       }
       users.chat(ctx, ctx.message.chat);
     });
