@@ -10,7 +10,7 @@ import cache from '../../cache';
 import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 
-const PHONE_NUMBER = '';
+const PHONE_NUMBER = cache.config.signal_number;
 
 class SignalAddon implements Addon {
   public baseURL: string = 'http://localhost:40153';

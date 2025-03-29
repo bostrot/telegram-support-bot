@@ -1,6 +1,3 @@
-// /**
-//  * Telegram Ticketing System - Telegram Implementation with GrammY
-//  */
 import { Bot, Context as GrammyContext, SessionFlavor, session } from 'grammy';
 import { Addon, Context, Messenger, SessionData } from '../interfaces';
 import { apiThrottler } from '@grammyjs/transformer-throttler';
@@ -13,15 +10,16 @@ import * as files from '../files';
 import * as error from '../error';
 import cache from '../cache';
 
+type BotContext = GrammyContext & SessionFlavor<SessionData>;
+
 class TelegramAddon implements Addon {
-  public bot: Bot<any>;
-  public platform: string = 'telegram';
+  public bot: Bot<BotContext>;
+  public platform = 'telegram';
   public botInfo: any = {};
 
   private static instance: TelegramAddon | null = null;
 
   private constructor(token: string) {
-    type BotContext = GrammyContext & SessionFlavor<SessionData>;
     this.bot = new Bot<BotContext>(token);
     const throttler = apiThrottler();
     this.bot.api.config.use(throttler);
@@ -33,43 +31,42 @@ class TelegramAddon implements Addon {
   public static getInstance(token?: string): TelegramAddon {
     if (!TelegramAddon.instance) {
       if (!token) {
-        throw new Error('Token must be provided when creating the TelegramAddon for the first time.');
+        throw new Error(
+          'Token must be provided when creating the TelegramAddon for the first time.'
+        );
       }
       TelegramAddon.instance = new TelegramAddon(token);
     }
     return TelegramAddon.instance;
-  }  
+  }
 
-  // --- Session initialization for Telegram ---
+  // --- Session Initialization ---
   initSession() {
-    function initial(): SessionData {
-      return {
-        admin: null,
-        modeData: {} as any,
-        mode: null,
-        lastContactDate: null,
-        groupCategory: null,
-        groupTag: '',
-        group: '',
-        groupAdmin: {} as any,
-        getSessionKey: (ctx: Context) => {
-          if (ctx.callbackQuery && ctx.callbackQuery.id) {
-            return `${ctx.from.id}:${ctx.from.id}`;
-          } else if (ctx.from && ctx.inlineQuery) {
-            return `${ctx.from.id}:${ctx.from.id}`;
-          } else if (ctx.from && ctx.chat) {
-            return `${ctx.from.id}:${ctx.chat.id}`;
-          }
-          return null;
-        },
-      };
-    }
+    const initial = (): SessionData => ({
+      admin: null,
+      modeData: {} as any,
+      mode: null,
+      lastContactDate: null,
+      groupCategory: null,
+      groupTag: '',
+      group: '',
+      groupAdmin: {} as any,
+      getSessionKey: (ctx: Context) => {
+        if (ctx.callbackQuery && ctx.callbackQuery.id) {
+          return `${ctx.from.id}:${ctx.from.id}`;
+        } else if (ctx.from && ctx.inlineQuery) {
+          return `${ctx.from.id}:${ctx.from.id}`;
+        } else if (ctx.from && ctx.chat) {
+          return `${ctx.from.id}:${ctx.chat.id}`;
+        }
+        return null;
+      },
+    });
     return session({ initial });
   }
 
   // --- Methods required by the Addon interface ---
-  sendMessage(chatId: string | number, text: string, options?: any): void {
-    options = options || {};
+  sendMessage(chatId: string | number, text: string, options: any = {}) {
     options.disable_web_page_preview = true;
     if (typeof chatId !== 'string' && typeof chatId !== 'number') return;
     this.bot.api.sendMessage(chatId.toString(), text, options);
@@ -79,44 +76,42 @@ class TelegramAddon implements Addon {
     chatId: string | number,
     document: any,
     other?: any,
-    signal?: any,
+    signal?: any
   ) => {
     this.bot.api.sendDocument(chatId, document, other, signal);
   };
 
-  sendPhoto(chatId: string | number, photo: any, options?: any): void {
+  sendPhoto(chatId: string | number, photo: any, options?: any) {
     this.bot.api.sendPhoto(chatId, photo, options);
   }
 
-  sendVideo(chatId: string | number, video: any, options?: any): void {
+  sendVideo(chatId: string | number, video: any, options?: any) {
     this.bot.api.sendVideo(chatId, video, options);
   }
 
   command(command: string, callback: (ctx: any) => void): void {
-    this.bot.command(command, (ctx) => callback(ctx));
+    this.bot.command(command, ctx => callback(ctx));
   }
 
   on = (filter: any, ...middleware: any) => {
     this.bot.on(filter, ...middleware);
   };
-  
-  catch(handler: (error: any, ctx?: any) => void): void {
+
+  catch(handler: (error: any, ctx?: Context) => void): void {
     this.bot.catch(handler);
   }
 
-  // Optional: utility to register hears handlers.
   hears(trigger: string | string[] | RegExp, callback: (ctx: any) => void): void {
-    this.bot.hears(trigger, (ctx) => callback(ctx));
+    this.bot.hears(trigger, ctx => callback(ctx));
   }
 
-  // --- Start the Telegram bot and configure platform-specific logic ---
+  // --- Start and Configure the Bot ---
   start(): void {
-    const self = this;
     console.log('Starting Telegram Addon...');
 
     // Setup session and middleware.
     this.bot.use(this.initSession());
-    this.bot.use((ctx: Context, next: () => any) => {
+    this.bot.use((ctx: any, next: () => any) => {
       ctx.messenger = Messenger.TELEGRAM;
       if (cache.config.dev_mode) {
         middleware.reply(
@@ -127,28 +122,29 @@ class TelegramAddon implements Addon {
       permissions.checkPermissions(ctx, next, cache.config);
     });
 
-    // Initialize inline keyboard keys.
     const keys = inline.initInline(this);
 
-    // Register commands.
-    this.command('open', (ctx: Context) => commands.openCommand(ctx));
-    this.command('close', (ctx: Context) => commands.closeCommand(ctx));
-    this.command('ban', (ctx: Context) => commands.banCommand(ctx));
-    this.command('reopen', (ctx: Context) => commands.reopenCommand(ctx));
-    this.command('unban', (ctx: Context) => commands.unbanCommand(ctx));
-    this.command('clear', (ctx: Context) => commands.clearCommand(ctx));
-    this.command('id', (ctx: Context) => {
-      middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
-        parse_mode: cache.config.parse_mode,
-      });
-    });
-    this.command('faq', (ctx: Context) => {
+    // Register Commands.
+    this.command('open', ctx => commands.openCommand(ctx));
+    this.command('close', ctx => commands.closeCommand(ctx));
+    this.command('ban', ctx => commands.banCommand(ctx));
+    this.command('reopen', ctx => commands.reopenCommand(ctx));
+    this.command('unban', ctx => commands.unbanCommand(ctx));
+    this.command('clear', ctx => commands.clearCommand(ctx));
+    this.command('id', ctx =>
+      middleware.reply(
+        ctx,
+        `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`,
+        { parse_mode: cache.config.parse_mode }
+      )
+    );
+    this.command('faq', ctx =>
       middleware.reply(ctx, cache.config.language.faqCommandText, {
         parse_mode: cache.config.parse_mode,
-      });
-    });
-    this.command('help', (ctx: Context) => commands.helpCommand(ctx));
-    this.command('links', (ctx: Context) => {
+      })
+    );
+    this.command('help', ctx => commands.helpCommand(ctx));
+    this.command('links', ctx => {
       let links = '';
       const subcategories: string[] = [];
       for (const cat of cache.config.categories) {
@@ -159,9 +155,9 @@ class TelegramAddon implements Addon {
               const id = (cat.name + subgroup.name)
                 .replace(/[\[\]\:\ "]/g, '')
                 .substring(0, 63);
-              if (subcategories.indexOf(id) === -1) {
+              if (!subcategories.includes(id)) {
                 subcategories.push(id);
-                if (this.botInfo != null) {
+                if (this.botInfo) {
                   links += `${catName} - https://t.me/${this.botInfo.username}?start=${id}\n`;
                 }
               }
@@ -174,17 +170,15 @@ class TelegramAddon implements Addon {
       });
     });
     if (cache.config.pass_start === false) {
-      this.command('start', (ctx: Context) => {
+      this.command('start', ctx => {
         if (ctx.chat.type === 'private') {
           middleware.reply(ctx, cache.config.language.startCommandText);
           if (cache.config.categories && cache.config.categories.length > 0) {
-            setTimeout(() => {
-              middleware.reply(
-                ctx,
-                cache.config.language.services,
-                inline.replyKeyboard(keys)
-              );
-            }, 500);
+            setTimeout(
+              () =>
+                middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)),
+              500
+            );
           }
         } else {
           middleware.reply(ctx, cache.config.language.prvChatOnly);
@@ -192,20 +186,20 @@ class TelegramAddon implements Addon {
       });
     }
 
-    // Register event handlers.
-    this.on('callback_query', (ctx: Context) => inline.callbackQuery(ctx));
-    this.on([':photo'], (ctx: Context) => files.fileHandler('photo', self, ctx));
-    this.on([':video'], (ctx: Context) => files.fileHandler('video', self, ctx));
-    this.on([':document'], (ctx: Context) => files.fileHandler('document', self, ctx));
+    // Register Event Handlers.
+    this.on('callback_query', ctx => inline.callbackQuery(ctx));
+    this.on([':photo'], ctx => files.fileHandler('photo', this, ctx));
+    this.on([':video'], ctx => files.fileHandler('video', this, ctx));
+    this.on([':document'], ctx => files.fileHandler('document', this, ctx));
 
-    // Register generic text handlers.
-    this.hears(cache.config.language.back, (ctx: Context) =>
+    // Generic text handlers.
+    this.hears(cache.config.language.back, ctx =>
       middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys))
     );
-    this.hears('testing', (ctx: Context) => text.handleText(self, ctx, keys));
-    this.hears(/(.+)/, (ctx: Context) => text.handleText(self, ctx, keys));
+    this.hears('testing', ctx => text.handleText(this, ctx, keys));
+    this.hears(/(.+)/, ctx => text.handleText(this, ctx, keys));
 
-    // Global error handling.
+    // Global Error Handling.
     this.catch((err: any, ctx: Context) => {
       console.log('Error: ', err);
       try {
@@ -215,7 +209,7 @@ class TelegramAddon implements Addon {
       }
     });
 
-    // Start the bot.
+    // Start the Bot.
     this.bot.start();
   }
 }

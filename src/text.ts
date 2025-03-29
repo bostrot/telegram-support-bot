@@ -8,57 +8,70 @@ import { Addon, Context } from './interfaces';
 
 /**
  * Checks if the given message text exists in the configured categories.
+ *
  * @param message - The text of the incoming message.
  * @returns True if the message is one of the categories, false otherwise.
  */
-function isMessageInCategories(message: string): boolean {
+const isMessageInCategories = (message: string): boolean => {
   const { categories } = cache.config;
   return Array.isArray(categories) && categories.length > 0 &&
-    categories.findIndex(category => category.msg.includes(message)) !== -1;
-}
+         categories.some(category => category.msg.includes(message));
+};
+
+/**
+ * Determines if a category keyboard should be shown.
+ *
+ * @param ctx - The message context.
+ * @returns True if the keyboard should be shown, false otherwise.
+ */
+const shouldReplyWithCategoryKeyboard = (ctx: Context): boolean => {
+  const { categories } = cache.config;
+  return Array.isArray(categories) &&
+         categories.length > 0 &&
+         !isMessageInCategories(ctx.message.text) &&
+         !ctx.session.admin &&
+         !ctx.session.group;
+};
 
 /**
  * Handles incoming text messages.
+ *
  * @param bot - Instance of the Telegram addon.
  * @param ctx - The context of the message.
  * @param keys - Keyboard keys to use for replies.
  */
-export function handleText(bot: Addon, ctx: any, keys: any[] = []) {
-  // If the session is in private reply mode, handle via staff.
+export function handleText(bot: Addon, ctx: Context, keys: any[] = []) {
+  // Handle private replies via staff
   if (ctx.session.mode === 'private_reply') {
     return staff.privateReply(ctx);
   }
 
+  // If conditions met, reply with the category keyboard
   if (shouldReplyWithCategoryKeyboard(ctx)) {
     return middleware.reply(ctx, cache.config.language.services, {
       reply_markup: { keyboard: keys },
     });
   }
 
-  // In all other cases, process the ticket.
+  // In all other cases, process the ticket
   return ticketHandler(bot, ctx);
-}
-
-function shouldReplyWithCategoryKeyboard(ctx: any) {
-  return cache.config.categories &&
-    cache.config.categories.length > 0 &&
-    !isMessageInCategories(ctx.message.text) &&
-    !ctx.session.admin && !ctx.session.group;
 }
 
 /**
  * Determines whether to forward the message or to handle it as a ticket.
+ *
  * @param bot - Instance of the Telegram addon.
  * @param ctx - The context of the message.
  */
 export function ticketHandler(bot: Addon, ctx: Context) {
+  const { chat, message, session, messenger } = ctx;
   // For private chats, check for an existing ticket; otherwise, create one.
-  if (ctx.chat.type === 'private') {
-    return db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory, (ticket: any) => {
+  if (chat.type === 'private') {
+    return db.getTicketByUserId(message.from.id, session.groupCategory, (ticket: any) => {
       if (!ticket) {
-        db.add(ctx.message.from.id, 'open', ctx.session.groupCategory, ctx.messenger);
+        db.add(message.from.id, 'open', session.groupCategory, messenger);
       }
-      users.chat(ctx, ctx.message.chat);
+      users.chat(ctx, message.chat);
     });
   }
 

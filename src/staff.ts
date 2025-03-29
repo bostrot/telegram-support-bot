@@ -4,192 +4,156 @@ import * as db from './db';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
 
-/** Message template helper
- * @param {String} name
- * @param {Object} message
- * @param {Boolean} anon
- * @return {String} text
+/**
+ * Generates a ticket message.
+ *
+ * @param name - The name to include in the message.
+ * @param message - The message object.
+ * @returns The formatted ticket message.
  */
 function ticketMsg(
   name: string,
   message: { text: any; from: { first_name: any } },
-) {
-  const esc: any = middleware.strictEscape;
-  if (cache.config.clean_replies) {
-    return esc(message.text)
+): string {
+  const esc = middleware.strictEscape;
+  const { config } = cache;
+  if (config.clean_replies) {
+    return esc(message.text);
   }
-  if (cache.config.anonymous_replies) {
-    return (
-      `${cache.config.language.dear} ` +
-      `${esc(name)},\n\n` +
-      `${esc(message.text)}\n\n` +
-      `${cache.config.language.regards}\n` +
-      `${cache.config.language.regardsGroup}`
-    );
+  if (config.anonymous_replies) {
+    return `${config.language.dear} ${esc(name)},\n\n${esc(message.text)}\n\n${config.language.regards}\n${config.language.regardsGroup}`;
   }
-  return (
-    `${cache.config.language.dear} ` +
-    `${esc(name)},\n\n` +
-    `${esc(message.text)}\n\n` +
-    `${cache.config.language.regards}\n` +
-    `${esc(message.from.first_name)}`
-  );
+  return `${config.language.dear} ${esc(name)},\n\n${esc(message.text)}\n\n${config.language.regards}\n${esc(message.from.first_name)}`;
 }
 
 /**
- * Private chat
- * @param {Object} ctx
- * @param {Object} msg
+ * Sends a private reply to a user.
+ *
+ * @param ctx - The bot context.
+ * @param msg - The message object (defaults to ctx.message if empty).
  */
 function privateReply(ctx: Context, msg: any = {}) {
-  if (msg.length === 0) {
+  if (!msg || msg.length === 0) {
     msg = ctx.message;
   }
-  // Msg to other end
+
+  const { session, messenger, from, message, chat } = ctx;
+  const { modeData } = session;
   middleware.sendMessage(
-    ctx.session.modeData.userid,
-    ctx.messenger, // TODO: check this
-    ticketMsg(` ${ctx.session.modeData.name}`, msg),
+    modeData.userid,
+    messenger,
+    ticketMsg(`${modeData.name}`, msg),
     {
       parse_mode: cache.config.parse_mode,
       reply_markup: {
         html: '',
         inline_keyboard: [
           [
-            cache.config.direct_reply ?
-              {
-                text: cache.config.language.replyPrivate,
-                url: `https://t.me/${ctx.from.username}`,
-              } :
-              {
-                text: cache.config.language.replyPrivate,
-                callback_data:
-                  ctx.from.id +
-                  '---' +
-                  ctx.message.from.first_name +
-                  '---' +
-                  ctx.session.modeData.category +
-                  '---' +
-                  ctx.session.modeData.ticketid,
-              },
+            cache.config.direct_reply
+              ? {
+                  text: cache.config.language.replyPrivate,
+                  url: `https://t.me/${from.username}`,
+                }
+              : {
+                  text: cache.config.language.replyPrivate,
+                  callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
+                },
           ],
         ],
       },
     },
   );
-  // Confirmation message
-  middleware.sendMessage(ctx.chat.id, ctx.messenger, cache.config.language.msg_sent, {});
+  // Send confirmation message
+  middleware.sendMessage(chat.id, messenger, cache.config.language.msg_sent, {});
 }
 
 /**
- * Reply to tickets in staff chat.
- * @param {Context} ctx Bot context.
+ * Extracts the ticket ID from the reply text.
+ *
+ * @param replyText - The text from which to extract the ticket ID.
+ * @returns The extracted ticket ID or null if not found.
+ */
+function extractTicketId(replyText: string): string | null {
+  const { language } = cache.config;
+  let match = replyText.match(new RegExp(`#T(.*) ${language.from}`));
+  if (!match) {
+    match = replyText.match(new RegExp(`#T(.*)\n${language.from}`));
+  }
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Extracts the name from the reply text.
+ *
+ * @param replyText - The text from which to extract the name.
+ * @returns The extracted name or null if not found.
+ */
+function extractName(replyText: string): string | null {
+  const { language } = cache.config;
+  const match = replyText.match(new RegExp(`${language.from} (.*) ${language.language}`));
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Handles staff chat replies to tickets.
+ *
+ * @param ctx - The bot context.
  */
 function chat(ctx: Context) {
-  let replyText = '';
-  // check whether person is an admin
   if (!ctx.session.admin) {
     return;
   }
-  // try whether a text or an image/video is replied to
-  try {
-    // replying to non-ticket
-    if (ctx.message == undefined || ctx.message.reply_to_message == undefined) {
+  
+  const replyMsg = ctx.message?.reply_to_message;
+  if (!replyMsg) return;
+
+  const replyText = replyMsg.text || replyMsg.caption;
+  if (!replyText) return;
+
+  const ticketId = extractTicketId(replyText);
+  if (!ticketId) return;
+
+  db.getTicketById(ticketId, ctx.session.groupCategory, (ticket: ISupportee) => {
+    if (!ticket) {
+      middleware.reply(ctx, cache.config.language.ticketClosedError);
       return;
     }
-    replyText = ctx.message.reply_to_message.text;
-    if (replyText === undefined) {
-      replyText = ctx.message.reply_to_message.caption;
-    }
+    const name = extractName(replyText);
+    if (!name) return;
 
-    let ticketId = replyText.match(
-      new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
-    );
-    if (ticketId === null || ticketId === undefined) {
-      ticketId = replyText.match(
-        new RegExp('#T' + '(.*)' + '\n' + cache.config.language.from),
-      );
-    }
+    // Mark ticket as no longer active
+    cache.ticketStatus[ticketId] = false;
 
-    // replying to non-ticket
-    if (ticketId === null || ticketId === undefined) {
-      return;
-    }
-
-    db.getTicketById(
-      ticketId[1],
-      ctx.session.groupCategory,
-      function (ticket: ISupportee) {
-        if (ticketId === null || ticketId === undefined) {
-          return;
-        }
-        const name = replyText.match(
-          new RegExp(
-            cache.config.language.from +
-            ' ' +
-            '(.*)' +
-            ' ' +
-            cache.config.language.language,
-          ),
-        );
-        // replying to closed ticket
-        if (ticketId === null || ticket == undefined) {
-          middleware.reply(ctx, cache.config.language.ticketClosedError);
-        }
-
-        // replying to non-ticket
-        if (ticket == undefined || name == null || name == undefined) {
-          return;
-        }
-        cache.ticketStatus[ticketId[1]] = false;
-
-        // To user
-        // Web user
-        if (ticket.userid.indexOf('WEB') > -1) {
-          try {
-            const socketId = ticket.userid.split('WEB')[1];
-            cache.io
-              .to(socketId)
-              .emit('chat_staff', ticketMsg(name[1], ctx.message));
-          } catch (e) {
-            // To staff msg error
-            middleware.sendMessage(
-              ctx.chat.id,
-              ticket.messenger,
-              `Web chat already closed.`
-            );
-            console.log(e);
-          }
-        } else {
-          middleware.sendMessage(
-            ticket.userid,
-            ticket.messenger,
-            ticketMsg(name[1], ctx.message)
-          );
-        }
-        const esc: any = middleware.strictEscape;
-        // To staff msg sent
+    // Reply to web users differently
+    if (ticket.userid.includes('WEB')) {
+      try {
+        const socketId = ticket.userid.split('WEB')[1];
+        cache.io.to(socketId).emit('chat_staff', ticketMsg(name, ctx.message));
+      } catch (e) {
         middleware.sendMessage(
           ctx.chat.id,
-          cache.config.staffchat_type,
-          `${cache.config.language.msg_sent} ${esc(name[1])}`,
+          ticket.messenger,
+          `Web chat already closed.`,
         );
-        console.log(`Answer: ` + ticketMsg(name[1], ctx.message));
-        cache.ticketSent[ticketId[1]] = null;
-        // Check if auto close ticket
-        if (cache.config.auto_close_tickets) {
-          db.add(ticketId[1], 'closed', null, ticket.messenger);
-        }
-      },
-    );
-  } catch (e) {
-    console.log(e);
+        console.error(e);
+      }
+    } else {
+      middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
+    }
+    const esc = middleware.strictEscape;
     middleware.sendMessage(
-      cache.config.staffchat_id,
+      ctx.chat.id,
       cache.config.staffchat_type,
-      `An error occured, please report this to your admin: \n\n ${e}`
+      `${cache.config.language.msg_sent} ${esc(name)}`,
     );
-  }
+    console.log(`Answer: ${ticketMsg(name, ctx.message)}`);
+    cache.ticketSent[ticketId] = null;
+
+    // Auto-close the ticket if enabled
+    if (cache.config.auto_close_tickets) {
+      db.add(ticketId, 'closed', null, ticket.messenger);
+    }
+  });
 }
 
 export { privateReply, chat };

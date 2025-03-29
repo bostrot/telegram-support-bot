@@ -4,222 +4,172 @@ import cache from './cache';
 import * as middleware from './middleware';
 
 /**
- * Helper function for reply keyboard
- * @param {Array} keys
- * @return {Object} reply_markup
+ * Helper function for reply keyboard.
+ *
+ * @param keys - Keyboard keys.
+ * @returns An object containing reply_markup.
  */
-function replyKeyboard(keys: any[]) {
-  return {
-    parse_mode: cache.config.parse_mode,
-    reply_markup: {
-      keyboard: keys,
-    },
-  };
-}
+const replyKeyboard = (keys: any[]) => ({
+  parse_mode: cache.config.parse_mode,
+  reply_markup: { keyboard: keys },
+});
 
 /**
- * Helper function to remove keyboard
- * @return {Object} reply_markup
+ * Helper function to remove keyboard.
+ *
+ * @returns An object with remove_keyboard option.
  */
-function removeKeyboard() {
-  return {
-    parse_mode: cache.config.parse_mode,
-    reply_markup: {
-      remove_keyboard: true,
-    },
-  };
-}
+const removeKeyboard = () => ({
+  parse_mode: cache.config.parse_mode,
+  reply_markup: { remove_keyboard: true },
+});
 
 /**
- * Initialize categories from config
- * @param {Object} bot
- * @param {Object} config
- * @return {Array} keys
+ * Creates a handler for category selection (without subgroups).
+ *
+ * @param category - The category object from config.
+ * @returns A function that handles category selection.
+ */
+const createCategoryHandler = (category: any) => (ctx: Context) => {
+  ctx.session.mode = '';
+  ctx.session.modeData = {} as ModeData;
+  if (category.msg !== undefined) {
+    middleware.reply(ctx, category.msg);
+  } else {
+    middleware.reply(
+      ctx,
+      `${cache.config.language.msgForwarding}\n*${category.name}*`,
+      removeKeyboard()
+    );
+  }
+  ctx.session.group = category.group_id;
+  ctx.session.groupTag = category.tag || '';
+  ctx.session.groupCategory = category.name;
+};
+
+/**
+ * Creates a handler for subcategory selection.
+ *
+ * @param category - The parent category object.
+ * @param subgroup - The subgroup object.
+ * @param displayName - The display name for the subcategory.
+ * @returns A function that handles subcategory selection.
+ */
+const createSubcategoryHandler = (category: any, subgroup: any, displayName: string) => (ctx: Context) => {
+  ctx.session.mode = '';
+  ctx.session.modeData = {} as ModeData;
+  middleware.reply(
+    ctx,
+    `${cache.config.language.msgForwarding}\n*${displayName}*`,
+    removeKeyboard()
+  );
+  ctx.session.group = subgroup.group_id;
+  ctx.session.groupCategory = subgroup.name;
+};
+
+/**
+ * Initializes inline keyboard buttons and event handlers for categories and subgroups.
+ *
+ * @param bot - Instance of the Telegram addon.
+ * @returns An array of keys for the inline keyboard.
  */
 function initInline(bot: TelegramAddon) {
-  const keys = [];
-  // Get categories from config file
-  for (const i in cache.config.categories) {
-    if (i !== undefined) {
-      keys.push([cache.config.categories[i].name]);
-      const subKeys: any = [];
-      // Check if it has no subcategory
-      if (cache.config.categories[i].subgroups == undefined) {
-        // Create category button events for start with parameter
-        // Full category name to 64 Byte without special chars
-        const startStr =
-          '/start ' +
-          cache.config.categories[i].name
-            .replace(/[\[\]\:\ "]/g, '')
-            .substring(0, 63);
-        bot.hears(startStr, (ctx: Context) => {
-          ctx.session.mode = '';
-          ctx.session.modeData = {} as ModeData;
-          // Info text
-          if (cache.config.categories[i].msg != undefined) {
-            middleware.reply(ctx, cache.config.categories[i].msg);
-          } else {
-            middleware.reply(
-              ctx,
-              cache.config.language.msgForwarding +
-              '\n' +
-              `*${cache.config.categories[i].name}*`,
-              removeKeyboard(),
-            );
-          }
-          ctx.session.group = cache.config.categories[i].group_id;
-          ctx.session.groupTag = cache.config.categories[i].tag || '';
-          ctx.session.groupCategory = cache.config.categories[i].name;
-        });
-        // Create subcategory button events
-        bot.hears(cache.config.categories[i].name, (ctx: Context) => {
-          ctx.session.mode = '';
-          ctx.session.modeData = {} as ModeData;
-          // Info text
-          if (cache.config.categories[i].msg != undefined) {
-            middleware.reply(ctx, cache.config.categories[i].msg);
-          } else {
-            middleware.reply(
-              ctx,
-              cache.config.language.msgForwarding +
-              '\n' +
-              `*${cache.config.categories[i].name}*`,
-              removeKeyboard(),
-            );
-          }
-          ctx.session.group = cache.config.categories[i].group_id;
-          ctx.session.groupTag = cache.config.categories[i].tag || '';
-          ctx.session.groupCategory = cache.config.categories[i].name;
-        });
-        continue;
-      }
-      // Get subcategories
-      for (const j in cache.config.categories[i].subgroups) {
-        if (j !== undefined) {
-          const categoryFullId = [
-            cache.config.categories[i].name +
-            ': ' +
-            cache.config.categories[i].subgroups[j].name,
-          ];
-          subKeys.push(categoryFullId);
+  const keys: string[][] = [];
+  const { categories, language } = cache.config;
 
-          // Create subcategory button events for start with parameter
-          // Full category name to 64 Byte without special chars
-          const startStr =
-            '/start ' +
-            JSON.stringify(categoryFullId)
-              .replace(/[\[\]\:\ "]/g, '')
-              .substring(0, 63);
-          bot.hears(startStr, (ctx: Context) => {
-            ctx.session.mode = '';
-            ctx.session.modeData = {} as ModeData;
-            middleware.reply(
-              ctx,
-              cache.config.language.msgForwarding +
-              '\n' +
-              `*${categoryFullId}*`,
-              removeKeyboard(),
-            );
-            // Set subgroup
-            ctx.session.group =
-              cache.config.categories[i].subgroups[j].group_id;
-            ctx.session.groupCategory =
-              cache.config.categories[i].subgroups[j].name;
-          });
+  if (categories === undefined) {
+    return keys;
+  }
+  for (const category of categories) {
+    keys.push([category.name]);
 
-          // Create subcategory button events
-          bot.hears(categoryFullId, (ctx: Context) => {
-            ctx.session.mode = '';
-            ctx.session.modeData = {} as ModeData;
-            middleware.reply(
-              ctx,
-              cache.config.language.msgForwarding +
-              '\n' +
-              `*${categoryFullId}*`,
-              removeKeyboard(),
-            );
-            // Set subgroup
-            ctx.session.group =
-              cache.config.categories[i].subgroups[j].group_id;
-            ctx.session.groupCategory =
-              cache.config.categories[i].subgroups[j].name;
-          });
-        }
-      }
-      subKeys.push([cache.config.language.back]);
-      // Create subcategory buttons
-      bot.hears(cache.config.categories[i].name, (ctx: Context) => {
-        ctx.session.mode = '';
-        ctx.session.modeData = {} as ModeData;
-        middleware.reply(
-          ctx,
-          cache.config.language.whatSubCategory,
-          replyKeyboard(subKeys),
-        );
-      });
+    // If there are no subgroups, register category handlers directly.
+    if (!Array.isArray(category.subgroups) || category.subgroups.length === 0) {
+      // Create a start command string by removing special characters and limiting length.
+      const startStr = `/start ${category.name.replace(/[\[\]\:\ "]/g, '').substring(0, 63)}`;
+      const handler = createCategoryHandler(category);
+
+      bot.hears(startStr, handler);
+      bot.hears(category.name, handler);
+      continue;
     }
+
+    // Process subgroups.
+    const subKeys: string[][] = [];
+    for (const subgroup of category.subgroups) {
+      const fullDisplayName = `${category.name}: ${subgroup.name}`;
+      // For consistency with original code, wrap display name in an array.
+      const fullNameKey = [fullDisplayName];
+      subKeys.push(fullNameKey);
+
+      // Generate a start command string for the subcategory.
+      const startStr = `/start ${JSON.stringify(fullNameKey)
+        .replace(/[\[\]\:\ "]/g, '')
+        .substring(0, 63)}`;
+
+      const subHandler = createSubcategoryHandler(category, subgroup, fullDisplayName);
+      bot.hears(startStr, subHandler);
+      bot.hears(fullNameKey, subHandler);
+    }
+
+    // Append a "back" option.
+    subKeys.push([language.back]);
+
+    // When the category name is heard, display its subcategories.
+    bot.hears(category.name, (ctx: Context) => {
+      ctx.session.mode = '';
+      ctx.session.modeData = {} as ModeData;
+      middleware.reply(ctx, language.whatSubCategory, replyKeyboard(subKeys));
+    });
   }
   return keys;
 }
 
 /**
- * Callback query handler
- * @param {Object} ctx
+ * Handles callback queries.
+ *
+ * @param ctx - The context of the callback.
  */
 function callbackQuery(ctx: Context) {
-  // Check whether to end callback session
+  // End callback session if data equals 'R'
   if (ctx.callbackQuery.data === 'R') {
     ctx.session.mode = '';
     ctx.session.modeData = {} as ModeData;
     middleware.reply(ctx, cache.config.language.prvChatEnded);
     return;
   }
-  // Get Ticket ID from DB
-  const id = ctx.callbackQuery.data.split('---')[0];
-  const name = ctx.callbackQuery.data.split('---')[1];
-  const category = ctx.callbackQuery.data.split('---')[2];
-  const ticketid = ctx.callbackQuery.data.split('---')[3];
+  // Extract parts from callback data.
+  const [id, name, category, ticketid] = ctx.callbackQuery.data.split('---');
+
   ctx.session.mode = 'private_reply';
   ctx.session.modeData = {
-    ticketid: ticketid,
+    ticketid,
     userid: id,
-    name: name,
-    category: category,
+    name,
+    category,
   };
-  middleware.sendMessage(
-    ctx.callbackQuery.from.id,
-    Messenger.TELEGRAM,
-    ctx.chat.type !== 'private' ?
-      `${cache.config.language.ticket} ` +
-      `#T${ticketid.toString().padStart(6, '0')}` +
-      `\n\n` +
-      cache.config.language.prvChatOpened :
-      cache.config.language.prvChatOpenedCustomer,
-    {
-      parse_mode: cache.config.parse_mode,
-      reply_markup: {
-        html: '',
-        inline_keyboard: [
-          [
-            {
-              text: cache.config.language.prvChatEnd,
-              callback_data: 'R',
-            },
-          ],
-        ],
-      },
-    },
-  );
 
-  // TODO: forward to bot? not possible without triggering start command
-  // var t = ('https://t.me/' + bot.options.username + '?start=X');
-  ctx.answerCbQuery(
-    cache.config.language.instructionsSent,
-    true,
-    /* {
-  'url': t,
-} */
-  );
+  const messageText =
+    ctx.chat.type !== 'private'
+      ? `${cache.config.language.ticket} #T${ticketid.toString().padStart(6, '0')}\n\n${cache.config.language.prvChatOpened}`
+      : cache.config.language.prvChatOpenedCustomer;
+
+  middleware.sendMessage(ctx.callbackQuery.from.id, Messenger.TELEGRAM, messageText, {
+    parse_mode: cache.config.parse_mode,
+    reply_markup: {
+      html: '',
+      inline_keyboard: [
+        [
+          {
+            text: cache.config.language.prvChatEnd,
+            callback_data: 'R',
+          },
+        ],
+      ],
+    },
+  });
+
+  ctx.answerCbQuery(cache.config.language.instructionsSent, true);
 }
 
 export { callbackQuery, initInline, replyKeyboard, removeKeyboard };

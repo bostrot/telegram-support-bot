@@ -1,77 +1,76 @@
-import {Context} from './interfaces';
+import { Context, Config } from './interfaces';
 import * as db from './db';
-import {Config} from './interfaces';
 
 /**
- * Check permissions of group and admin
- * @param {Context} ctx
- * @param {Object} config
- * @return {Promise} promise
+ * Checks permissions for group and admin.
+ *
+ * @param ctx - Bot context.
+ * @param config - Configuration containing categories and staffchat_id.
+ * @returns A promise that resolves to true if permission is granted, otherwise false.
  */
-function checkRights(
-    ctx: Context,
-    config: { categories: any[]; staffchat_id: any },
-) {
-  return new Promise(function(resolve, reject) {
-    // Is staff - category group
-    if (config.categories) {
-      config.categories.forEach((element, index) => {
-        // No subgroup
-        if (config.categories[index].subgroups == undefined) {
-          if (config.categories[index].group_id == ctx.chat.id) {
-            ctx.session.groupAdmin = config.categories[index].name;
-          }
-        } else {
-          config.categories[index].subgroups.forEach(
-              (
-              // eslint-disable-next-line max-len
-                  innerElement: { group_id: { toString: () => any }; name: any },
-                  index: any,
-              ) => {
-                if (innerElement.group_id == ctx.chat.id) {
-                  ctx.session.groupAdmin = innerElement.name;
-                }
-              },
-          );
+async function checkRights(
+  ctx: Context,
+  config: { categories: any[]; staffchat_id: any },
+): Promise<boolean> {
+  const { categories, staffchat_id } = config;
+
+  if (categories) {
+    for (const category of categories) {
+      // If there are no subgroups, check directly.
+      if (!category.subgroups) {
+        if (category.group_id === ctx.chat.id) {
+          ctx.session.groupAdmin = category.name;
+          break;
         }
-      });
+      } else {
+        for (const subgroup of category.subgroups) {
+          if (subgroup.group_id === ctx.chat.id) {
+            ctx.session.groupAdmin = subgroup.name;
+            break;
+          }
+        }
+        if (ctx.session.groupAdmin) break;
+      }
     }
-    if (ctx.session.groupAdmin && ctx.chat.type == 'private') {
-      ctx.session.groupAdmin = undefined;
-    }
-    // Is admin group
-    if (
-      ctx.chat.id.toString() === config.staffchat_id ||
-      ctx.session.groupAdmin
-    ) {
-      console.log('Permission granted for ' + ctx.from.username);
-      resolve(true);
-    } else resolve(false);
-  });
+  }
+
+  // If in a private chat, clear any group admin assignment.
+  if (ctx.session.groupAdmin && ctx.chat.type === 'private') {
+    ctx.session.groupAdmin = undefined;
+  }
+
+  const hasPermission =
+    ctx.chat.id.toString() === staffchat_id || Boolean(ctx.session.groupAdmin);
+  if (hasPermission) {
+    console.log(`Permission granted for ${ctx.from.username}`);
+  }
+  return hasPermission;
 }
 
 /**
- * Define user permission
- * @param {Context} ctx
- * @param {Function} next
- * @param {Config} config
+ * Defines user permissions by checking group/admin rights and ban status.
+ *
+ * @param ctx - Bot context.
+ * @param next - Next function to call if permission checks pass.
+ * @param config - Configuration settings.
  */
-function checkPermissions(ctx: Context, next: () => any, config: Config) {
+async function checkPermissions(ctx: Context, next: () => any, config: Config) {
   ctx.session.admin = false;
-  checkRights(ctx, config)
-      .then((access) => {
-        if (access) ctx.session.admin = true;
-      })
-      .finally(() => {
-        db.checkBan(ctx.chat.id, 
-          ctx.messenger,
-          function(ticket) {
-          if (ticket != undefined && ticket.status == 'banned') {
-            return;
-          }
-          return next();
-        });
-      });
+  try {
+    const access = await checkRights(ctx, config);
+    if (access) {
+      ctx.session.admin = true;
+    }
+  } catch (error) {
+    console.error('Error checking rights:', error);
+  } finally {
+    db.checkBan(ctx.chat.id, ctx.messenger, (ticket) => {
+      if (ticket && ticket.status === 'banned') {
+        return;
+      }
+      return next();
+    });
+  }
 }
 
-export {checkRights, checkPermissions};
+export { checkRights, checkPermissions };
