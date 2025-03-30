@@ -21,7 +21,7 @@ services:
     image: bbernhard/signal-cli-rest-api:latest
     platform: linux/amd64
     environment:
-      - MODE=native #supported modes: json-rpc, native, normal
+      - MODE=json-rpc #supported modes: json-rpc, native, normal
       #- AUTO_RECEIVE_SCHEDULE=0 22 * * * #enable this parameter on demand (see description below)
     ports:
       - "40153:8080"
