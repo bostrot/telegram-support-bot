@@ -20,20 +20,13 @@
         {
             "type": "node",
             "request": "launch",
-            "preLaunchTask": "npm: tsc",
-            "name": "Run Mocha",
-            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-            "env": {
-                "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
-            },
+            "name": "Jest Tests",
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest",
             "args": [
-                "-r",
-                "ts-node/register",
-                "--colors",
-                "${workspaceRoot}/test/**/*.ts"
+                "--runInBand"
             ],
-            "cwd": "${workspaceRoot}",
-            "outFiles": []
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
         }
     ]
 }

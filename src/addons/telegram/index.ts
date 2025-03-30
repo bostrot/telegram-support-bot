@@ -2,19 +2,16 @@ import { Bot, Context as GrammyContext, SessionFlavor, session } from 'grammy';
 import { Addon, Context, Messenger, SessionData } from '../../interfaces';
 import { apiThrottler } from '@grammyjs/transformer-throttler';
 import * as middleware from '../../middleware';
-import * as commands from '../../commands';
 import * as permissions from '../../permissions';
 import * as inline from '../../inline';
-import * as text from '../../text';
-import * as files from '../../files';
-import * as error from '../../error';
 import cache from '../../cache';
+import { registerCommonHandlers } from '../../handlers';
+import * as log from 'fancy-log'
 
 type BotContext = GrammyContext & SessionFlavor<SessionData>;
 
 class TelegramAddon implements Addon {
   public bot: Bot<BotContext>;
-  public platform = 'telegram';
   public botInfo: any = {};
 
   private static instance: TelegramAddon | null = null;
@@ -107,7 +104,7 @@ class TelegramAddon implements Addon {
 
   // --- Start and Configure the Bot ---
   start(): void {
-    console.log('Starting Telegram Addon...');
+    log.info('Starting Telegram Addon...');
 
     // Setup session and middleware.
     this.bot.use(this.initSession());
@@ -123,91 +120,7 @@ class TelegramAddon implements Addon {
     });
 
     const keys = inline.initInline(this);
-
-    // Register Commands.
-    this.command('open', ctx => commands.openCommand(ctx));
-    this.command('close', ctx => commands.closeCommand(ctx));
-    this.command('ban', ctx => commands.banCommand(ctx));
-    this.command('reopen', ctx => commands.reopenCommand(ctx));
-    this.command('unban', ctx => commands.unbanCommand(ctx));
-    this.command('clear', ctx => commands.clearCommand(ctx));
-    this.command('id', ctx =>
-      middleware.reply(
-        ctx,
-        `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`,
-        { parse_mode: cache.config.parse_mode }
-      )
-    );
-    this.command('faq', ctx =>
-      middleware.reply(ctx, cache.config.language.faqCommandText, {
-        parse_mode: cache.config.parse_mode,
-      })
-    );
-    this.command('help', ctx => commands.helpCommand(ctx));
-    this.command('links', ctx => {
-      let links = '';
-      const subcategories: string[] = [];
-      for (const cat of cache.config.categories) {
-        if (cat) {
-          for (const subgroup of cat.subgroups) {
-            if (subgroup) {
-              const catName = subgroup.name;
-              const id = (cat.name + subgroup.name)
-                .replace(/[\[\]\:\ "]/g, '')
-                .substring(0, 63);
-              if (!subcategories.includes(id)) {
-                subcategories.push(id);
-                if (this.botInfo) {
-                  links += `${catName} - https://t.me/${this.botInfo.username}?start=${id}\n`;
-                }
-              }
-            }
-          }
-        }
-      }
-      middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, {
-        parse_mode: cache.config.parse_mode,
-      });
-    });
-    if (cache.config.pass_start === false) {
-      this.command('start', ctx => {
-        if (ctx.chat.type === 'private') {
-          middleware.reply(ctx, cache.config.language.startCommandText);
-          if (cache.config.categories && cache.config.categories.length > 0) {
-            setTimeout(
-              () =>
-                middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys)),
-              500
-            );
-          }
-        } else {
-          middleware.reply(ctx, cache.config.language.prvChatOnly);
-        }
-      });
-    }
-
-    // Register Event Handlers.
-    this.on('callback_query', ctx => inline.callbackQuery(ctx));
-    this.on([':photo'], ctx => files.fileHandler('photo', this, ctx));
-    this.on([':video'], ctx => files.fileHandler('video', this, ctx));
-    this.on([':document'], ctx => files.fileHandler('document', this, ctx));
-
-    // Generic text handlers.
-    this.hears(cache.config.language.back, ctx =>
-      middleware.reply(ctx, cache.config.language.services, inline.replyKeyboard(keys))
-    );
-    this.hears('testing', ctx => text.handleText(this, ctx, keys));
-    this.hears(/(.+)/, ctx => text.handleText(this, ctx, keys));
-
-    // Global Error Handling.
-    this.catch((err: any, ctx: Context) => {
-      console.log('Error: ', err);
-      try {
-        middleware.reply(ctx, 'Message is not sent due to an error.');
-      } catch (e) {
-        console.log('Could not send error msg to chat: ', e);
-      }
-    });
+    registerCommonHandlers(this, keys);
 
     // Start the Bot.
     this.bot.start();

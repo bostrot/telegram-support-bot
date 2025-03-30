@@ -18,7 +18,7 @@
         "dev": "NODE_ENV=development ts-node-dev ./src/index.ts",
         "prod": "NODE_ENV=production ts-node ./src/index.ts",
         "build": "tsc",
-        "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --exit"
+        "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
     },
     "engines": {
         "node": ">=16.0.0"

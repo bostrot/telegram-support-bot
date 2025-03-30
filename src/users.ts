@@ -31,7 +31,7 @@ function formatMessageAsTicket(
     .toString()
     .padStart(6, '0')} ${config.language.from} ${name} ${config.language.language}: ${ctx.message.from.language_code} ${ctx.session.groupTag}\n\n${esc(
     ctx.message.text,
-  )}\n\n${autoReplyInfo ? `_${autoReplyInfo}_` : ''}`;
+  )}\n\n${autoReplyInfo ? `*${autoReplyInfo}*` : ''}`;
 }
 
 /**

@@ -1,14 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import WebSocket from 'ws';
 import { Addon, Context } from '../../interfaces';
-import * as commands from '../../commands';
-import * as text from '../../text';
-import * as files from '../../files';
-import * as inline from '../../inline';
-import * as middleware from '../../middleware';
 import cache from '../../cache';
 import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
+import { registerCommonHandlers } from '../../handlers';
+import * as log from 'fancy-log'
 
 const SEND_ENDPOINT = 'v2/send';
 const GROUP_ENDPOINT = 'v1/groups';
@@ -60,14 +57,14 @@ class SignalAddon implements Addon {
       await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Signal message sent successfully.');
+      log.info('Signal message sent successfully.');
     } catch (error) {
-      console.error('Error sending Signal message:', error);
+      log.error('Error sending Signal message:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
 
-  private async getGroupId(internalGroupId: string): Promise<string | null> {
+  async getGroupId(internalGroupId: string): Promise<string | null> {
     if (this.externalGroups[internalGroupId]) {
       return this.externalGroups[internalGroupId];
     }
@@ -77,7 +74,7 @@ class SignalAddon implements Addon {
       const groupId = groups.find((group: Group) => group.internal_id === internalGroupId);
       return groupId ? groupId.id : null;
     } catch (error) {
-      console.error('Error listing Signal groups:', error);
+      log.error('Error listing Signal groups:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
     return null;
@@ -94,7 +91,7 @@ class SignalAddon implements Addon {
         ctx.session.admin = true;
       }
     } catch (error) {
-      console.error('Error getting Signal group admins:', error);
+      log.error('Error getting Signal group admins:', error);
     }
   }
 
@@ -115,9 +112,9 @@ class SignalAddon implements Addon {
       await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Signal photo sent successfully.');
+      log.info('Signal photo sent successfully.');
     } catch (error) {
-      console.error('Error sending Signal photo:', error);
+      log.error('Error sending Signal photo:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
@@ -133,9 +130,9 @@ class SignalAddon implements Addon {
       await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Signal video sent successfully.');
+      log.info('Signal video sent successfully.');
     } catch (error) {
-      console.error('Error sending Signal video:', error);
+      log.error('Error sending Signal video:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
@@ -151,9 +148,9 @@ class SignalAddon implements Addon {
       await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Signal document sent successfully.');
+      log.info('Signal document sent successfully.');
     } catch (error) {
-      console.error('Error sending Signal document:', error);
+      log.error('Error sending Signal document:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
@@ -190,90 +187,10 @@ class SignalAddon implements Addon {
   }
 
   start(): void {
-    console.log('Starting Signal Addon with WebSocket connection...');
-
-    // Mimic Telegram's registration of commands, event handlers, and hears handlers.
-    const self = this;
+    log.info('Starting Signal Addon with WebSocket connection...');
 
     // Register commands.
-    this.command('open', (ctx: Context) => commands.openCommand(ctx));
-    this.command('close', (ctx: Context) => commands.closeCommand(ctx));
-    this.command('ban', (ctx: Context) => commands.banCommand(ctx));
-    this.command('reopen', (ctx: Context) => commands.reopenCommand(ctx));
-    this.command('unban', (ctx: Context) => commands.unbanCommand(ctx));
-    this.command('clear', (ctx: Context) => commands.clearCommand(ctx));
-    this.command('id', (ctx: Context) => {
-      middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
-        parse_mode: cache.config.parse_mode,
-      });
-    });
-    this.command('faq', (ctx: Context) => {
-      middleware.reply(ctx, cache.config.language.faqCommandText, {
-        parse_mode: cache.config.parse_mode,
-      });
-    });
-    this.command('help', (ctx: Context) => commands.helpCommand(ctx));
-    this.command('links', (ctx: Context) => {
-      let links = '';
-      const subcategories: string[] = [];
-      for (const cat of cache.config.categories) {
-        if (cat) {
-          for (const subgroup of cat.subgroups) {
-            if (subgroup) {
-              const catName = subgroup.name;
-              const id = (cat.name + subgroup.name)
-                .replace(/[\[\]\:\ "]/g, '')
-                .substring(0, 63);
-              if (subcategories.indexOf(id) === -1) {
-                subcategories.push(id);
-                // For Signal, build a URL that points to your Signal number.
-                links += `${catName} - https://signal.me/#p/+19194324159?start=${id}\n`;
-              }
-            }
-          }
-        }
-      }
-      middleware.reply(ctx, `${cache.config.language.links}:\n${links}`, {
-        parse_mode: cache.config.parse_mode,
-      });
-    });
-    if (cache.config.pass_start === false) {
-      this.command('start', (ctx: Context) => {
-        if (ctx.chat.type === 'private') {
-          middleware.reply(ctx, cache.config.language.startCommandText);
-          if (cache.config.categories && cache.config.categories.length > 0) {
-            setTimeout(() => {
-              middleware.reply(ctx, cache.config.language.services);
-            }, 500);
-          }
-        } else {
-          middleware.reply(ctx, cache.config.language.prvChatOnly);
-        }
-      });
-    }
-
-    // Register event handlers.
-    this.on('callback_query', (ctx: Context) => inline.callbackQuery(ctx));
-    this.on([':photo'], (ctx: Context) => files.fileHandler('photo', self, ctx));
-    this.on([':video'], (ctx: Context) => files.fileHandler('video', self, ctx));
-    this.on([':document'], (ctx: Context) => files.fileHandler('document', self, ctx));
-
-    // Register generic text handlers.
-    this.hears(cache.config.language.back, (ctx: Context) =>
-      middleware.reply(ctx, cache.config.language.services, [])
-    );
-    this.hears('testing', (ctx: Context) => text.handleText(self, ctx, []));
-    this.hears(/(.+)/, (ctx: Context) => text.handleText(self, ctx, []));
-
-    // Global error handling.
-    this.catch((err: any, ctx: Context) => {
-      console.log('Error: ', err);
-      try {
-        middleware.reply(ctx, 'Message is not sent due to an error.');
-      } catch (e) {
-        console.log('Could not send error msg to chat: ', e);
-      }
-    });
+    registerCommonHandlers(this);
 
     // Open the WebSocket connection.
     this.connectWebSocket();
@@ -287,18 +204,18 @@ class SignalAddon implements Addon {
     this.ws = new WebSocket(this.wsURL);
 
     this.ws.on('open', () => {
-      console.log('WebSocket connection established for Signal.');
+      log.info('WebSocket connection established for Signal.');
     });
 
     this.ws.on('message', (data: WebSocket.Data) => this.handleMessage(data));
 
     this.ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
+      log.error('WebSocket error:', error);
       if (this.errorHandler) this.errorHandler(error);
     });
 
     this.ws.on('close', () => {
-      console.log('WebSocket connection closed. Reconnecting in 5 seconds...');
+      log.info('WebSocket connection closed. Reconnecting in 5 seconds...');
       setTimeout(() => this.connectWebSocket(), 5000);
     });
   }
@@ -314,9 +231,9 @@ class SignalAddon implements Addon {
       if (externalGroupId) {
         this.externalGroups[groupId] = externalGroupId;
         ctx.chat.id = externalGroupId;
-        console.log(`Mapped internal group ID ${groupId} to external group ID ${externalGroupId}`);
+        log.info(`Mapped internal group ID ${groupId} to external group ID ${externalGroupId}`);
       } else {
-        console.error(`Failed to map internal group ID ${groupId} to external group ID.`);
+        log.error(`Failed to map internal group ID ${groupId} to external group ID.`);
       }
     }
   }
@@ -325,7 +242,7 @@ class SignalAddon implements Addon {
     try {
       const signalMessage = JSON.parse(data.toString()) as SignalMessage;
       if (signalMessage.envelope.dataMessage === undefined) {
-        console.log('Ignoring Signal message without dataMessage:', signalMessage);
+        log.info('Ignoring Signal message without dataMessage:', signalMessage);
         return;
       }
       // Map the raw Signal message to a Context.
@@ -362,7 +279,7 @@ class SignalAddon implements Addon {
         });
       }
     } catch (err) {
-      console.error('Error processing WebSocket message:', err);
+      log.error('Error processing WebSocket message:', err);
     }
   }
 }
