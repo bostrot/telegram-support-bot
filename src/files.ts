@@ -1,7 +1,6 @@
 import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
-import TelegramAddon from './addons/telegram';
 import { Addon, Context, ModeData } from './interfaces';
 import { ISupportee } from './db';
 

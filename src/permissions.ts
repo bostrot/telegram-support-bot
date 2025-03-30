@@ -1,5 +1,6 @@
 import { Context, Config } from './interfaces';
 import * as db from './db';
+import * as log from 'fancy-log'
 
 /**
  * Checks permissions for group and admin.
@@ -42,7 +43,7 @@ async function checkRights(
   const hasPermission =
     ctx.chat.id.toString() === staffchat_id || Boolean(ctx.session.groupAdmin);
   if (hasPermission) {
-    console.log(`Permission granted for ${ctx.from.username}`);
+    log.info(`Permission granted for ${ctx.from.username}`);
   }
   return hasPermission;
 }
@@ -62,7 +63,7 @@ async function checkPermissions(ctx: Context, next: () => any, config: Config) {
       ctx.session.admin = true;
     }
   } catch (error) {
-    console.error('Error checking rights:', error);
+    log.error('Error checking rights:', error);
   } finally {
     db.checkBan(ctx.chat.id, ctx.messenger, (ticket) => {
       if (ticket && ticket.status === 'banned') {

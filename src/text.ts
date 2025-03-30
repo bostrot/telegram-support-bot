@@ -3,7 +3,6 @@ import cache from './cache';
 import * as staff from './staff';
 import * as users from './users';
 import * as middleware from './middleware';
-import TelegramAddon from './addons/telegram';
 import { Addon, Context } from './interfaces';
 
 /**

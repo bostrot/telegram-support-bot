@@ -1,12 +1,7 @@
 import * as middleware from '../src/middleware'; // file utilities module
 import {
   helpCommand,
-  clearCommand,
-  openCommand,
-  closeCommand,
-  banCommand,
-  reopenCommand,
-  unbanCommand,
+  clearCommand
 } from '../src/commands';
 import cache from '../src/cache';
 import * as db from '../src/db';

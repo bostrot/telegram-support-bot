@@ -1,4 +1,4 @@
-import { Cache, Config, Addon } from './interfaces';
+import { Cache, Config } from './interfaces';
 import * as YAML from 'yaml';
 import * as fs from 'fs';
 

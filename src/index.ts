@@ -4,9 +4,9 @@ import cache from './cache';
 import { Addon } from './interfaces';
 import * as db from './db';
 import * as error from './error';
-import * as webserver from './addons/web';
 import TelegramAddon from './addons/telegram';
 import SignalAddon from './addons/signal';
+import * as log from 'fancy-log'
 
 /**
  * Check and migrate SQLite database to MongoDB.
@@ -16,17 +16,17 @@ async function checkAndMigrateDatabase() {
   const migratedDbPath = './config/support.old.db';
 
   if (fs.existsSync(sqliteDbPath)) {
-    console.log('SQLite database detected. Starting migration...');
+    log.info('SQLite database detected. Starting migration...');
     try {
       await migrateData();
       fs.renameSync(sqliteDbPath, migratedDbPath);
-      console.log('Migration completed successfully. Renamed support.db to support.old.db');
+      log.info('Migration completed successfully. Renamed support.db to support.old.db');
     } catch (err) {
-      console.error('Migration failed:', err);
+      log.error('Migration failed:', err);
       process.exit(1);
     }
   } else {
-    console.log('No SQLite database detected. Skipping migration.');
+    log.info('No SQLite database detected. Skipping migration.');
   }
 }
 
@@ -39,7 +39,7 @@ function createAddons(): Addon[] {
   // Create Telegram addon if a bot token is provided.
   if (cache.config && cache.config.bot_token) {
     if (cache.config.bot_token === 'YOUR_BOT_TOKEN') {
-      console.error('Please change your bot token in config/config.yaml');
+      log.error('Please change your bot token in config/config.yaml');
       process.exit(1);
     }
     const telegram = TelegramAddon.getInstance(cache.config.bot_token);

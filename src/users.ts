@@ -4,6 +4,7 @@ import * as llm from './addons/llm';
 import * as db from './db';
 import { strictEscape as esc, reply, sendMessage } from './middleware';
 import { ISupportee } from './db';
+import * as log from 'fancy-log'
 
 const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
 
@@ -221,7 +222,7 @@ async function chat(ctx: Context, chat: { id: string }) {
 
   // Log the ticket message for debugging
   db.getTicketByUserId(cache.userId, ctx.session.groupCategory, (ticket: ISupportee) => {
-    console.log(
+    log.info(
       formatMessageAsTicket(
         ticket.ticketId,
         ctx,

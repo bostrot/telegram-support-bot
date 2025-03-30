@@ -3,6 +3,7 @@ import * as middleware from './middleware';
 import * as db from './db';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
+import * as log from 'fancy-log'
 
 /**
  * Generates a ticket message.
@@ -135,7 +136,7 @@ function chat(ctx: Context) {
           ticket.messenger,
           `Web chat already closed.`,
         );
-        console.error(e);
+        log.error(e);
       }
     } else {
       middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
@@ -146,7 +147,7 @@ function chat(ctx: Context) {
       cache.config.staffchat_type,
       `${cache.config.language.msg_sent} ${esc(name)}`,
     );
-    console.log(`Answer: ${ticketMsg(name, ctx.message)}`);
+    log.info(`Answer: ${ticketMsg(name, ctx.message)}`);
     cache.ticketSent[ticketId] = null;
 
     // Auto-close the ticket if enabled

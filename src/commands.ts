@@ -3,6 +3,7 @@ import cache from './cache';
 import * as middleware from './middleware';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
+import * as log from 'fancy-log'
 
 /**
  * Extracts ticket ID from the reply text.
@@ -112,7 +113,7 @@ const closeCommand = (ctx: Context): void => {
 
   db.open((tickets: ISupportee[]) => {
     if (!tickets) {
-      console.log('Close command: tickets undefined');
+      log.info('Close command: tickets undefined');
       return;
     }
     let userId: any = null;

@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import cache from './cache';
 import * as middleware from './middleware';
-import { Messenger } from './interfaces';
+import * as log from 'fancy-log'
 
 const debugFile = './config/debug.log';
 const logStdout = process.stdout;
@@ -54,30 +54,30 @@ function init(logs = true) {
     currentErrors++;
   };
 
-  // Overload console.log to write to file when logging is enabled
-  console.log = (d: any) => {
-    if (logs) {
-      const formatted = util.format(d);
-      logStdout.write(formatted + '\n');
-      fs.appendFile(
-        debugFile,
-        `${new Date()}: ${formatted}\n`,
-        'utf8',
-        err => {
-          if (err) throw err;
-        }
-      );
-    }
-  };
+  // Overload log.info to write to file when logging is enabled
+  // log.info = (d: any) => {
+  //   if (logs) {
+  //     const formatted = util.format(d);
+  //     logStdout.write(formatted + '\n');
+  //     fs.appendFile(
+  //       debugFile,
+  //       `${new Date()}: ${formatted}\n`,
+  //       'utf8',
+  //       err => {
+  //         if (err) throw err;
+  //       }
+  //     );
+  //   }
+  // };
 
   // Catch uncaught exceptions to log them and notify staff
   process.on('uncaughtException', (err) => {
     rateLimit();
-    console.log('=== UNHANDLED ERROR ===');
+    log.info('=== UNHANDLED ERROR ===');
     fs.appendFile(debugFile, err.stack + '\n', 'utf8', appendErr => {
       if (appendErr) throw appendErr;
     });
-    console.error(`${new Date()}: Error: `, err);
+    log.error(`${new Date()}: Error: `, err);
     middleware.sendMessage(
       cache.config.staffchat_id,
       cache.config.staffchat_type,
@@ -90,7 +90,7 @@ function init(logs = true) {
   // Catch unhandled promise rejections to log them and notify staff if necessary
   process.on('unhandledRejection', (err: any) => {
     rateLimit();
-    console.log('=== UNHANDLED REJECTION ===');
+    log.info('=== UNHANDLED REJECTION ===');
     fs.appendFile(debugFile, err + '\n', 'utf8', appendErr => {
       if (appendErr) throw appendErr;
     });

@@ -1,10 +1,10 @@
-import * as commands from './commands.js';
-import * as middleware from './middleware.js';
-import * as inline from './inline.js';
-import * as files from './files.js';
-import * as text from './text.js';
-import cache from './cache.js';
-import { logger } from './logger.js';
+import * as commands from './commands';
+import * as middleware from './middleware';
+import * as inline from './inline';
+import * as files from './files';
+import * as text from './text';
+import cache from './cache';
+import * as log from 'fancy-log'
 
 export function registerCommonHandlers(addon: any, keys?: any) {
   // Register commands common to both platforms.
@@ -99,11 +99,11 @@ export function registerCommonHandlers(addon: any, keys?: any) {
 
   // Global error handling.
   addon.catch((err: any, ctx: any) => {
-    logger.error('Error: ', err);
+    log.error('Error: ', err);
     try {
       middleware.reply(ctx, 'Message is not sent due to an error.');
     } catch (e) {
-      logger.error('Could not send error msg to chat: ', e);
+      log.error('Could not send error msg to chat: ', e);
     }
   });
 }

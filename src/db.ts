@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import cache from './cache';
 import { Messenger } from './interfaces';
+import * as log from 'fancy-log'
 
 const MONGO_URI = cache.config.mongodb_uri || 'mongodb://localhost:27017/support';
 const botTokenSuffix = cache.config.bot_token.slice(-5);
@@ -26,11 +27,11 @@ const Supportee = mongoose.model(collectionName, SupporteeSchema);
 
 export async function connect() {
   mongoose.connection.on('open', () => {
-    console.log('Connected to mongo server.');
+    log.info('Connected to mongo server.');
   });
 
   mongoose.connection.on('error', (err) => {
-    console.log('Could not connect to mongo server!', err);
+    log.info('Could not connect to mongo server!', err);
     process.exit(1);
   });
 
