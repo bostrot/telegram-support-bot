@@ -1,4 +1,4 @@
-import { Context, Messenger } from './interfaces';
+import { Context, Messenger, ParseMode } from './interfaces';
 import cache from './cache';
 import * as llm from './addons/llm';
 import * as db from './db';
@@ -13,25 +13,24 @@ const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
  * @param ticket - Ticket object with a toString() method.
  * @param message - Message object containing text and sender info.
  * @param tag - Tag string.
- * @param anon - Whether the ticket is anonymous (default: true).
+ * @param anonymousUser - Whether the ticket is anonymous (default: true).
  * @param autoReplyInfo - Optional auto-reply info to append.
  * @returns The formatted ticket message.
  */
-function ticketMsg(
+function formatMessageAsTicket(
   ticket: { toString: () => string },
-  message: { from: { first_name: string; language_code: any }; text: string },
-  tag: string,
-  anon = true,
+  ctx: Context,
   autoReplyInfo?: any,
 ): string {
   const { config, userId } = cache;
-  const link = !anon ? `tg://user?id=${userId}` : '';
+  var name = `[${esc(ctx.message.from.first_name,)}](tg://user?id=${userId})`;
+  if (config.anonymous_tickets || config.staffchat_parse_mode === ParseMode.PLAINTEXT) {
+    name = ctx.message.from.first_name;
+  }
   return `${config.language.ticket} #T${ticket
     .toString()
-    .padStart(6, '0')} ${config.language.from} [${esc(
-    message.from.first_name,
-  )}](${link}) ${config.language.language}: ${message.from.language_code} ${tag}\n\n${esc(
-    message.text,
+    .padStart(6, '0')} ${config.language.from} ${name} ${config.language.language}: ${ctx.message.from.language_code} ${ctx.session.groupTag}\n\n${esc(
+    ctx.message.text,
   )}\n\n${autoReplyInfo ? `_${autoReplyInfo}_` : ''}`;
 }
 
@@ -116,11 +115,9 @@ const processTicket = (
   sendMessage(
     config.staffchat_id,
     config.staffchat_type,
-    ticketMsg(
+    formatMessageAsTicket(
       ticket.ticketId,
-      ctx.message,
-      ctx.session.groupTag,
-      config.anonymous_tickets,
+      ctx,
       autoReplyInfo,
     ),
   );
@@ -154,11 +151,9 @@ const processTicket = (
     sendMessage(
       ctx.session.group,
       ticket.messenger,
-      ticketMsg(
+      formatMessageAsTicket(
         ticket.ticketId,
-        ctx.message,
-        ctx.session.groupTag,
-        config.anonymous_tickets,
+        ctx,
         autoReplyInfo,
       ),
       groupOptions,
@@ -201,11 +196,9 @@ async function chat(ctx: Context, chat: { id: string }) {
       sendMessage(
         config.staffchat_id,
         config.staffchat_type,
-        ticketMsg(
+        formatMessageAsTicket(
           ticket.ticketId,
-          ctx.message,
-          ctx.session.groupTag,
-          config.anonymous_tickets,
+          ctx,
           autoReplyInfo,
         ),
       );
@@ -213,11 +206,9 @@ async function chat(ctx: Context, chat: { id: string }) {
         sendMessage(
           ctx.session.group,
           ticket.messenger,
-          ticketMsg(
+          formatMessageAsTicket(
             ticket.ticketId,
-            ctx.message,
-            ctx.session.groupTag,
-            config.anonymous_tickets,
+            ctx,
             autoReplyInfo,
           ),
         );
@@ -231,11 +222,9 @@ async function chat(ctx: Context, chat: { id: string }) {
   // Log the ticket message for debugging
   db.getTicketByUserId(cache.userId, ctx.session.groupCategory, (ticket: ISupportee) => {
     console.log(
-      ticketMsg(
+      formatMessageAsTicket(
         ticket.ticketId,
-        ctx.message,
-        ctx.session.groupTag,
-        config.anonymous_tickets,
+        ctx,
         autoReplyInfo,
       ),
     );

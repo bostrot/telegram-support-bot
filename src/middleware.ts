@@ -50,7 +50,7 @@ const sendMessage = (
   // Remove extra spaces
   const cleanedMsg = msg.replace(/ {2,}/g, ' ');
   
-  switch (messengerType) {
+  switch (messengerType) {  
     case Messenger.TELEGRAM:
       TelegramAddon.getInstance().sendMessage(id, cleanedMsg, extra);
       break;

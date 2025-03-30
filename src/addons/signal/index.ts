@@ -10,19 +10,21 @@ import cache from '../../cache';
 import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 
+const SEND_ENDPOINT = 'v2/send';
+const GROUP_ENDPOINT = 'v1/groups';
+const RECEIVE_ENDPOINT = 'v1/receive';
+
 const PHONE_NUMBER = cache.config.signal_number;
 
 class SignalAddon implements Addon {
-  public baseURL: string = 'http://localhost:40153';
-  public wsURL: string = `ws://localhost:40153/v1/receive/${PHONE_NUMBER}`; // Adjust if necessary.
+  public baseURL: string = `http://${cache.config.signal_host}`;
+  public wsURL: string = `ws://${cache.config.signal_host}/${RECEIVE_ENDPOINT}/${PHONE_NUMBER}?ignore_stories`;
   private axiosInstance: AxiosInstance;
   private ws: WebSocket | null = null;
   private errorHandler: ((error: any, ctx?: any) => void) | null = null;
   private eventHandlers: Record<string, ((ctx: any) => void)[]> = {};
   private hearsHandlers: Array<{ trigger: string | RegExp, callback: (ctx: any) => void }> = [];
   private externalGroups: Record<string, string> = {};
-
-  public platform: string = 'signal';
 
   private static instance: SignalAddon | null = null;
 
@@ -53,9 +55,9 @@ class SignalAddon implements Addon {
         // quote_timestamp: options?.quote_timestamp || 0,
         recipients: options?.recipients || [chatId],
         sticker: options?.sticker || "",
-        text_mode: options?.text_mode || "normal"
+        text_mode: "styled"
       };
-      await this.axiosInstance.post('/v2/send', payload, {
+      await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       console.log('Signal message sent successfully.');
@@ -65,12 +67,12 @@ class SignalAddon implements Addon {
     }
   }
 
-  async getGroupId(internalGroupId: string): Promise<string | null> {
+  private async getGroupId(internalGroupId: string): Promise<string | null> {
     if (this.externalGroups[internalGroupId]) {
       return this.externalGroups[internalGroupId];
     }
     try {
-      const response = await this.axiosInstance.get('/v1/groups/' + PHONE_NUMBER);
+      const response = await this.axiosInstance.get(`/${GROUP_ENDPOINT}/${PHONE_NUMBER}`);
       const groups = response.data as Group[];
       const groupId = groups.find((group: Group) => group.internal_id === internalGroupId);
       return groupId ? groupId.id : null;
@@ -81,6 +83,27 @@ class SignalAddon implements Addon {
     return null;
   }
 
+  private async setGroupAdmin(ctx: Context): Promise<void> {
+    if (!this.isGroup(ctx)) return;
+    const groupId = ctx.chat.id;
+    try {
+      const response = await this.axiosInstance.get(`/${GROUP_ENDPOINT}/${PHONE_NUMBER}/${groupId}`);
+      const group = response.data as Group;
+      const admins = group?.admins || [];
+      if (group && admins.some((admin: string) => admin === ctx.from.id)) {
+        ctx.session.admin = true;
+      }
+    } catch (error) {
+      console.error('Error getting Signal group admins:', error);
+    }
+  }
+
+  private setIsBot(signalMessage: SignalMessage, ctx: Context): void {
+    if (signalMessage.envelope.dataMessage.quote?.authorNumber === PHONE_NUMBER) {
+      ctx.message.reply_to_message.from.is_bot = true;
+    }
+  }
+
   async sendPhoto(chatId: string | number, photo: any, options?: any): Promise<void> {
     try {
       const payload = {
@@ -89,7 +112,7 @@ class SignalAddon implements Addon {
         recipients: options?.recipients || [chatId],
         media: { type: 'photo', content: photo },
       };
-      await this.axiosInstance.post('/v2/send', payload, {
+      await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       console.log('Signal photo sent successfully.');
@@ -107,7 +130,7 @@ class SignalAddon implements Addon {
         recipients: options?.recipients || [chatId],
         media: { type: 'video', content: video },
       };
-      await this.axiosInstance.post('/v2/send', payload, {
+      await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       console.log('Signal video sent successfully.');
@@ -125,7 +148,7 @@ class SignalAddon implements Addon {
         recipients: options?.recipients || [chatId],
         media: { type: 'document', content: document },
       };
-      await this.axiosInstance.post('/v2/send', payload, {
+      await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       console.log('Signal document sent successfully.');
@@ -267,44 +290,7 @@ class SignalAddon implements Addon {
       console.log('WebSocket connection established for Signal.');
     });
 
-    this.ws.on('message', async (data) => {
-      try {
-        const rawMsg = JSON.parse(data.toString()) as SignalMessage;
-        if (rawMsg.envelope.dataMessage === undefined) {
-          console.log('Ignoring Signal message without dataMessage:', rawMsg);
-          return;
-        }
-        // Map the raw Signal message to a Context.
-        const ctx: Context = mapSignalMessageToContext(rawMsg);
-        await this.setExternalGroupId(ctx);
-
-        // Process command handlers (if the message starts with '/').
-        if (ctx.message && typeof ctx.message.text === 'string' && ctx.message.text.startsWith('/')) {
-          const parts = ctx.message.text.split(' ');
-          const commandName = parts[0].substring(1);
-          const commandKey = `command:${commandName}`;
-          if (this.eventHandlers[commandKey]) {
-            this.eventHandlers[commandKey].forEach(handler => handler(ctx));
-          }
-        }
-
-        // Process generic "message" handlers.
-        if (this.eventHandlers['message']) {
-          this.eventHandlers['message'].forEach(handler => handler(ctx));
-        }
-
-        // Process hears handlers.
-        this.hearsHandlers.forEach(({ trigger, callback }) => {
-          if (typeof trigger === 'string' && ctx.message.text === trigger) {
-            callback(ctx);
-          } else if (trigger instanceof RegExp && trigger.test(ctx.message.text)) {
-            callback(ctx);
-          }
-        });
-      } catch (err) {
-        console.error('Error processing WebSocket message:', err);
-      }
-    });
+    this.ws.on('message', (data: WebSocket.Data) => this.handleMessage(data));
 
     this.ws.on('error', (error) => {
       console.error('WebSocket error:', error);
@@ -317,18 +303,66 @@ class SignalAddon implements Addon {
     });
   }
 
-  private async setExternalGroupId(signalMessage: Context) {
-    const isGroup = signalMessage.chat.type == 'group';
-    if (isGroup && signalMessage.chat.id) {
-      const groupId = signalMessage.chat.id;
+  private isGroup(ctx: Context): boolean {
+    return ctx.chat.type === 'group';
+  }
+
+  private async setExternalGroupId(ctx: Context) {
+    if (this.isGroup(ctx) && ctx.chat.id) {
+      const groupId = ctx.chat.id;
       const externalGroupId = await this.getGroupId(groupId)
       if (externalGroupId) {
         this.externalGroups[groupId] = externalGroupId;
-        signalMessage.chat.id = externalGroupId;
+        ctx.chat.id = externalGroupId;
         console.log(`Mapped internal group ID ${groupId} to external group ID ${externalGroupId}`);
       } else {
         console.error(`Failed to map internal group ID ${groupId} to external group ID.`);
       }
+    }
+  }
+
+  private async handleMessage(data: WebSocket.Data): Promise<void> {
+    try {
+      const signalMessage = JSON.parse(data.toString()) as SignalMessage;
+      if (signalMessage.envelope.dataMessage === undefined) {
+        console.log('Ignoring Signal message without dataMessage:', signalMessage);
+        return;
+      }
+      // Map the raw Signal message to a Context.
+      const messageContext: Context = mapSignalMessageToContext(signalMessage);
+      await this.setExternalGroupId(messageContext);
+      await this.setGroupAdmin(messageContext);
+      this.setIsBot(signalMessage, messageContext);
+
+      let isCommand = false;
+      // Process command handlers (if the message starts with '/').
+      if (messageContext.message && typeof messageContext.message.text === 'string' && messageContext.message.text.startsWith('/')) {
+        isCommand = true;
+        const parts = messageContext.message.text.split(' ');
+        const commandName = parts[0].substring(1);
+        const commandKey = `command:${commandName}`;
+        if (this.eventHandlers[commandKey]) {
+          this.eventHandlers[commandKey].forEach(handler => handler(messageContext));
+        }
+      }
+
+      // Process generic "message" handlers.
+      if (this.eventHandlers['message']) {
+        this.eventHandlers['message'].forEach(handler => handler(messageContext));
+      }
+
+      // Process hears handlers only if the message is not a command.
+      if (!isCommand) {
+        this.hearsHandlers.forEach(({ trigger, callback }) => {
+          if (typeof trigger === 'string' && messageContext.message.text === trigger) {
+            callback(messageContext);
+          } else if (trigger instanceof RegExp && trigger.test(messageContext.message.text)) {
+            callback(messageContext);
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error processing WebSocket message:', err);
     }
   }
 }

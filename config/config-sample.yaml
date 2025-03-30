@@ -1,12 +1,14 @@
 # bot settings
 bot_token: 'YOUR_BOT_TOKEN' # support bot token
 staffchat_id: 'SUPERGROUP_CHAT_ID' # eg. -123456789
+staffchat_type: 'telegram'
+staffchat_parse_mode: 'MarkdownV2'
 owner_id: 'YOUR_TELEGRAM_ID'
-spam_time: 300000 # time (in MS) in which user may send 5 messages
+mongodb_uri: 'mongodb://mongodb:27017/support'
+
 spam_cant_msg: 5
-
+spam_time: 300000 # time (in MS) in which user may send 5 messages
 parse_mode: 'Markdown' # Experimental. Do not change unless you know what you are doing. Options: Markdown/MarkdownV2/HTML
-
 allow_private: false # Allow / disallow option for staff to chat privately
 direct_reply: false # Set this to true to just forward staff users to a user chat when allow_private
 auto_close_tickets: true # Close tickets after answering
@@ -20,6 +22,7 @@ pass_start: false # Pass /start command to support directly
 
 signal_enabled: false # Enable/disable signal
 signal_number: '+12345689' # Your signal number / account
+signal_host: 'localhost:40153' # Signal host (default: localhost:40153)
 
 web_server: false # Enable/disable web server
 web_server_port: 8080 # Port for web server
