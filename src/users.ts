@@ -185,9 +185,9 @@ async function chat(ctx: Context, chat: { id: string }) {
 
   // If no ticket has been sent yet, fetch from DB and set up spam timer
   if (cache.ticketSent[cache.userId] === undefined) {
-    db.getTicketByUserId(chat.id, ctx.session.groupCategory, (ticket: ISupportee) => {
-      processTicket(ticket, ctx, chat.id, autoReplyInfo);
-    });
+    const ticket = await db.getTicketByUserId(chat.id, ctx.session.groupCategory);
+    processTicket(ticket, ctx, chat.id, autoReplyInfo);
+
     // Prevent multiple notifications for a period defined by spam_time
     setTimeout(() => {
       cache.ticketSent[cache.userId] = undefined;
@@ -195,43 +195,41 @@ async function chat(ctx: Context, chat: { id: string }) {
     cache.ticketSent[cache.userId] = 0;
   } else if (cache.ticketSent[cache.userId] < config.spam_cant_msg) {
     cache.ticketSent[cache.userId]++;
-    db.getTicketByUserId(cache.userId, ctx.session.groupCategory, (ticket: ISupportee) => {
-      sendMessage(
-        config.staffchat_id,
-        config.staffchat_type,
-        formatMessageAsTicket(
-          ticket.ticketId,
-          ctx,
-          autoReplyInfo,
-        ),
-      );
-      if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
-        sendMessage(
-          ctx.session.group,
-          ticket.messenger,
-          formatMessageAsTicket(
-            ticket.ticketId,
-            ctx,
-            autoReplyInfo,
-          ),
-        );
-      }
-    });
-  } else if (cache.ticketSent[cache.userId] === config.spam_cant_msg) {
-    cache.ticketSent[cache.userId]++;
-    sendMessage(chat.id, ctx.messenger, config.language.blockedSpam);
-  }
-
-  // Log the ticket message for debugging
-  db.getTicketByUserId(cache.userId, ctx.session.groupCategory, (ticket: ISupportee) => {
-    log.info(
+    const ticket = await db.getTicketByUserId(cache.userId, ctx.session.groupCategory);
+    sendMessage(
+      config.staffchat_id,
+      config.staffchat_type,
       formatMessageAsTicket(
         ticket.ticketId,
         ctx,
         autoReplyInfo,
       ),
     );
-  });
+    if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
+      sendMessage(
+        ctx.session.group,
+        ticket.messenger,
+        formatMessageAsTicket(
+          ticket.ticketId,
+          ctx,
+          autoReplyInfo,
+        ),
+      );
+    }
+  } else if (cache.ticketSent[cache.userId] === config.spam_cant_msg) {
+    cache.ticketSent[cache.userId]++;
+    sendMessage(chat.id, ctx.messenger, config.language.blockedSpam);
+  }
+
+  // Log the ticket message for debugging
+  const ticket = await db.getTicketByUserId(cache.userId, ctx.session.groupCategory)
+  log.info(
+    formatMessageAsTicket(
+      ticket.ticketId,
+      ctx,
+      autoReplyInfo,
+    ),
+  );
 }
 
 export { chat };

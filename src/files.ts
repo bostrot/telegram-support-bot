@@ -21,13 +21,13 @@ const replyMarkup = (ctx: Context): object => {
       [
         direct_reply
           ? {
-              text: language.replyPrivate,
-              url: `https://t.me/${from.username}`,
-            }
+            text: language.replyPrivate,
+            url: `https://t.me/${from.username}`,
+          }
           : {
-              text: language.replyPrivate,
-              callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
-            },
+            text: language.replyPrivate,
+            callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
+          },
       ],
     ],
   };
@@ -47,141 +47,144 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   let replyText = '';
 
   // If replying to a message and if the session is admin, extract ticket info
-  if (message && message.reply_to_message && session.admin) {
+  if (message && message.reply_to_message?.text && session.admin) {
     replyText = message.reply_to_message.text || message.reply_to_message.caption;
     if (!replyText) return;
     userid = await (await db.getTicketByInternalId(message.external_reply.message_id)).userid;
     if (!userid) return;
   }
+  if (!userid) {
+    userid = message.from.id;
+  }
 
-  forwardFile(ctx, async (userInfo: string) => {
-    let receiverId: string | number = config.staffchat_id;
-    let isPrivate = false;
+  const userInfo = await forwardFile(ctx);
+  let receiverId: string | number = config.staffchat_id;
+  let isPrivate = false;
 
-    // For admin replies without userInfo, override msgId from the extracted ticket info
-    if (session.admin && userInfo === undefined) {
-      if (userid) {
-        return;
-      }
-    }
-
-    const ticket = await db.getTicketById(userid, session.groupCategory);
-    if (!ticket) {
-      if (session.admin && userInfo === undefined) {
-        middleware.reply(ctx, config.language.ticketClosedError);
-      } else {
-        middleware.reply(ctx, config.language.textFirst);
-      }
+  // For admin replies without userInfo, override msgId from the extracted ticket info
+  if (session.admin && userInfo === undefined) {
+    if (userid) {
       return;
     }
+  }
 
-    let captionText = `${config.language.ticket} #T${ticket.id
-      .toString()
-      .padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
+  const ticket = await db.getTicketByUserId(userid, session.groupCategory);
+  if (!ticket) {
     if (session.admin && userInfo === undefined) {
-      receiverId = ticket.userid;
-      captionText = message.caption || '';
+      middleware.reply(ctx, config.language.ticketClosedError);
+    } else {
+      middleware.reply(ctx, config.language.textFirst);
     }
-    if (session.modeData.userid != null) {
-      receiverId = session.modeData.userid;
-      isPrivate = true;
-    }
+    return;
+  }
 
-    const fileId = (await ctx.getFile()).file_id;
-    const commonOptions = {
-      caption: captionText,
-      reply_markup: isPrivate ? replyMarkup(ctx) : {},
-    };
+  let captionText = `${config.language.ticket} #T${ticket.id
+    .toString()
+    .padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
+  if (session.admin && userInfo === undefined) {
+    receiverId = ticket.userid;
+    captionText = message.caption || '';
+  }
+  if (session.modeData?.userid != null) {
+    receiverId = session.modeData.userid;
+    isPrivate = true;
+  }
 
-    // Send the file based on its type
-    switch (type) {
-      case 'document':
-        bot.sendDocument(receiverId, fileId, commonOptions);
-        if (
-          session.group !== '' &&
-          session.group !== config.staffchat_id &&
-          JSON.stringify(session.modeData) !== JSON.stringify({})
-        ) {
-          bot.sendDocument(session.group, fileId, {
-            caption: captionText,
-            reply_markup: {
-              html: '',
-              inline_keyboard: [
-                [
-                  {
-                    text: config.language.replyPrivate,
-                    callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                  },
-                ],
-              ],
-            },
-          });
-        }
-        break;
-      case 'photo':
-        bot.sendPhoto(receiverId, fileId, commonOptions);
-        if (
-          session.group !== '' &&
-          session.group !== config.staffchat_id &&
-          JSON.stringify(session.modeData) !== JSON.stringify({})
-        ) {
-          bot.sendPhoto(session.group, fileId, {
-            caption: captionText,
-            reply_markup: {
-              html: '',
-              inline_keyboard: [
-                [
-                  {
-                    text: config.language.replyPrivate,
-                    callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                  },
-                ],
-              ],
-            },
-          });
-        }
-        break;
-      case 'video':
-        bot.sendVideo(receiverId, fileId, commonOptions);
-        if (
-          session.group !== '' &&
-          session.group !== config.staffchat_id &&
-          JSON.stringify(session.modeData) !== JSON.stringify({})
-        ) {
-          bot.sendVideo(session.group, fileId, {
-            caption: captionText,
-            reply_markup: {
-              html: '',
-              inline_keyboard: [
-                [
-                  {
-                    text: config.language.replyPrivate,
-                    callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                  },
-                ],
-              ],
-            },
-          });
-        }
-        break;
-    }
+  const fileId = (await ctx.getFile()).file_id;
+  const commonOptions = {
+    caption: captionText,
+    reply_markup: isPrivate ? replyMarkup(ctx) : {},
+  };
 
-    // Send confirmation message if enabled
-    if (!config.autoreply_confirmation) return;
-    let confirmationMessage = `${config.language.confirmationMessage}${
-      config.show_user_ticket
-        ? config.language.yourTicketId + ' #T' + ticket.id.toString().padStart(6, '0')
-        : ''
+  // Send the file based on its type
+  var messageId = null;
+  switch (type) {
+    case 'document':
+      messageId = await bot.sendDocument(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendDocument(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      } 
+      break;
+    case 'photo':
+      messageId = await bot.sendPhoto(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendPhoto(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      }
+      break;
+    case 'video':
+      messageId = await bot.sendVideo(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendVideo(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      }
+      break;
+  }
+  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+
+  // Send confirmation message if enabled
+  if (!config.autoreply_confirmation) return;
+  let confirmationMessage = `${config.language.confirmationMessage}${config.show_user_ticket
+    ? config.language.yourTicketId + ' #T' + ticket.id.toString().padStart(6, '0')
+    : ''
     }`;
-    if (session.admin && userInfo === undefined) {
-      const nameMatch = replyText.match(
-        new RegExp(`${config.language.from} (.*) ${config.language.language}`)
-      );
-      if (!nameMatch) return;
-      confirmationMessage = `${config.language.file_sent} ${nameMatch[1]}`;
-    }
-    middleware.sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
-  });
+  if (session.admin && userInfo === undefined) {
+    const nameMatch = replyText.match(
+      new RegExp(`${config.language.from} (.*) ${config.language.language}`)
+    );
+    if (!nameMatch) return;
+    confirmationMessage = `${config.language.file_sent} ${nameMatch[1]}`;
+  }
+  middleware.sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
 };
 
 /**
@@ -190,29 +193,28 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
  * @param ctx - The bot context.
  * @param callback - Callback function receiving user information.
  */
-const forwardFile = (ctx: Context, callback: (userInfo: any) => void) => {
-  db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory, (ticket: ISupportee) => {
-    let ok = false;
-    if (!ticket || !ticket.status || ticket.status === 'closed') {
-      db.add(ctx.message.from.id, 'open', null, ctx.messenger);
-      ok = true;
+async function forwardFile(ctx: Context) {
+  const ticket = await db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory);
+  let ok = false;
+  if (!ticket || !ticket.status || ticket.status === 'closed') {
+    db.add(ctx.message.from.id, 'open', null, ctx.messenger);
+    ok = true;
+  }
+  if (ok || (ticket && ticket.status !== 'banned')) {
+    if (cache.ticketSent[cache.userId] === undefined) {
+      setTimeout(() => {
+        cache.ticketSent[cache.userId] = undefined;
+      }, cache.config.spam_time);
+      cache.ticketSent[cache.userId] = 0;
+      return forwardHandler(ctx);
+    } else if (cache.ticketSent[cache.userId] < cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId]++;
+      return forwardHandler(ctx);
+    } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId]++;
+      middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
     }
-    if (ok || (ticket && ticket.status !== 'banned')) {
-      if (cache.ticketSent[cache.userId] === undefined) {
-        forwardHandler(ctx, callback);
-        setTimeout(() => {
-          cache.ticketSent[cache.userId] = undefined;
-        }, cache.config.spam_time);
-        cache.ticketSent[cache.userId] = 0;
-      } else if (cache.ticketSent[cache.userId] < cache.config.spam_cant_msg) {
-        cache.ticketSent[cache.userId]++;
-        forwardHandler(ctx, callback);
-      } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
-        cache.ticketSent[cache.userId]++;
-        middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
-      }
-    }
-  });
+  }
 };
 
 /**
@@ -221,16 +223,14 @@ const forwardFile = (ctx: Context, callback: (userInfo: any) => void) => {
  * @param ctx - The bot context.
  * @param callback - Callback function receiving user info (or undefined).
  */
-const forwardHandler = (ctx: Context, callback: (userInfo: any) => void) => {
-  ctx.getChat().then((chat: { type: string }) => {
-    if (chat.type === 'private') {
-      cache.userId = ctx.message.from.id;
-      const userInfo = `${cache.config.language.from} ${ctx.message.from.first_name} ${cache.config.language.language}: ${ctx.message.from.language_code}\n\n`;
-      callback(userInfo);
-    } else {
-      callback(undefined);
-    }
-  });
+function forwardHandler(ctx: Context) {
+  if (ctx.chat.type === 'private') {
+    cache.userId = ctx.message.from.id;
+    const userInfo = `${cache.config.language.from} ${ctx.message.from.first_name} ${cache.config.language.language}: ${ctx.message.from.language_code}\n\n`;
+    return userInfo;
+  } else {
+    return undefined;
+  }
 };
 
 export { fileHandler, forwardFile, forwardHandler };

@@ -55,10 +55,10 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
             is_bot: false,
           },
           text: signalMsg.envelope.dataMessage.quote?.text,
-          caption: '',
+          caption: signalMsg.envelope.dataMessage.quote?.text,
         },
         getFile: () => {},
-        caption: '',
+        caption: dataMessage.message,
       },
       chat: chat,
       session: {
@@ -83,7 +83,12 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
       },
       reply: () => {},
       getChat: () => {},
-      getFile: () => {},
+      getFile: async () => {
+        return {
+          file_id: signalMsg.envelope.dataMessage.attachments[0].id,
+        };
+      }
+
     };
   
     return context;

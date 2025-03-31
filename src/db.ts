@@ -90,17 +90,16 @@ export async function getTicketByInternalId (
   return result as ISupportee | null;
 }
 
-export const getTicketByUserId = async (
+export async function getTicketByUserId (
   userId: string | number,
-  category: string | null,
-  callback: Function
-) => {
+  category: string | null
+) {
   const query = {
     $or: [{ userid: userId }],
     ...(category ? { category } : { category: null }),
   };
   const result = await Supportee.findOne(query);
-  callback(result);
+  return result;
 };
 
 export const getByTicketId = async (

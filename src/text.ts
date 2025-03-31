@@ -4,6 +4,7 @@ import * as staff from './staff';
 import * as users from './users';
 import * as middleware from './middleware';
 import { Addon, Context } from './interfaces';
+import { ISupportee } from './db';
 
 /**
  * Checks if the given message text exists in the configured categories.
@@ -14,7 +15,7 @@ import { Addon, Context } from './interfaces';
 const isMessageInCategories = (message: string): boolean => {
   const { categories } = cache.config;
   return Array.isArray(categories) && categories.length > 0 &&
-         categories.some(category => category.msg.includes(message));
+    categories.some(category => category.msg.includes(message));
 };
 
 /**
@@ -26,10 +27,10 @@ const isMessageInCategories = (message: string): boolean => {
 const shouldReplyWithCategoryKeyboard = (ctx: Context): boolean => {
   const { categories } = cache.config;
   return Array.isArray(categories) &&
-         categories.length > 0 &&
-         !isMessageInCategories(ctx.message.text) &&
-         !ctx.session.admin &&
-         !ctx.session.group;
+    categories.length > 0 &&
+    !isMessageInCategories(ctx.message.text) &&
+    !ctx.session.admin &&
+    !ctx.session.group;
 };
 
 /**
@@ -62,18 +63,18 @@ export function handleText(bot: Addon, ctx: Context, keys: any[] = []) {
  * @param bot - Instance of the Telegram addon.
  * @param ctx - The context of the message.
  */
-export function ticketHandler(bot: Addon, ctx: Context) {
+export async function ticketHandler(bot: Addon, ctx: Context): Promise<ISupportee | null> {
   const { chat, message, session, messenger } = ctx;
   // For private chats, check for an existing ticket; otherwise, create one.
   if (chat.type === 'private') {
-    return db.getTicketByUserId(message.from.id, session.groupCategory, (ticket: any) => {
-      if (!ticket) {
-        db.add(message.from.id, 'open', session.groupCategory, messenger);
-      }
-      users.chat(ctx, message.chat);
-    });
+    const ticket = await db.getTicketByUserId(message.from.id, session.groupCategory)
+    if (!ticket) {
+      db.add(message.from.id, 'open', session.groupCategory, messenger);
+    }
+    users.chat(ctx, message.chat);
+    return ticket;
   }
 
   // For non-private chats, use the staff chat handler.
-  return staff.chat(ctx);
+  staff.chat(ctx);
 }

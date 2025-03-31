@@ -197,7 +197,7 @@ export interface Addon {
    * @param text The text message to send.
    * @param options Optional parameters.
    */
-  sendMessage(chatId: string | number, text: string, options?: any): void;
+  sendMessage(chatId: string | number, text: string, options?: any): void | Promise<void> | Promise<string | null>;
 
   /**
    * Sends a photo.
@@ -205,7 +205,7 @@ export interface Addon {
    * @param photo The photo content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendPhoto(chatId: string | number, photo: any, options?: any): void;
+  sendPhoto(chatId: string | number, photo: any, options?: any): void | Promise<void> | Promise<string | null>;
 
   /**
    * Sends a document.
@@ -213,7 +213,7 @@ export interface Addon {
    * @param document The document content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendDocument(chatId: string | number, document: any, options?: any): void;
+  sendDocument(chatId: string | number, document: any, options?: any): void | Promise<void> | Promise<string | null>;
 
   /**
    * Sends a video.
@@ -221,7 +221,7 @@ export interface Addon {
    * @param video The video content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendVideo(chatId: string | number, video: any, options?: any): void;
+  sendVideo(chatId: string | number, video: any, options?: any): void | Promise<void> | Promise<string | null>;
 
   /**
    * Registers a command handler.
