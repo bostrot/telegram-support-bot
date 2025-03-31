@@ -63,10 +63,11 @@ class TelegramAddon implements Addon {
   }
 
   // --- Methods required by the Addon interface ---
-  sendMessage(chatId: string | number, text: string, options: any = {}) {
+  async sendMessage(chatId: string | number, text: string, options: any = {}): Promise<string | null> {
     options.disable_web_page_preview = true;
     if (typeof chatId !== 'string' && typeof chatId !== 'number') return;
-    this.bot.api.sendMessage(chatId.toString(), text, options);
+    const response = await this.bot.api.sendMessage(chatId.toString(), text, options);
+    return response.message_id.toString();
   }
 
   sendDocument = (

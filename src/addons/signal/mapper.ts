@@ -18,6 +18,7 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
     // Create a chat object based on envelope data.
     var chatType = 'private';
     var chatId = senderId;
+    var replyId = dataMessage.quote?.id;
     if (dataMessage.groupInfo) {
       chatId = dataMessage.groupInfo.groupId;
       chatType = 'group';
@@ -46,6 +47,9 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
         chat: chat,
         date: dateInSeconds,
         text: dataMessage.message,
+        external_reply: {
+          message_id: replyId,
+        },
         reply_to_message: {
           from: {
             is_bot: false,

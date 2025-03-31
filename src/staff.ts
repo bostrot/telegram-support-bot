@@ -52,13 +52,13 @@ function privateReply(ctx: Context, msg: any = {}) {
           [
             cache.config.direct_reply
               ? {
-                  text: cache.config.language.replyPrivate,
-                  url: `https://t.me/${from.username}`,
-                }
+                text: cache.config.language.replyPrivate,
+                url: `https://t.me/${from.username}`,
+              }
               : {
-                  text: cache.config.language.replyPrivate,
-                  callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
-                },
+                text: cache.config.language.replyPrivate,
+                callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
+              },
           ],
         ],
       },
@@ -74,7 +74,7 @@ function privateReply(ctx: Context, msg: any = {}) {
  * @param replyText - The text from which to extract the ticket ID.
  * @returns The extracted ticket ID or null if not found.
  */
-function extractTicketId(replyText: string): string | null {
+async function extractTicketId(replyText: string, ctx: Context): Promise<string | null> {
   const { language } = cache.config;
   let match = replyText.match(new RegExp(`#T(.*) ${language.from}`));
   if (!match) {
@@ -100,61 +100,72 @@ function extractName(replyText: string): string | null {
  *
  * @param ctx - The bot context.
  */
-function chat(ctx: Context) {
+async function chat(ctx: Context) {
   if (!ctx.session.admin) {
     return;
   }
-  
+
   const replyMsg = ctx.message?.reply_to_message;
   if (!replyMsg) return;
 
   const replyText = replyMsg.text || replyMsg.caption;
-  if (!replyText) return;
+  const replyMessageId = ctx.message.external_reply?.message_id;
+  if (!replyText && !replyMessageId) return;
 
-  const ticketId = extractTicketId(replyText);
-  if (!ticketId) return;
+  var ticket;
+  var ticketId;
+  if (replyMessageId) {
+    ticket = await db.getTicketByInternalId(replyMessageId);
+  } else {
+    ticketId = extractTicketId(replyText, ctx);
+    if (!ticketId) return;
+    ticket = await db.getTicketById(ticketId, ctx.session.groupCategory);
+  }
 
-  db.getTicketById(ticketId, ctx.session.groupCategory, (ticket: ISupportee) => {
-    if (!ticket) {
-      middleware.reply(ctx, cache.config.language.ticketClosedError);
-      return;
+  if (!ticket) {
+    middleware.reply(ctx, cache.config.language.ticketClosedError);
+    return;
+  }
+  var name;
+  if (ticket.name) {
+    name = ticket.name;
+  } else {
+    name = extractName(replyText);
+  }
+  if (!name) return;
+
+  // Mark ticket as no longer active
+  cache.ticketStatus[ticketId] = false;
+
+  // Reply to web users differently
+  if (ticket.userid.includes('WEB')) {
+    try {
+      const socketId = ticket.userid.split('WEB')[1];
+      cache.io.to(socketId).emit('chat_staff', ticketMsg(name, ctx.message));
+    } catch (e) {
+      middleware.sendMessage(
+        ctx.chat.id,
+        ticket.messenger,
+        `Web chat already closed.`,
+      );
+      log.error(e);
     }
-    const name = extractName(replyText);
-    if (!name) return;
+  } else {
+    middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
+  }
+  const esc = middleware.strictEscape;
+  middleware.sendMessage(
+    ctx.chat.id,
+    cache.config.staffchat_type,
+    `${cache.config.language.msg_sent} ${esc(name)}`,
+  );
+  log.info(`Answer: ${ticketMsg(name, ctx.message)}`);
+  cache.ticketSent[ticketId] = null;
 
-    // Mark ticket as no longer active
-    cache.ticketStatus[ticketId] = false;
-
-    // Reply to web users differently
-    if (ticket.userid.includes('WEB')) {
-      try {
-        const socketId = ticket.userid.split('WEB')[1];
-        cache.io.to(socketId).emit('chat_staff', ticketMsg(name, ctx.message));
-      } catch (e) {
-        middleware.sendMessage(
-          ctx.chat.id,
-          ticket.messenger,
-          `Web chat already closed.`,
-        );
-        log.error(e);
-      }
-    } else {
-      middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
-    }
-    const esc = middleware.strictEscape;
-    middleware.sendMessage(
-      ctx.chat.id,
-      cache.config.staffchat_type,
-      `${cache.config.language.msg_sent} ${esc(name)}`,
-    );
-    log.info(`Answer: ${ticketMsg(name, ctx.message)}`);
-    cache.ticketSent[ticketId] = null;
-
-    // Auto-close the ticket if enabled
-    if (cache.config.auto_close_tickets) {
+  // Auto-close the ticket if enabled
+  if (cache.config.auto_close_tickets) {
       db.add(ticketId, 'closed', null, ticket.messenger);
-    }
-  });
+  }
 }
 
 export { privateReply, chat, ticketMsg };

@@ -20,8 +20,20 @@ export interface DataMessage {
     message: string;
     expiresInSeconds: number;
     viewOnce: boolean;
+    attachments?: Attachment[];
     quote?: Quote;
     groupInfo?: GroupInfo;
+}
+
+export interface Attachment {
+    contentType: string;
+    filename: string;
+    id: string;
+    size: number;
+    width?: number;
+    height?: number;
+    caption?: string | null;
+    uploadTimestamp?: number | null;
 }
 
 export interface Quote {
@@ -30,7 +42,7 @@ export interface Quote {
     authorNumber: string;
     authorUuid: string;
     text: string;
-    attachments: any[];
+    attachments: any[]; // You may also change this to Attachment[] for consistency if needed.
 }
 
 export interface GroupInfo {

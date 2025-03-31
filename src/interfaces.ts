@@ -114,7 +114,7 @@ export class Config {
   dev_mode: boolean = false;
   show_user_ticket: boolean = false;
   language: Language;
-  autoreply_confirmation: boolean = false;
+  autoreply_confirmation: boolean = true;
   autoreply: Autoreply[];
   clean_replies: boolean = false;
   pass_start: boolean = false;
@@ -168,6 +168,9 @@ export class Context {
       text: string;
       caption: string;
     };
+    external_reply: {
+      message_id: number,
+    },
     getFile?: any;
     caption: string;
   };

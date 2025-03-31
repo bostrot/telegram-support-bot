@@ -10,6 +10,8 @@ const collectionName = `bot_${cache.config.owner_id}_${botTokenSuffix}`;
 export interface ISupportee extends mongoose.Document {
   ticketId: number;
   userid: string;
+  internalIds: Array<number> | null;
+  name: string | null;
   messenger: Messenger;
   status: string;
   category: string | null;
@@ -18,6 +20,8 @@ export interface ISupportee extends mongoose.Document {
 export const SupporteeSchema = new mongoose.Schema<ISupportee>({
   ticketId: { type: Number, required: true, unique: true, alias: 'id' },
   userid: { type: String, required: true },
+  internalIds: { type: [Number], required: false },
+  name: { type: String, required: false },
   messenger: { type: String, required: true },
   status: { type: String, default: 'open' },
   category: { type: String, default: null },
@@ -64,18 +68,27 @@ export const check = async (
   callback(result);
 };
 
-export const getTicketById = async (
+export async function getTicketById(
   ticketId: string | number,
-  category: string | null,
-  callback: Function
-) => {
+  category: string | null
+): Promise<ISupportee | null> {
   const query = {
     $or: [{ ticketId: ticketId }],
     ...(category ? { category } : { category: null }),
   };
   const result = await Supportee.findOne(query);
-  callback(result);
+  return result as ISupportee | null;
 };
+
+export async function getTicketByInternalId (
+  internalId: number
+): Promise<ISupportee | null> {
+  const query = {
+    internalIds: { $elemMatch: { $eq: internalId } },
+  };
+  const result = await Supportee.findOne(query);
+  return result as ISupportee | null;
+}
 
 export const getTicketByUserId = async (
   userId: string | number,
@@ -124,6 +137,25 @@ export const reopen = async (userid: any, category: string, messenger: string) =
     ...(category && { category }),
   };
   await Supportee.updateMany(query, { $set: { status: 'open' } });
+};
+
+export const addIdAndName = async (
+  ticketId: string | number,
+  internalId: string,
+  name: string | null,
+) => {
+  const internalIdNum = parseInt(internalId);;
+  const query = {
+    ticketId: ticketId,
+  };
+  const update = {
+    $addToSet: { internalIds: internalIdNum },
+    $set: { name },
+  };
+  return await Supportee.findOneAndUpdate(query, update, {
+    new: true,
+    upsert: true,
+  });
 };
 
 export const add = async (

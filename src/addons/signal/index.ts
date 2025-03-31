@@ -5,6 +5,7 @@ import cache from '../../cache';
 import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 import { registerCommonHandlers } from '../../handlers';
+import * as db from '../../db';
 import * as log from 'fancy-log'
 
 const SEND_ENDPOINT = 'v2/send';
@@ -36,7 +37,7 @@ class SignalAddon implements Addon {
     return SignalAddon.instance;
   }
 
-  async sendMessage(chatId: string | number, text: string, options?: any): Promise<void> {
+  async sendMessage(chatId: string | number, text: string, options?: any): Promise<string | null> {
     try {
       // Build the payload in the required format.
       const payload = {
@@ -54,14 +55,17 @@ class SignalAddon implements Addon {
         sticker: options?.sticker || "",
         text_mode: "styled"
       };
-      await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
+      const response = await this.axiosInstance.post(`/${SEND_ENDPOINT}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
+      const timestamp = response.data.timestamp;
       log.info('Signal message sent successfully.');
+      return timestamp;
     } catch (error) {
       log.error('Error sending Signal message:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
+    return null;
   }
 
   async getGroupId(internalGroupId: string): Promise<string | null> {
@@ -245,15 +249,42 @@ class SignalAddon implements Addon {
         log.info('Ignoring Signal message without dataMessage:', signalMessage);
         return;
       }
+      
       // Map the raw Signal message to a Context.
       const messageContext: Context = mapSignalMessageToContext(signalMessage);
+      
+      // Set additional context properties.
       await this.setExternalGroupId(messageContext);
       await this.setGroupAdmin(messageContext);
       this.setIsBot(signalMessage, messageContext);
-
-      let isCommand = false;
+  
+      // Check if the message has attachments
+      const attachments = signalMessage.envelope.dataMessage.attachments;
+      if (attachments && attachments.length > 0) {
+        // Loop through each attachment and trigger the appropriate file handler.
+        for (const attachment of attachments) {
+          if (attachment.contentType.startsWith('image/')) {
+            if (this.eventHandlers[':photo']) {
+              this.eventHandlers[':photo'].forEach(handler => handler(messageContext));
+            }
+          } else if (attachment.contentType.startsWith('video/')) {
+            if (this.eventHandlers[':video']) {
+              this.eventHandlers[':video'].forEach(handler => handler(messageContext));
+            }
+          } else {
+            if (this.eventHandlers[':document']) {
+              this.eventHandlers[':document'].forEach(handler => handler(messageContext));
+            }
+          }
+        }
+        // Optionally, return here if you want to handle attachments exclusively
+        return;
+      }
+      
       // Process command handlers (if the message starts with '/').
-      if (messageContext.message && typeof messageContext.message.text === 'string' && messageContext.message.text.startsWith('/')) {
+      let isCommand = false;
+      if (messageContext.message && typeof messageContext.message.text === 'string' &&
+          messageContext.message.text.startsWith('/')) {
         isCommand = true;
         const parts = messageContext.message.text.split(' ');
         const commandName = parts[0].substring(1);
@@ -262,12 +293,12 @@ class SignalAddon implements Addon {
           this.eventHandlers[commandKey].forEach(handler => handler(messageContext));
         }
       }
-
+      
       // Process generic "message" handlers.
       if (this.eventHandlers['message']) {
         this.eventHandlers['message'].forEach(handler => handler(messageContext));
       }
-
+      
       // Process hears handlers only if the message is not a command.
       if (!isCommand) {
         this.hearsHandlers.forEach(({ trigger, callback }) => {
@@ -278,10 +309,11 @@ class SignalAddon implements Addon {
           }
         });
       }
+      
     } catch (err) {
       log.error('Error processing WebSocket message:', err);
     }
-  }
+  }  
 }
 
 export default SignalAddon;

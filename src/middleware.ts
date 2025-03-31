@@ -40,27 +40,25 @@ const strictEscape = (str: string): string => {
  * @param msg - The message text.
  * @param extra - Extra options (default includes the configured parse mode).
  */
-const sendMessage = (
+async function sendMessage (
   id: string | number,
   messenger: string,
   msg: string,
   extra: any = { parse_mode: cache.config.parse_mode }
-): void => {
+): Promise<string | null> {
   const messengerType = messenger as Messenger;
   // Remove extra spaces
   const cleanedMsg = msg.replace(/ {2,}/g, ' ');
   
   switch (messengerType) {  
     case Messenger.TELEGRAM:
-      TelegramAddon.getInstance().sendMessage(id, cleanedMsg, extra);
-      break;
+      return await TelegramAddon.getInstance().sendMessage(id, cleanedMsg, extra);
     case Messenger.SIGNAL:
-      SignalAddon.getInstance().sendMessage(id, cleanedMsg, extra);
-      break;
+      return await SignalAddon.getInstance().sendMessage(id, cleanedMsg, extra);
     case Messenger.WEB: {
       const socketId = id.toString().split('WEB')[1];
       cache.io.to(socketId).emit('chat_staff', cleanedMsg);
-      break;
+      return null;
     }
     default:
       throw new Error('Invalid messenger type');

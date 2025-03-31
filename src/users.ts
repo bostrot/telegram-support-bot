@@ -31,8 +31,8 @@ function formatMessageAsTicket(
   return `${config.language.ticket} #T${ticket
     .toString()
     .padStart(6, '0')} ${config.language.from} ${name} ${config.language.language}: ${ctx.message.from.language_code} ${ctx.session.groupTag}\n\n${esc(
-    ctx.message.text,
-  )}\n\n${autoReplyInfo ? `*${autoReplyInfo}*` : ''}`;
+      ctx.message.text,
+    )}\n\n${autoReplyInfo ? `*${autoReplyInfo}*` : ''}`;
 }
 
 /**
@@ -47,7 +47,7 @@ function createAutoReplyMessage(msg: string, ctx: Context): string {
   const senderName = ctx.message.from.first_name;
   return config.clean_replies
     ? msg
-    : `${config.language.dear} ${esc(senderName)},\n\n${msg}\n\n${config.language.regards}\n${config.language.automatedReplyAuthor}\n\n_${config.language.automatedReply}_`;
+    : `${config.language.dear} ${esc(senderName)},\n\n${msg}\n\n${config.language.regards}\n${config.language.automatedReplyAuthor}\n\n*${config.language.automatedReply}*`;
 }
 
 /**
@@ -89,18 +89,19 @@ async function autoReply(ctx: Context): Promise<boolean> {
  * @param chatId - The chat id for sending confirmation.
  * @param autoReplyInfo - Optional auto-reply info.
  */
-const processTicket = (
+async function processTicket(
   ticket: ISupportee,
   ctx: Context,
   chatId: string,
   autoReplyInfo?: string,
-) => {
+) {
   const { config } = cache;
   // Send confirmation if applicable
   if (
     !autoReplyInfo &&
     config.autoreply_confirmation &&
-    ctx.session.lastContactDate < Date.now() - TIME_BETWEEN_CONFIRMATION_MESSAGES
+    (ctx.session.lastContactDate === undefined ||
+      ctx.session.lastContactDate < Date.now() - TIME_BETWEEN_CONFIRMATION_MESSAGES)
   ) {
     ctx.session.lastContactDate = Date.now();
     const confirmationMsg =
@@ -113,7 +114,7 @@ const processTicket = (
   }
 
   // Send ticket message to staff chat
-  sendMessage(
+  const messageId = await sendMessage(
     config.staffchat_id,
     config.staffchat_type,
     formatMessageAsTicket(
@@ -122,31 +123,32 @@ const processTicket = (
       autoReplyInfo,
     ),
   );
+  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
 
   // If group flag is set and not the admin chat, forward to group chat
   if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
     const groupOptions = config.allow_private
       ? {
-          parse_mode: 'none',
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data:
-                    ctx.from.id +
-                    '---' +
-                    ctx.message.from.first_name +
-                    '---' +
-                    ctx.session.groupCategory +
-                    '---' +
-                    ticket.ticketId,
-                },
-              ],
+        parse_mode: 'none',
+        reply_markup: {
+          html: '',
+          inline_keyboard: [
+            [
+              {
+                text: config.language.replyPrivate,
+                callback_data:
+                  ctx.from.id +
+                  '---' +
+                  ctx.message.from.first_name +
+                  '---' +
+                  ctx.session.groupCategory +
+                  '---' +
+                  ticket.ticketId,
+              },
             ],
-          },
-        }
+          ],
+        },
+      }
       : { parse_mode: config.parse_mode };
 
     sendMessage(
