@@ -12,6 +12,7 @@ const SEND_ENDPOINT = 'v2/send';
 const GROUP_ENDPOINT = 'v1/groups';
 const RECEIVE_ENDPOINT = 'v1/receive';
 const ATTACHMENTS_ENDPOINT = 'v1/attachments';
+const TYPING_INDICATOR_ENDPOINT = 'v1/typing-indicator';
 
 const PHONE_NUMBER = cache.config.signal_number;
 
@@ -62,8 +63,10 @@ class SignalAddon implements Addon {
     } catch (error) {
       log.error('Error sending Signal message:', error);
       if (this.errorHandler) this.errorHandler(error);
+      return null;
+    } finally {
+      await this.hideTypingIndicator(chatId);
     }
-    return null;
   }
 
   async getGroupId(internalGroupId: string): Promise<string | null> {
@@ -133,8 +136,10 @@ class SignalAddon implements Addon {
     } catch (error) {
       log.error(`Error sending Signal file ${fileId}:`, error);
       if (this.errorHandler) this.errorHandler(error);
+      return null;
+    } finally {
+      await this.hideTypingIndicator(chatId);
     }
-    return null;
   }
   // --- End helper method ---
 
@@ -153,7 +158,31 @@ class SignalAddon implements Addon {
     // Use the helper method with an optional caption.
     return await this.sendFile(chatId, documentId, options?.caption || '');
   }
-  // --- End file upload methods ---
+  
+  private async showTypingIndicator(chatId: string | number): Promise<void> {
+    try {
+      await this.axiosInstance.put(`/${TYPING_INDICATOR_ENDPOINT}/${PHONE_NUMBER}`, { recipient: chatId }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      log.info(`Typing indicator shown for ${chatId}`);
+    } catch (error) {
+      log.error('Error showing typing indicator:', error);
+      if (this.errorHandler) this.errorHandler(error);
+    }
+  }
+
+  private async hideTypingIndicator(chatId: string | number): Promise<void> {
+    try {
+      await this.axiosInstance.delete(`/${TYPING_INDICATOR_ENDPOINT}/${PHONE_NUMBER}`, {
+        data: { recipient: chatId },
+        headers: { 'Content-Type': 'application/json' },
+      });
+      log.info(`Typing indicator hidden for ${chatId}`);
+    } catch (error) {
+      log.error('Error hiding typing indicator:', error);
+      if (this.errorHandler) this.errorHandler(error);
+    }
+  }
 
   command(command: string, callback: (ctx: any) => void): void {
     const key = `command:${command}`;
@@ -238,6 +267,13 @@ class SignalAddon implements Addon {
       
       // Map the raw Signal message to a Context.
       const messageContext: Context = mapSignalMessageToContext(signalMessage);
+      
+      // Show typing indicator immediately when a message (or attachment) is received.
+      await this.showTypingIndicator(messageContext.chat.id);
+      // Schedule hiding the indicator after 10 seconds in case no outgoing response is sent.
+      setTimeout(() => {
+        this.hideTypingIndicator(messageContext.chat.id);
+      }, 10000);
       
       // Set external group id if needed.
       await this.setExternalGroupId(messageContext);
