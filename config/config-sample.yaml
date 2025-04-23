@@ -5,6 +5,9 @@ owner_id: 'YOUR_TELEGRAM_ID'
 spam_time: 300000 # time (in MS) in which user may send 5 messages
 spam_cant_msg: 5
 
+# example for custom connection to mongodb from config file (up from 4.2.2 version), uncomment if you don't using docker environments.
+# mongodb_uri: mongodb://custom-server:27017/support
+
 parse_mode: 'Markdown' # Experimental. Do not change unless you know what you are doing. Options: Markdown/MarkdownV2/HTML
 
 allow_private: false # Allow / disallow option for staff to chat privately
