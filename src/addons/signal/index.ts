@@ -164,9 +164,7 @@ class SignalAddon implements Addon {
       await this.axiosInstance.put(`/${TYPING_INDICATOR_ENDPOINT}/${PHONE_NUMBER}`, { recipient: chatId }, {
         headers: { 'Content-Type': 'application/json' },
       });
-      log.info(`Typing indicator shown for ${chatId}`);
     } catch (error) {
-      log.error('Error showing typing indicator:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
@@ -177,9 +175,7 @@ class SignalAddon implements Addon {
         data: { recipient: chatId },
         headers: { 'Content-Type': 'application/json' },
       });
-      log.info(`Typing indicator hidden for ${chatId}`);
     } catch (error) {
-      log.error('Error hiding typing indicator:', error);
       if (this.errorHandler) this.errorHandler(error);
     }
   }
@@ -261,7 +257,6 @@ class SignalAddon implements Addon {
     try {
       const signalMessage = JSON.parse(data.toString()) as SignalMessage;
       if (signalMessage.envelope.dataMessage === undefined) {
-        log.info('Ignoring Signal message without dataMessage:', signalMessage);
         return;
       }
       
