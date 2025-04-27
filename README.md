@@ -1,4 +1,5 @@
-<h1 align="center">Welcome to Telegram Support Bot 👋 (now also with Signal)</h1>
+<h1 align="center">Welcome to Telegram Support Bot 👋</h1>
+<h2 align="center">now also with Signal Support</h2>
 
 [![Bot API Version](https://img.shields.io/badge/Bot%20API-v6.6-f36caf.svg?style=for-the-badge)](https://core.telegram.org/bots/api)
 [![NPM Version](https://img.shields.io/npm/v/grammy.svg?style=for-the-badge)](https://www.npmjs.com/)
@@ -6,7 +7,7 @@
 ![js-google-style](https://img.shields.io/badge/code%20style-google-brightgreen.svg?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/DOCUMENTATION-WIKI-green?style=for-the-badge)](https://github.com/bostrot/telegram-support-bot/wiki)
 
-> TSB is a support bot for Telegram and Signal, using the [grammY Framework](https://grammy.dev/). It lets users create tickets which will be sent to a staff group and can be answered by a reply.  
+> TSB is a support bot for Telegram and Signal. It lets users create tickets which will be sent to a staff group and can be answered by a reply.  
 > Now also supports LLMs (e.g. OpenAI) to automatically assist users.
 
 <table>
