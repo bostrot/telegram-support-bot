@@ -3,7 +3,7 @@ import cache from './cache';
 import { Messenger } from './interfaces';
 import * as log from 'fancy-log'
 
-const MONGO_URI = cache.config.mongodb_uri || 'mongodb://localhost:27017/support';
+const MONGO_URI = cache.config.mongodb_uri || process.env.MONGO_URI || 'mongodb://localhost:27017/support';
 const botTokenSuffix = cache.config.bot_token.slice(-5);
 const collectionName = `bot_${cache.config.owner_id}_${botTokenSuffix}`;
 
