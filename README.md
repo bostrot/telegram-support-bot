@@ -138,7 +138,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📝 License
 
-Copyright © 2023 [Eric Trenkel](https://github.com/bostrot).  
+Copyright © 2025 [Eric Trenkel](https://github.com/bostrot).  
 This project is [GPL-3.0](https://github.com/bostrot/telegram-support-bot/blob/master/LICENSE) licensed.
 
 ---
