@@ -21,13 +21,20 @@ async function getResponseFromLLM(ctx: Context): Promise<string> {
     ${cache.config.llm_knowledge}
     """
     `;
-   
-    const response = await llm.chat({
-        messages: [
-            { content: systemPrompt, role: "system" },
-            { content: ctx.message.text, role: "user" }
-        ],
-    });
+
+    var response = null
+    try {
+        response = await llm.chat({
+            messages: [
+                { content: systemPrompt, role: "system" },
+                { content: ctx.message.text, role: "user" }
+            ],
+        });
+    }
+    catch (error) {
+        console.error("Error in LLM response:", error);
+        return null;
+    }
 
     const message = response.message.content.toString();
     if (message === "null" || message === "Null" || message === null) {
