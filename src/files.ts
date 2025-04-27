@@ -1,342 +1,229 @@
 import * as db from './db';
 import cache from './cache';
 import * as middleware from './middleware';
-import TelegramAddon from './addons/telegram';
-import {Context, ModeData} from './interfaces';
+import { Addon, Context, ModeData } from './interfaces';
+import { ISupportee } from './db';
 
 /**
- * Helper for private reply
- * @param {Object} ctx
- * @return {Object}
+ * Generates the reply markup for a private reply.
+ *
+ * @param ctx - The current bot context.
+ * @returns The reply markup object.
  */
-function replyMarkup(ctx: Context): object {
+const replyMarkup = (ctx: Context): object => {
+  const { config } = cache;
+  const { language, direct_reply } = config;
+  const { from, message, session } = ctx;
+  const { modeData } = session;
   return {
     html: '',
     inline_keyboard: [
       [
-        cache.config.direct_reply ?
-          {
-            text: cache.config.language.replyPrivate,
-            url: `https://t.me/${ctx.from.username}`,
-          } :
-          {
-            text: cache.config.language.replyPrivate,
-            callback_data:
-                ctx.from.id +
-                '---' +
-                ctx.message.from.first_name +
-                '---' +
-                ctx.session.modeData.category +
-                '---' +
-                ctx.session.modeData.ticketid,
+        direct_reply
+          ? {
+            text: language.replyPrivate,
+            url: `https://t.me/${from.username}`,
+          }
+          : {
+            text: language.replyPrivate,
+            callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
           },
       ],
     ],
   };
-}
+};
 
 /**
- * Forward video files to staff.
- * @param {string} type document, photo, video.
- * @param {bot} bot Bot object.
- * @param {context} ctx Bot context.
+ * Handles forwarding of files (document, photo, video) to staff.
+ *
+ * @param type - The type of file ('document', 'photo', or 'video').
+ * @param bot - The bot addon instance.
+ * @param ctx - The bot context.
  */
-function fileHandler(type: string, bot: TelegramAddon, ctx: Context) {
-  // replying to non-ticket
-  let userid: RegExpMatchArray | null;
-  let replyText: string;
-  if (
-    ctx.message !== undefined &&
-    ctx.message.reply_to_message !== undefined &&
-    ctx.session.admin
-  ) {
-    replyText = ctx.message.reply_to_message.text;
-    if (replyText === undefined) {
-      replyText = ctx.message.reply_to_message.caption;
+async function fileHandler(type: string, bot: Addon, ctx: Context) {
+  const { message, session } = ctx;
+  const { config } = cache;
+  let userid: string | null;
+  let replyText = '';
+
+  // If replying to a message and if the session is admin, extract ticket info
+  if (message && message.reply_to_message?.text && session.admin) {
+    replyText = message.reply_to_message.text || message.reply_to_message.caption;
+    if (!replyText) return;
+    userid = await (await db.getTicketByInternalId(message.external_reply.message_id)).userid;
+    if (!userid) return;
+  }
+  if (!userid) {
+    userid = message.from.id;
+  }
+
+  const userInfo = await forwardFile(ctx);
+  let receiverId: string | number = config.staffchat_id;
+  let isPrivate = false;
+
+  const ticket = await db.getTicketByUserId(userid, session.groupCategory);
+  if (!ticket) {
+    if (session.admin && userInfo === undefined) {
+      middleware.reply(ctx, config.language.ticketClosedError);
+    } else {
+      middleware.reply(ctx, config.language.textFirst);
     }
-    userid = replyText.match(
-        new RegExp('#T' + '(.*)' + ' ' + cache.config.language.from),
+    return;
+  }
+
+  let captionText = `${config.language.ticket} #T${ticket.id
+    .toString()
+    .padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
+  if (session.admin && userInfo === undefined) {
+    receiverId = ticket.userid;
+    captionText = message.caption || '';
+  }
+  if (session.modeData?.userid != null) {
+    receiverId = session.modeData.userid;
+    isPrivate = true;
+  }
+
+  const fileId = (await ctx.getFile()).file_id;
+  const commonOptions = {
+    caption: captionText,
+    reply_markup: isPrivate ? replyMarkup(ctx) : {},
+  };
+
+  // Send the file based on its type
+  var messageId = null;
+  switch (type) {
+    case 'document':
+      messageId = await bot.sendDocument(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendDocument(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      } 
+      break;
+    case 'photo':
+      messageId = await bot.sendPhoto(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendPhoto(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      }
+      break;
+    case 'video':
+      messageId = await bot.sendVideo(receiverId, fileId, commonOptions);
+      if (
+        session.group !== '' &&
+        session.group !== config.staffchat_id &&
+        JSON.stringify(session.modeData) !== JSON.stringify({})
+      ) {
+        bot.sendVideo(session.group, fileId, {
+          caption: captionText,
+          reply_markup: {
+            html: '',
+            inline_keyboard: [
+              [
+                {
+                  text: config.language.replyPrivate,
+                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
+                },
+              ],
+            ],
+          },
+        });
+      }
+      break;
+  }
+  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+
+  // Send confirmation message if enabled
+  if (!config.autoreply_confirmation) return;
+  let confirmationMessage = `${config.language.confirmationMessage}${config.show_user_ticket
+    ? config.language.yourTicketId + ' #T' + ticket.id.toString().padStart(6, '0')
+    : ''
+    }`;
+  if (session.admin && userInfo === undefined) {
+    const nameMatch = replyText.match(
+      new RegExp(`${config.language.from} (.*) ${config.language.language}`)
     );
-    if (userid === null || userid === undefined) {
-      userid = replyText.match(
-          new RegExp('#T' + '(.*)' + '\n' + cache.config.language.from),
-      );
-    }
-    // replying to non-ticket
-    if (userid == null) {
-      return;
+    if (!nameMatch) return;
+    confirmationMessage = `${config.language.file_sent} ${nameMatch[1]}`;
+  }
+  middleware.sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
+};
+
+/**
+ * Handles file forwarding with caching and spam protection.
+ *
+ * @param ctx - The bot context.
+ * @param callback - Callback function receiving user information.
+ */
+async function forwardFile(ctx: Context) {
+  const ticket = await db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory);
+  let ok = false;
+  if (!ticket || !ticket.status || ticket.status === 'closed') {
+    db.add(ctx.message.from.id, 'open', null, ctx.messenger);
+    ok = true;
+  }
+  if (ok || (ticket && ticket.status !== 'banned')) {
+    if (cache.ticketSent[cache.userId] === undefined) {
+      setTimeout(() => {
+        cache.ticketSent[cache.userId] = undefined;
+      }, cache.config.spam_time);
+      cache.ticketSent[cache.userId] = 0;
+      return forwardHandler(ctx);
+    } else if (cache.ticketSent[cache.userId] < cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId]++;
+      return forwardHandler(ctx);
+    } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId]++;
+      middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
     }
   }
-  forwardFile(ctx, function(userInfo: string) {
-    let receiverId = cache.config.staffchat_id;
-    let msgId = ctx.message.chat.id;
-    let isPrivate = false;
-
-    // if (userid === null || userid === undefined) {
-    //   return;
-    // }
-    // if admin
-    if (ctx.session.admin && userInfo === undefined) {
-      // null check here
-      if (userid != null) {
-        msgId = userid[1];
-      } else {
-        return;
-      }
-    }
-    db.getTicketById(
-        msgId,
-        ctx.session.groupCategory,
-        async function(ticket: any) {
-          if (ticket == undefined) {
-            if (ctx.session.admin && userInfo === undefined) {
-            // replying to closed ticket
-              middleware.reply(ctx, cache.config.language.ticketClosedError);
-            } else {
-              middleware.reply(ctx, cache.config.language.textFirst);
-            }
-            return;
-          }
-          let captionText =
-          cache.config.language.ticket +
-          ' #T' +
-          ticket.id.toString().padStart(6, '0') +
-          ' ' +
-          userInfo +
-          '\n' +
-          (ctx.message.caption || '');
-          if (ctx.session.admin && userInfo === undefined) {
-            receiverId = ticket.userid;
-            captionText = ctx.message.caption || '';
-          }
-          if (ctx.session.modeData.userid != null) {
-            receiverId = ctx.session.modeData.userid;
-            isPrivate = true;
-          }
-          const fileId = (await ctx.getFile()).file_id;
-          switch (type) {
-            case 'document':
-              bot.sendDocument(receiverId, fileId, {
-                caption: captionText,
-                reply_markup: isPrivate ? replyMarkup(ctx) : {},
-              });
-              if (
-                ctx.session.group !== '' &&
-              ctx.session.group !== cache.config.staffchat_id &&
-              ctx.session.modeData != {} as ModeData
-              ) {
-                bot.sendDocument(ctx.session.group, fileId, {
-                  caption: captionText,
-                  reply_markup: {
-                    html: '',
-                    inline_keyboard: [
-                      [
-                        {
-                          text: cache.config.language.replyPrivate,
-                          callback_data:
-                          ctx.from.id +
-                          '---' +
-                          ctx.message.from.first_name +
-                          '---' +
-                          ctx.session.groupCategory +
-                          '---' +
-                          ticket.id,
-                        },
-                      ],
-                    ],
-                  },
-                });
-              }
-              break;
-            case 'photo':
-              bot.sendPhoto(receiverId, fileId, {
-                caption: captionText,
-                reply_markup: isPrivate ? replyMarkup(ctx) : {},
-              });
-              if (
-                ctx.session.group !== '' &&
-              ctx.session.group !== cache.config.staffchat_id &&
-              ctx.session.modeData != {} as ModeData
-              ) {
-                bot.sendPhoto(ctx.session.group, fileId, {
-                  caption: captionText,
-                  reply_markup: {
-                    html: '',
-                    inline_keyboard: [
-                      [
-                        {
-                          text: cache.config.language.replyPrivate,
-                          callback_data:
-                          ctx.from.id +
-                          '---' +
-                          ctx.message.from.first_name +
-                          '---' +
-                          ctx.session.groupCategory +
-                          '---' +
-                          ticket.id,
-                        },
-                      ],
-                    ],
-                  },
-                });
-              }
-              break;
-            case 'video':
-              bot.sendVideo(receiverId, fileId, {
-                caption: captionText,
-                reply_markup: isPrivate ? replyMarkup(ctx) : {},
-              });
-              if (
-                ctx.session.group !== '' &&
-              ctx.session.group !== cache.config.staffchat_id &&
-              ctx.session.modeData != {} as ModeData
-              ) {
-                bot.sendVideo(ctx.session.group, fileId, {
-                  caption: captionText,
-                  reply_markup: {
-                    html: '',
-                    inline_keyboard: [
-                      [
-                        {
-                          text: cache.config.language.replyPrivate,
-                          callback_data:
-                          ctx.from.id +
-                          '---' +
-                          ctx.message.from.first_name +
-                          '---' +
-                          ctx.session.groupCategory +
-                          '---' +
-                          ticket.id,
-                        },
-                      ],
-                    ],
-                  },
-                });
-              }
-              break;
-          }
-          // Confirmation message
-          if (!cache.config.autoreply_confirmation) {
-            return;
-          }
-          let message =
-          cache.config.language.confirmationMessage +
-          (cache.config.show_user_ticket ?
-            cache.config.language.yourTicketId +
-            ' #T' +
-            ticket.id.toString().padStart(6, '0'):
-            '');
-          // if admin
-          if (ctx.session.admin && userInfo === undefined) {
-            const name = replyText.match(
-                new RegExp(
-                    cache.config.language.from +
-                ' ' +
-                '(.*)' +
-                ' ' +
-                cache.config.language.language,
-                ),
-            );
-            if (name == null && name == undefined) {
-              return;
-            }
-            message = `${cache.config.language.file_sent} ${name[1]}`;
-          }
-          middleware.sendMessage(ctx.chat.id, message);
-        },
-    );
-  });
-}
+};
 
 /**
- * Handle caching for sent files.
- * @param {context} ctx Bot context.
- * @param {callback} callback Bot callback.
+ * Determines if the message comes from a private chat and returns user info.
+ *
+ * @param ctx - The bot context.
+ * @param callback - Callback function receiving user info (or undefined).
  */
-function forwardFile(
-    ctx: Context,
-    callback: { (userInfo: any): void; (arg0: any): void },
-) {
-  db.getTicketById(
-      ctx.message.from.id,
-      ctx.session.groupCategory,
-      function(ticket: any) {
-        let ok = false;
-        if (
-          ticket == undefined ||
-        ticket.status == undefined ||
-        ticket.status == 'closed'
-        ) {
-          db.add(ctx.message.from.id, 'open', null);
-          ok = true;
-        }
-        if (ok || (ticket !== undefined && ticket.status !== 'banned')) {
-          if (cache.ticketSent[cache.ticketID] === undefined) {
-            fowardHandler(ctx, function(userInfo) {
-              callback(userInfo);
-            });
-            // wait 5 minutes before this message appears again and do not
-            // send notificatoin sounds in that time to avoid spam
-            setTimeout(function() {
-              cache.ticketSent[cache.ticketID] = undefined;
-            }, cache.config.spam_time);
-            cache.ticketSent[cache.ticketID] = 0;
-          } else if (
-            cache.ticketSent[cache.ticketID] < cache.config.spam_cant_msg
-          ) {
-            cache.ticketSent[cache.ticketID]++;
-            // TODO: add { parse_mode: cache.config.
-            // parse_mode }/* .notifications(false) */
-            // property for silent notifications
-            fowardHandler(ctx, function(userInfo) {
-              callback(userInfo);
-            });
-          } else if (
-            cache.ticketSent[cache.ticketID] === cache.config.spam_cant_msg
-          ) {
-            cache.ticketSent[cache.ticketID]++;
-            middleware.sendMessage(ctx.chat.id, cache.config.language.blockedSpam, {
+function forwardHandler(ctx: Context) {
+  if (ctx.chat.type === 'private') {
+    cache.userId = ctx.message.from.id;
+    const userInfo = `${cache.config.language.from} ${ctx.message.from.first_name} ${cache.config.language.language}: ${ctx.message.from.language_code}\n\n`;
+    return userInfo;
+  } else {
+    return undefined;
+  }
+};
 
-            });
-          }
-        }
-      },
-  );
-}
-
-/**
- * Check if msg comes from user or admin.
- * @param {context} ctx Bot context.
- * @param {callback} callback Bot callback.
- */
-function fowardHandler(
-    ctx: Context,
-    callback: {
-    (userInfo: any): void;
-    (userInfo: any): void;
-    (arg0: undefined): void;
-  },
-) {
-  let userInfo;
-  ctx.getChat().then(function(chat: { type: string }) {
-    if (chat.type === 'private') {
-      cache.ticketID = ctx.message.from.id;
-      userInfo =
-        `${cache.config.language.from} ${ctx.message.from.first_name} ` +
-        `${cache.config.language.language}: ` +
-        `${ctx.message.from.language_code}\n\n`;
-
-      if (ctx.session.group === undefined) {
-        userInfo =
-          `${cache.config.language.from} ${ctx.message.from.first_name} ` +
-          `${cache.config.language.language}: ` +
-          `${ctx.message.from.language_code}\n\n`;
-      }
-      callback(userInfo);
-    } else {
-      callback(undefined);
-    }
-  });
-}
-
-export {fileHandler, forwardFile, fowardHandler};
+export { fileHandler, forwardFile, forwardHandler };

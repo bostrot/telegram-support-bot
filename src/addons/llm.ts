@@ -11,7 +11,7 @@ const llm = openai(
     }
 );
 
-async function getResponseFromLLM(ctx: Context): Promise<string> {
+async function getResponseFromLLM(ctx: Context): Promise<string | null> {
     const systemPrompt = `You are a Support Agent. You have been assigned to help 
     the user based on the message and only the provided knowledge base. If the knowledge base
     does not contain the information needed to answer the user's question, you should respond
@@ -21,13 +21,20 @@ async function getResponseFromLLM(ctx: Context): Promise<string> {
     ${cache.config.llm_knowledge}
     """
     `;
-   
-    const response = await llm.chat({
-        messages: [
-            { content: systemPrompt, role: "system" },
-            { content: ctx.message.text, role: "user" }
-        ],
-    });
+
+    var response = null
+    try {
+        response = await llm.chat({
+            messages: [
+                { content: systemPrompt, role: "system" },
+                { content: ctx.message.text, role: "user" }
+            ],
+        });
+    }
+    catch (error) {
+        console.error("Error in LLM response:", error);
+        return null;
+    }
 
     const message = response.message.content.toString();
     if (message === "null" || message === "Null" || message === null) {

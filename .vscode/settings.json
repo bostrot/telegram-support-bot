@@ -3,4 +3,8 @@
         "./src",
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
+    "jest.jestCommandLine": "npm run test --",
+    "jest.runMode": "watch",
+    "jest.enableInlineErrorMessages": true,
+    "jest.runAllTestsFirst": true
 }

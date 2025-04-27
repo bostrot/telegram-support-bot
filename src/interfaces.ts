@@ -1,13 +1,13 @@
 import TelegramAddon from './addons/telegram';
 
-interface ModeData {
+export interface ModeData {
   ticketid: string;
   userid: string | number;
   name: any;
   category: string;
 }
 
-interface SessionData {
+export interface SessionData {
   admin: boolean | null;
   mode: string | null;
   modeData: ModeData;
@@ -19,12 +19,12 @@ interface SessionData {
   getSessionKey: Function;
 }
 
-interface Autoreply {
+export interface Autoreply {
   question: string;
   answer: string;
 }
 
-interface Language {
+export interface Language {
   startCommandText: string;
   faqCommandText: string;
   helpCommandText: string;
@@ -71,7 +71,7 @@ interface Language {
   autoreply: Autoreply[];
 }
 
-interface Category {
+export interface Category {
   name: string;
   msg: string;
   tag: string;
@@ -82,43 +82,53 @@ interface Category {
   }[];
 }
 
-interface Config {
+export enum ParseMode {
+  HTML = 'HTML',
+  Markdown = 'Markdown',
+  MarkdownV2 = 'MarkdownV2',
+  PLAINTEXT = 'plaintext',
+}
+
+export class Config {
   bot_token: string;
   spam_cant_msg: number;
   staffchat_id: string | number;
+  staffchat_type: Messenger = Messenger.TELEGRAM;
+  staffchat_parse_mode: ParseMode = ParseMode.MarkdownV2;
   owner_id: string;
-  spam_time: number;
-  parse_mode: string;
-  allow_private: boolean;
-  direct_reply: boolean;
-  auto_close_tickets: boolean;
-  anonymous_tickets: boolean;
-  anonymous_replies: boolean;
-  show_auto_replied: boolean;
-  signal_enabled: boolean;
-  signal_number: string;
-  web_server: boolean;
-  web_server_port: number;
-  web_server_ssl_cert: string;
-  web_server_ssl_key: string;
-  dev_mode: boolean;
-  show_user_ticket: boolean;
+  spam_time: number = 5;
+  parse_mode: string = ParseMode.MarkdownV2;
+  allow_private: boolean = false;
+  direct_reply: boolean = false;
+  auto_close_tickets: boolean = false;
+  anonymous_tickets: boolean = false;
+  anonymous_replies: boolean = false;
+  show_auto_replied: boolean = true;
+  signal_enabled: boolean = false;
+  signal_number: string = '';
+  signal_host: string = 'signal-cli:40153';
+  web_server: boolean = false;
+  web_server_port: number = 3000;
+  web_server_ssl_cert: string = '';
+  web_server_ssl_key: string = '';
+  dev_mode: boolean = false;
+  show_user_ticket: boolean = false;
   language: Language;
-  autoreply_confirmation: boolean;
+  autoreply_confirmation: boolean = true;
   autoreply: Autoreply[];
-  clean_replies: boolean;
-  pass_start: boolean;
-  categories: Category[];
-  mongodb_uri: string;
-  use_llm: boolean;
+  clean_replies: boolean = false;
+  pass_start: boolean = false;
+  categories: Category[] = [];
+  mongodb_uri: string = 'mongodb://mongodb:27017/support';
+  use_llm: boolean = false;
   llm_api_key: string;
   llm_base_url: string;
   llm_model: string;
   llm_knowledge: string;
 }
 
-interface Cache {
-  ticketID: string;
+export interface Cache {
+  userId: string;
   ticketIDs: any;
   ticketStatus: any;
   ticketSent: any;
@@ -126,14 +136,14 @@ interface Cache {
   noSound: string;
   markdown: string;
   io: any;
-  bot: TelegramAddon;
   config: Config;
 }
 
 /**
  * Context
  */
-class Context {
+export class Context {
+  messenger: Messenger = null;
   update_id: number;
   message: {
     web_msg: boolean;
@@ -158,6 +168,9 @@ class Context {
       text: string;
       caption: string;
     };
+    external_reply: {
+      message_id: number,
+    },
     getFile?: any;
     caption: string;
   };
@@ -177,4 +190,69 @@ class Context {
   getFile: Function;
 }
 
-export {SessionData, Context, Language, Config, Cache, ModeData};
+export interface Addon {
+  /**
+   * Sends a text message.
+   * @param chatId The target chat identifier.
+   * @param text The text message to send.
+   * @param options Optional parameters.
+   */
+  sendMessage(chatId: string | number, text: string, options?: any): void | Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends a photo.
+   * @param chatId The target chat identifier.
+   * @param photo The photo content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendPhoto(chatId: string | number, photo: any, options?: any): void | Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends a document.
+   * @param chatId The target chat identifier.
+   * @param document The document content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendDocument(chatId: string | number, document: any, options?: any): void | Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends a video.
+   * @param chatId The target chat identifier.
+   * @param video The video content to send.
+   * @param options Optional parameters (e.g. caption, recipients).
+   */
+  sendVideo(chatId: string | number, video: any, options?: any): void | Promise<void> | Promise<string | null>;
+
+  /**
+   * Registers a command handler.
+   * @param command The command string (e.g. 'start', 'help').
+   * @param callback The function to handle the command.
+   */
+  command(command: string, callback: (ctx: any) => void): void;
+
+  /**
+   * Registers an event handler.
+   * @param event The event name or an array of event names.
+   * @param callback The function to handle the event.
+   */
+  on(event: string | string[], callback: (ctx: any) => void): void;
+
+  /**
+   * Starts the addon (e.g. begin processing incoming messages).
+   */
+  start(): void;
+
+  /**
+   * Sets up an error handler.
+   * @param handler The error handler function.
+   */
+  catch(handler: (error: any, ctx?: any) => void): void;
+}
+
+export enum Messenger {
+  TELEGRAM = 'telegram',
+  SIGNAL = 'signal',
+  WEB = 'web',
+}
+
+

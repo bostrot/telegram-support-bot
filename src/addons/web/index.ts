@@ -1,8 +1,9 @@
-import fakectx from './fakectx';
-import {ticketHandler} from '../text';
-import cache from '../cache';
-import TelegramAddon from './telegram';
+import fakectx from '../fakectx';
+import {ticketHandler} from '../../text';
+import cache from '../../cache';
+import TelegramAddon from '../telegram';
 import rateLimit from 'express-rate-limit';
+import * as log from 'fancy-log'
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>
@@ -55,11 +56,11 @@ const init = function(bot: TelegramAddon) {
             fakectx.message.text = msg;
             ticketHandler(bot, fakectx);
           });
-          socket.on('disconnect', () => console.log('Disconnected'));
+          socket.on('disconnect', () => log.info('Disconnected'));
         },
     );
 
-    server.listen(8080, () => console.log(`Server started on port ${port}`));
+    server.listen(8080, () => log.info(`Server started on port ${port}`));
   }
 };
 

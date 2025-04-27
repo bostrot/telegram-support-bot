@@ -15,7 +15,18 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - ./.tmp/mongodb_data:/data/db 
+
+  signal-cli:
+    image: bbernhard/signal-cli-rest-api:latest
+    platform: linux/amd64
+    environment:
+      - MODE=json-rpc #supported modes: json-rpc, native, normal
+      #- AUTO_RECEIVE_SCHEDULE=0 22 * * * #enable this parameter on demand (see description below)
+    ports:
+      - "40153:8080"
+    volumes:
+      - signal:/home/.local/share/signal-cli
 
   # mongodb web interface
   mongo-express:
@@ -31,3 +42,4 @@ services:
 
 volumes:
   mongodb_data:
+  signal:

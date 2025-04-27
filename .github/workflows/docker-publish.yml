@@ -2,8 +2,8 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 
 jobs:
   build-and-push:
@@ -30,5 +30,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: bostrot/telegram-support-bot:latest
+          tags: |
+            bostrot/telegram-support-bot:latest
+            bostrot/telegram-support-bot:${{ github.ref_name }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
