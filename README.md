@@ -1,4 +1,4 @@
-<h1 align="center">Welcome to Telegram Support Bot 👋</h1>
+<h1 align="center">Welcome to Telegram Support Bot 👋 (now also with Signal)</h1>
 
 [![Bot API Version](https://img.shields.io/badge/Bot%20API-v6.6-f36caf.svg?style=for-the-badge)](https://core.telegram.org/bots/api)
 [![NPM Version](https://img.shields.io/npm/v/grammy.svg?style=for-the-badge)](https://www.npmjs.com/)
@@ -6,7 +6,7 @@
 ![js-google-style](https://img.shields.io/badge/code%20style-google-brightgreen.svg?style=for-the-badge)
 [![Documentation](https://img.shields.io/badge/DOCUMENTATION-WIKI-green?style=for-the-badge)](https://github.com/bostrot/telegram-support-bot/wiki)
 
-> TSB is a support bot for telegram bots, using the [grammY Framework](https://grammy.dev/). It lets users create tickets which will be sent to a staff group and can be answered by a reply.  
+> TSB is a support bot for Telegram and Signal, using the [grammY Framework](https://grammy.dev/). It lets users create tickets which will be sent to a staff group and can be answered by a reply.  
 > Now also supports LLMs (e.g. OpenAI) to automatically assist users.
 
 <table>
@@ -31,6 +31,7 @@ When a user sends a message to the support chat it will create a ticket which wi
 - [x] Anonymize users
 - [x] Auto reply based on keywords [beta]
 - [x] Web chat [beta]
+- [x] **Staff groups can now be on Telegram _or_ Signal**
 - [x] **LLM support (OpenAI, OpenAI-compatible APIs)** – generate automatic responses using large language models
 
 ## 🤖 OpenAi Integration
@@ -68,7 +69,7 @@ User commands:
 - `/start` - tells the user how to use this bot
 - `/help` - an overview over the commands or some explanation for the user
 - `/faq` - shows the FAQ
-- `/id` - returns your telegram id and the group chat id (1234567 -1234567890)
+- `/id` - returns your Telegram or Signal id and the group chat id
 
 ## 📦 Install
 
