@@ -14,7 +14,7 @@ const strictEscape = (str: string): string => {
   switch (parse_mode) {
     case 'MarkdownV2':
       // Escape all special MarkdownV2 characters
-      return str.replace(/([[\]()_*~`>#+\-=\|{}.!])/g, '\\$1');
+      return str.replace(/([[\]()_*~`>#+\-=\|{}.!\\])/g, '\\$1');
     case 'HTML':
       return str
         .replace(/&/g, '&amp;')
