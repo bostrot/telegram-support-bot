@@ -11,7 +11,7 @@ const llm = openai(
     }
 );
 
-async function getResponseFromLLM(ctx: Context): Promise<string> {
+async function getResponseFromLLM(ctx: Context): Promise<string | null> {
     const systemPrompt = `You are a Support Agent. You have been assigned to help 
     the user based on the message and only the provided knowledge base. If the knowledge base
     does not contain the information needed to answer the user's question, you should respond
