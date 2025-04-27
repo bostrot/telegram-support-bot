@@ -143,7 +143,10 @@ export const addIdAndName = async (
   internalId: string,
   name: string | null,
 ) => {
-  const internalIdNum = parseInt(internalId);;
+  if (!internalId) {
+    return null;
+  }
+  const internalIdNum = parseInt(internalId);
   const query = {
     ticketId: ticketId,
   };
