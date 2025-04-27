@@ -61,13 +61,6 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   let receiverId: string | number = config.staffchat_id;
   let isPrivate = false;
 
-  // For admin replies without userInfo, override msgId from the extracted ticket info
-  if (session.admin && userInfo === undefined) {
-    if (userid) {
-      return;
-    }
-  }
-
   const ticket = await db.getTicketByUserId(userid, session.groupCategory);
   if (!ticket) {
     if (session.admin && userInfo === undefined) {
