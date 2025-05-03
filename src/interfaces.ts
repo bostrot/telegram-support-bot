@@ -125,6 +125,11 @@ export class Config {
   llm_base_url: string;
   llm_model: string;
   llm_knowledge: string;
+  llm_base_prompt: string = `You are a Support Agent. You have been assigned to help 
+      the user based on the message and only the provided knowledge base. If the knowledge base
+      does not contain the information needed to answer the user's question, you should respond
+      with "null". Answer truthfully and to the best of your ability. Answer without
+      salutation and greetings.`;
 }
 
 export interface Cache {

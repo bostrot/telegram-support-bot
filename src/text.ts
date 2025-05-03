@@ -67,10 +67,26 @@ export async function ticketHandler(bot: Addon, ctx: Context): Promise<ISupporte
   const { chat, message, session, messenger } = ctx;
   // For private chats, check for an existing ticket; otherwise, create one.
   if (chat.type === 'private') {
-    const ticket = await db.getTicketByUserId(message.from.id, session.groupCategory)
+    let ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
     if (!ticket) {
-      db.add(message.from.id, 'open', session.groupCategory, messenger);
+      await db.add(message.from.id, 'open', session.groupCategory, messenger);
+      ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
     }
+
+    // Add message to the Message collection
+    if (ticket) {
+      await db.addMessage({
+        ticketId: ticket.ticketId,
+        userId: String(message.from.id),
+        name: message.from.first_name || null,
+        messageId: message.message_id,
+        messenger,
+        message: message.text,
+        date: new Date(message.date * 1000),
+        type: 'user'
+      });
+    }
+
     users.chat(ctx, message.chat);
     return ticket;
   }

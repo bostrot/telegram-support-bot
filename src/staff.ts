@@ -3,7 +3,7 @@ import * as middleware from './middleware';
 import * as db from './db';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
-import * as log from 'fancy-log'
+import * as log from 'fancy-log';
 
 /**
  * Generates a ticket message.
@@ -118,7 +118,6 @@ async function chat(ctx: Context) {
     ticket = await db.getTicketByInternalId(replyMessageId);
   } else {
     ticketId = parseInt(await extractTicketId(replyText, ctx));
-    
     if (!ticketId) return;
     ticket = await db.getTicketById(ticketId, ctx.session.groupCategory);
   }
@@ -127,6 +126,7 @@ async function chat(ctx: Context) {
     middleware.reply(ctx, cache.config.language.ticketClosedError);
     return;
   }
+
   var name;
   if (ticket.name) {
     name = ticket.name;
@@ -154,6 +154,19 @@ async function chat(ctx: Context) {
   } else {
     middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
   }
+
+  // Save staff message to database
+  await db.addMessage({
+    ticketId: ticket.ticketId,
+    userId: String(ctx.message.from.id),
+    name: ctx.message.from.first_name || null,
+    messageId: ctx.message.message_id,
+    messenger: ticket.messenger,
+    message: ctx.message.text,
+    date: new Date(ctx.message.date * 1000),
+    type: 'staff'
+  });
+
   const esc = middleware.strictEscape;
   middleware.sendMessage(
     ctx.chat.id,
@@ -165,7 +178,7 @@ async function chat(ctx: Context) {
 
   // Auto-close the ticket if enabled
   if (cache.config.auto_close_tickets) {
-      db.add(ticketId, 'closed', null, ticket.messenger);
+      db.add(ticket.ticketId, 'closed', null, ticket.messenger);
   }
 }
 

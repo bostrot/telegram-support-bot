@@ -1,11 +1,12 @@
 import mongoose from 'mongoose';
 import cache from './cache';
 import { Messenger } from './interfaces';
-import * as log from 'fancy-log'
+import * as log from 'fancy-log';
 
 const MONGO_URI = cache.config.mongodb_uri || process.env.MONGO_URI || 'mongodb://localhost:27017/support';
 const botTokenSuffix = cache.config.bot_token.slice(-5);
 const collectionName = `bot_${cache.config.owner_id}_${botTokenSuffix}`;
+const collectionNameMessages = `messages_${cache.config.owner_id}_${botTokenSuffix}`;
 
 export interface ISupportee extends mongoose.Document {
   ticketId: number;
@@ -17,6 +18,28 @@ export interface ISupportee extends mongoose.Document {
   category: string | null;
 }
 
+export interface IMessage extends mongoose.Document {
+  ticketId: number;
+  userId: string;
+  name: string | null;
+  messageId: number;
+  messenger: Messenger;
+  message: string;
+  date: Date;
+  type: 'staff' | 'user';
+}
+
+export type IMessageData = {
+  ticketId: number;
+  userId: string;
+  name: string | null;
+  messageId: number;
+  messenger: Messenger;
+  message: string;
+  date: Date;
+  type: 'staff' | 'user';
+};
+
 export const SupporteeSchema = new mongoose.Schema<ISupportee>({
   ticketId: { type: Number, required: true, unique: true, alias: 'id' },
   userid: { type: String, required: true },
@@ -27,7 +50,19 @@ export const SupporteeSchema = new mongoose.Schema<ISupportee>({
   category: { type: String, default: null },
 });
 
+export const MessageSchema = new mongoose.Schema<IMessage>({
+  ticketId: { type: Number, required: true },
+  userId: { type: String, required: true },
+  name: { type: String, required: false },
+  messageId: { type: Number, required: true },
+  messenger: { type: String, required: true },
+  message: { type: String, required: true },
+  date: { type: Date, default: Date.now },
+  type: { type: String, enum: ['staff', 'user'], required: true },
+});
+
 const Supportee = mongoose.model(collectionName, SupporteeSchema);
+const Message = mongoose.model(collectionNameMessages, MessageSchema);
 
 export async function connect() {
   mongoose.connection.on('open', () => {
@@ -46,13 +81,13 @@ export async function connect() {
   return connection;
 }
 
-/** Methods **/
+/** Supportee Methods **/
 
 export const getNextTicketId = async () => {
   const lastEntry = await Supportee.findOne()
     .sort({ ticketId: -1 })
     .select('ticketId');
-  return lastEntry ? lastEntry.ticketId + 1 : 1; // Start from 1 if no entries
+  return lastEntry ? lastEntry.ticketId + 1 : 1;
 };
 
 export const check = async (
@@ -80,7 +115,7 @@ export async function getTicketById(
   return result as ISupportee | null;
 };
 
-export async function getTicketByInternalId (
+export async function getTicketByInternalId(
   internalId: number
 ): Promise<ISupportee | null> {
   const query = {
@@ -90,7 +125,7 @@ export async function getTicketByInternalId (
   return result as ISupportee | null;
 }
 
-export async function getTicketByUserId (
+export async function getTicketByUserId(
   userId: string | number,
   category: string | null
 ) {
@@ -143,21 +178,14 @@ export const addIdAndName = async (
   internalId: string,
   name: string | null,
 ) => {
-  if (!internalId) {
-    return null;
-  }
+  if (!internalId) return null;
   const internalIdNum = parseInt(internalId);
-  const query = {
-    ticketId: ticketId,
-  };
+  const query = { ticketId: ticketId };
   const update = {
     $addToSet: { internalIds: internalIdNum },
     $set: { name },
   };
-  return await Supportee.findOneAndUpdate(query, update, {
-    new: true,
-    upsert: true,
-  });
+  return await Supportee.findOneAndUpdate(query, update, { new: true, upsert: true });
 };
 
 export const add = async (
@@ -209,4 +237,27 @@ export const open = async (
   };
   const result = await Supportee.find(query);
   callback(result);
+};
+
+/** Message Methods **/
+
+export const addMessage = async (msg: IMessageData) => {
+  const message = new Message(msg);
+  return await message.save();
+};
+
+export const getMessagesByTicketId = async (ticketId: number) => {
+  return await Message.find({ ticketId }).sort({ date: 1 });
+};
+
+export const getMessagesByUserId = async (userId: string) => {
+  return await Message.find({ userId }).sort({ date: 1 });
+};
+
+export const deleteMessagesByTicketId = async (ticketId: number) => {
+  return await Message.deleteMany({ ticketId });
+};
+
+export const getLastMessage = async (ticketId: number) => {
+  return await Message.findOne({ ticketId }).sort({ date: -1 });
 };

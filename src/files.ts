@@ -46,7 +46,6 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   let userid: string | null;
   let replyText = '';
 
-  // If replying to a message and if the session is admin, extract ticket info
   if (message && message.reply_to_message?.text && session.admin) {
     replyText = message.reply_to_message.text || message.reply_to_message.caption;
     if (!replyText) return;
@@ -71,9 +70,7 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
     return;
   }
 
-  let captionText = `${config.language.ticket} #T${ticket.id
-    .toString()
-    .padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
+  let captionText = `${config.language.ticket} #T${ticket.id.toString().padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
   if (session.admin && userInfo === undefined) {
     receiverId = ticket.userid;
     captionText = message.caption || '';
@@ -89,87 +86,39 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
     reply_markup: isPrivate ? replyMarkup(ctx) : {},
   };
 
-  // Send the file based on its type
-  var messageId = null;
+  let messageId = null;
   switch (type) {
     case 'document':
       messageId = await bot.sendDocument(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendDocument(session.group, fileId, {
-          caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
-      } 
       break;
     case 'photo':
       messageId = await bot.sendPhoto(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendPhoto(session.group, fileId, {
-          caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
-      }
       break;
     case 'video':
       messageId = await bot.sendVideo(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendVideo(session.group, fileId, {
-          caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
-      }
       break;
   }
+
+  // Save message to DB if we have a ticket and a messageId
+  if (ticket && messageId) {
+    await db.addMessage({
+      ticketId: ticket.ticketId,
+      userId: String(ctx.message.from.id),
+      name: ctx.message.from.first_name || null,
+      messageId,
+      messenger: ticket.messenger,
+      message: captionText,
+      date: new Date(ctx.message.date * 1000),
+      type: session.admin ? 'staff' : 'user'
+    });
+  }
+
   db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
 
-  // Send confirmation message if enabled
   if (!config.autoreply_confirmation) return;
   let confirmationMessage = `${config.language.confirmationMessage}${config.show_user_ticket
     ? config.language.yourTicketId + ' #T' + ticket.id.toString().padStart(6, '0')
-    : ''
-    }`;
+    : ''}`;
   if (session.admin && userInfo === undefined) {
     const nameMatch = replyText.match(
       new RegExp(`${config.language.from} (.*) ${config.language.language}`)
