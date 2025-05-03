@@ -56,7 +56,7 @@ function createAutoReplyMessage(msg: string, ctx: Context): string {
  * @param ctx - Bot context.
  * @returns True if an auto-reply was sent; otherwise, false.
  */
-async function autoReply(ctx: Context): Promise<boolean> {
+async function autoReply(ctx: Context): Promise<String | null> {
   const {
     config: { autoreply, use_llm },
   } = cache;
@@ -66,8 +66,9 @@ async function autoReply(ctx: Context): Promise<boolean> {
     // Check common auto-reply questions
     for (const autoReplyItem of autoreply) {
       if (messageText.includes(autoReplyItem.question)) {
-        reply(ctx, createAutoReplyMessage(autoReplyItem.answer, ctx));
-        return true;
+        const replyText = autoReplyItem.answer;
+        reply(ctx, createAutoReplyMessage(replyText, ctx));
+        return replyText;
       }
     }
   }
@@ -77,10 +78,10 @@ async function autoReply(ctx: Context): Promise<boolean> {
     const response = await llm.getResponseFromLLM(ctx);
     if (response !== null) {
       reply(ctx, createAutoReplyMessage(response, ctx));
-      return true;
+      return response;
     }
   }
-  return false;
+  return null;
 }
 
 /**
@@ -175,9 +176,14 @@ async function processTicket(
 async function chat(ctx: Context, chat: { id: string }) {
   const { config } = cache;
   cache.userId = ctx.message.from.id;
-  const isAutoReply = await autoReply(ctx);
-  if (isAutoReply && !config.show_auto_replied) return;
-  const autoReplyInfo = isAutoReply ? config.language.automatedReplySent : undefined;
+  const autoReplyText = await autoReply(ctx);
+  var staffAutoReplyInfo = null;
+  if (autoReplyText != null) {
+    if (!config.show_auto_replied) {
+      return;
+    }
+    staffAutoReplyInfo = `${config.language.automatedReplySent}:\n\n${autoReplyText}`;
+  }
 
   // Ensure the user's ticket is tracked
   if (cache.ticketIDs[cache.userId] === undefined) {
@@ -188,7 +194,7 @@ async function chat(ctx: Context, chat: { id: string }) {
   // If no ticket has been sent yet, fetch from DB and set up spam timer
   if (cache.ticketSent[cache.userId] === undefined) {
     const ticket = await db.getTicketByUserId(chat.id, ctx.session.groupCategory);
-    processTicket(ticket, ctx, chat.id, autoReplyInfo);
+    processTicket(ticket, ctx, chat.id, staffAutoReplyInfo);
 
     // Prevent multiple notifications for a period defined by spam_time
     setTimeout(() => {
@@ -204,7 +210,7 @@ async function chat(ctx: Context, chat: { id: string }) {
       formatMessageAsTicket(
         ticket.ticketId,
         ctx,
-        autoReplyInfo,
+        staffAutoReplyInfo,
       ),
     );
     if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
@@ -214,7 +220,7 @@ async function chat(ctx: Context, chat: { id: string }) {
         formatMessageAsTicket(
           ticket.ticketId,
           ctx,
-          autoReplyInfo,
+          staffAutoReplyInfo,
         ),
       );
     }
@@ -229,7 +235,7 @@ async function chat(ctx: Context, chat: { id: string }) {
     formatMessageAsTicket(
       ticket.ticketId,
       ctx,
-      autoReplyInfo,
+      staffAutoReplyInfo,
     ),
   );
 }
