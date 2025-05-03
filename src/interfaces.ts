@@ -130,6 +130,7 @@ export class Config {
       does not contain the information needed to answer the user's question, you should respond
       with "null". Answer truthfully and to the best of your ability. Answer without
       salutation and greetings.`;
+  llm_model_embedding: string = "";
 }
 
 export interface Cache {

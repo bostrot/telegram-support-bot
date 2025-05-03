@@ -22,7 +22,7 @@ export interface IMessage extends mongoose.Document {
   ticketId: number;
   userId: string;
   name: string | null;
-  messageId: number;
+  messageId: number | null;
   messenger: Messenger;
   message: string;
   date: Date;
@@ -33,7 +33,7 @@ export type IMessageData = {
   ticketId: number;
   userId: string;
   name: string | null;
-  messageId: number;
+  messageId: number | null;
   messenger: Messenger;
   message: string;
   date: Date;
@@ -54,7 +54,7 @@ export const MessageSchema = new mongoose.Schema<IMessage>({
   ticketId: { type: Number, required: true },
   userId: { type: String, required: true },
   name: { type: String, required: false },
-  messageId: { type: Number, required: true },
+  messageId: { type: Number },
   messenger: { type: String, required: true },
   message: { type: String, required: true },
   date: { type: Date, default: Date.now },
@@ -247,11 +247,11 @@ export const addMessage = async (msg: IMessageData) => {
 };
 
 export const getMessagesByTicketId = async (ticketId: number) => {
-  return await Message.find({ ticketId }).sort({ date: 1 });
+  return await Message.find({ ticketId }).sort({ date: "desc" }).limit(10);
 };
 
 export const getMessagesByUserId = async (userId: string) => {
-  return await Message.find({ userId }).sort({ date: 1 });
+  return await Message.find({ userId }).sort({ date: "desc" });
 };
 
 export const deleteMessagesByTicketId = async (ticketId: number) => {
@@ -259,5 +259,5 @@ export const deleteMessagesByTicketId = async (ticketId: number) => {
 };
 
 export const getLastMessage = async (ticketId: number) => {
-  return await Message.findOne({ ticketId }).sort({ date: -1 });
+  return await Message.findOne({ ticketId }).sort({ date: "desc" });
 };
