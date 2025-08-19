@@ -5,6 +5,7 @@ jest.mock('../src/cache', () => ({
         language: {
             dear: 'Dear',
             regards: 'Regards',
+            regardsGroup: 'Support Team',
             ticket: 'Ticket',
             from: 'from',
             language: 'en',
@@ -13,14 +14,19 @@ jest.mock('../src/cache', () => ({
             openTickets: 'Open Tickets',
             closed: 'closed',
             ticketClosed: 'Ticket closed.',
+            ticketClosedError: 'Ticket not found or already closed.',
             faqCommandText: 'FAQ text',
             links: 'Links',
             startCommandText: 'Start text',
             services: 'Services',
             prvChatOnly: 'Private chat only',
             back: 'Back',
+            msg_sent: 'Message sent',
         },
         dev_mode: false,
+        clean_replies: false,
+        anonymous_replies: false,
+        staffchat_type: 'telegram',
         autoreply: [],
         direct_reply: true,
         categories: [
@@ -29,6 +35,7 @@ jest.mock('../src/cache', () => ({
         ],
         pass_start: false,
         show_auto_replied: true,
+        auto_close_tickets: false,
     },
     ticketIDs: [],
     ticketStatus: [],
@@ -44,6 +51,7 @@ jest.mock('../src/db', () => ({
     getTicketById: jest.fn((id, group, callback) =>
         callback({ id: 1, userid: 456, category: 'test' })
     ),
+    getTicketByInternalId: jest.fn(),
     getByTicketId: jest.fn((ticketId, callback) =>
         callback({ userid: 789, id: { toString: () => ticketId } })
     ),

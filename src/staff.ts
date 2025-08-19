@@ -116,6 +116,9 @@ async function chat(ctx: Context) {
   var ticketId;
   if (replyMessageId) {
     ticket = await db.getTicketByInternalId(replyMessageId);
+    if (ticket) {
+      ticketId = ticket.ticketId;
+    }
   } else {
     ticketId = parseInt(await extractTicketId(replyText, ctx));
     
