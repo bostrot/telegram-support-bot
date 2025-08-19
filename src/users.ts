@@ -62,7 +62,7 @@ async function autoReply(ctx: Context): Promise<boolean> {
   } = cache;
   const messageText = ctx.message.text.toString();
 
-  if (autoreply && autoreply.length > 0 && autoreply.at(0)?.question) {
+  if (autoreply && autoreply.length > 0 && autoreply[0]?.question) {
     // Check common auto-reply questions
     for (const autoReplyItem of autoreply) {
       if (messageText.includes(autoReplyItem.question)) {

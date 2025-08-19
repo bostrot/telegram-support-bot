@@ -1,15 +1,11 @@
 import { Context } from '../interfaces';
-import { openai } from "@llamaindex/openai";
+import OpenAI from 'openai';
 import cache from '../cache';
 
-const llm = openai(
-    {
-        model: cache.config.llm_model,
-        reasoningEffort: "low",
-        apiKey: cache.config.llm_api_key,
-        baseURL: cache.config.llm_base_url,
-    }
-);
+const llm = new OpenAI({
+    apiKey: cache.config.llm_api_key,
+    baseURL: cache.config.llm_base_url,
+});
 
 async function getResponseFromLLM(ctx: Context): Promise<string | null> {
     const systemPrompt = `You are a Support Agent. You have been assigned to help 
@@ -24,24 +20,24 @@ async function getResponseFromLLM(ctx: Context): Promise<string | null> {
 
     var response = null
     try {
-        response = await llm.chat({
+        response = await llm.chat.completions.create({
+            model: cache.config.llm_model || 'gpt-3.5-turbo',
             messages: [
                 { content: systemPrompt, role: "system" },
                 { content: ctx.message.text, role: "user" }
             ],
         });
+
+        const message = response.choices[0]?.message?.content;
+        if (message === "null" || message === "Null" || message === null) {
+            return null
+        }
+        return message;
     }
     catch (error) {
         console.error("Error in LLM response:", error);
         return null;
     }
-
-    const message = response.message.content.toString();
-    if (message === "null" || message === "Null" || message === null) {
-        return null
-    }
-
-    return message;
 }
 
 export { getResponseFromLLM };
