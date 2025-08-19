@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+// Dynamically require better-sqlite3 to make it optional and avoid native build errors
 import mongoose, { Model } from 'mongoose';
 import cache from './cache';
 import { ISupportee, SupporteeSchema } from './db';
@@ -12,7 +12,14 @@ const Supportee: Model<ISupportee> =
   mongoose.model<ISupportee>(collectionName, SupporteeSchema);
 
 export const migrateData = async () => {
-  const sqliteDb = new Database('./config/support.db');
+  let sqliteDb;
+  try {
+    const Database = require('better-sqlite3');
+    sqliteDb = new Database('./config/support.db');
+  } catch (err) {
+    // better-sqlite3 not available, skip migration
+    return;
+  }
   await mongoose.connect(MONGO_URI);
 
   try {
