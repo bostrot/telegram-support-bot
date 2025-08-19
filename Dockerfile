@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18.4-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /bot
 
@@ -19,13 +19,16 @@ COPY ./tsconfig.json /bot/tsconfig.json
 RUN npm run build
 
 # Production stage
-FROM node:18.4-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /bot
 
 # Copy package files
 COPY ./package.json /bot/package.json
 COPY ./package-lock.json /bot/package-lock.json
+
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 build-base
 
 # Install only production dependencies
 RUN npm ci --only=production && npm cache clean --force
