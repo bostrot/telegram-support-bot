@@ -28,6 +28,9 @@ const fakectx: Context = {
       text: '',
       caption: '',
     },
+    external_reply: {
+      message_id: 0,
+    },
     getFile: () => {},
     caption: '',
   },
