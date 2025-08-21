@@ -74,7 +74,7 @@ function privateReply(ctx: Context, msg: any = {}) {
  * @param replyText - The text from which to extract the ticket ID.
  * @returns The extracted ticket ID or null if not found.
  */
-async function extractTicketId(replyText: string, ctx: Context): Promise<string | null> {
+function extractTicketId(replyText: string, ctx: Context): string | null {
   const { language } = cache.config;
   let match = replyText.match(new RegExp(`#T(.*) ${language.from}`));
   if (!match) {
