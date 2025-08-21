@@ -5,29 +5,6 @@ const mockAdd = jest.fn();
 const mockCheckBan = jest.fn();
 const mockGetTicketByUserId = jest.fn();
 const mockChat = jest.fn();
-
-jest.mock('../src/middleware', () => ({
-  reply: mockReply,
-  sendMessage: mockSendMessage,
-}));
-
-jest.mock('../src/db', () => ({
-  add: mockAdd,
-  checkBan: mockCheckBan,
-  getTicketByUserId: mockGetTicketByUserId,
-}));
-
-jest.mock('../src/users', () => ({
-  chat: mockChat,
-}));
-
-// Mock dependencies
-const mockReply = jest.fn();
-const mockSendMessage = jest.fn();
-const mockAdd = jest.fn();
-const mockCheckBan = jest.fn();
-const mockGetTicketByUserId = jest.fn();
-const mockChat = jest.fn();
 const mockPrivateReply = jest.fn();
 const mockStaffChat = jest.fn();
 
