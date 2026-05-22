@@ -12,11 +12,11 @@
     "bugs": {
         "url": "https://github.com/bostrot/telegram-support-bot/issues"
     },
-    "main": "build/src/index.js",
+    "main": "build/index.js",
     "scripts": {
         "tsc": "tsc",
         "dev": "NODE_ENV=development ts-node-dev ./src/index.ts",
-        "prod": "npm run build && NODE_ENV=production node ./build/index.js",
+        "prod": "NODE_ENV=production node ./build/index.js",
         "build": "npm run tsc",
         "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
     },

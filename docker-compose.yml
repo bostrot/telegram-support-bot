@@ -12,10 +12,11 @@ services:
   mongodb:
     image: mongo:8.0
     restart: unless-stopped
+    # Only accessible on localhost (not exposed to external network)
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
-      - ./.tmp/mongodb_data:/data/db 
+      - ./.tmp/mongodb_data:/data/db
 
   signal-cli:
     image: bbernhard/signal-cli-rest-api:latest
@@ -23,22 +24,24 @@ services:
     environment:
       - MODE=json-rpc #supported modes: json-rpc, native, normal
       #- AUTO_RECEIVE_SCHEDULE=0 22 * * * #enable this parameter on demand (see description below)
+    # Only accessible on localhost (optional service)
     ports:
-      - "40153:8080"
+      - "127.0.0.1:40153:8080"
     volumes:
       - signal:/home/.local/share/signal-cli
 
-  # mongodb web interface
+  # mongodb web interface (optional - comment out if not needed)
   mongo-express:
     image: mongo-express
     restart: unless-stopped
+    # Only accessible on localhost
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongodb
       - ME_CONFIG_MONGODB_PORT=27017
       - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=password  
+      - ME_CONFIG_BASICAUTH_PASSWORD=password
 
 volumes:
   mongodb_data:
