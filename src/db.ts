@@ -60,12 +60,16 @@ export const check = async (
   category: any,
   callback: (result: any) => void
 ) => {
-  const query = {
-    $or: [{ userid: userid }, { ticketId: userid }],
-    ...(category && { category }),
-  };
-  const result = await Supportee.find(query);
-  callback(result);
+  try {
+    const query = {
+      $or: [{ userid: userid }, { ticketId: userid }],
+      ...(category && { category }),
+    };
+    const result = await Supportee.find(query);
+    callback(result);
+  } catch (err) {
+    log.error('DB check error:', err);
+  }
 };
 
 export async function getTicketById(
@@ -106,9 +110,13 @@ export const getByTicketId = async (
   ticketId: string,
   callback: (ticket: any) => void
 ) => {
-  const query = { $or: [{ ticketId: ticketId }] };
-  const result = await Supportee.findOne(query);
-  callback(result);
+  try {
+    const query = { $or: [{ ticketId: ticketId }] };
+    const result = await Supportee.findOne(query);
+    callback(result);
+  } catch (err) {
+    log.error('DB getByTicketId error:', err);
+  }
 };
 
 export const checkBan = async (
@@ -116,13 +124,17 @@ export const checkBan = async (
   messenger: string,
   callback: (ticket: any) => void
 ) => {
-  const query = {
-    messenger,
-    $or: [{ userid: userid }],
-    status: 'banned',
-  };
-  const result = await Supportee.findOne(query);
-  callback(result);
+  try {
+    const query = {
+      messenger,
+      $or: [{ userid: userid }],
+      status: 'banned',
+    };
+    const result = await Supportee.findOne(query);
+    callback(result);
+  } catch (err) {
+    log.error('DB checkBan error:', err);
+  }
 };
 
 export const closeAll = async () => {
@@ -201,12 +213,16 @@ export const open = async (
   callback: Function,
   category: string[],
 ) => {
-  const query = {
-    status: 'open',
-    ...(category.length > 0
-      ? { category: { $in: category } }
-      : { category: null }),
-  };
-  const result = await Supportee.find(query);
-  callback(result);
+  try {
+    const query = {
+      status: 'open',
+      ...(category.length > 0
+        ? { category: { $in: category } }
+        : { category: null }),
+    };
+    const result = await Supportee.find(query);
+    callback(result);
+  } catch (err) {
+    log.error('DB open error:', err);
+  }
 };

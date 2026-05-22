@@ -134,20 +134,20 @@ describe('Commands Module', () => {
   });
 
   describe('clearCommand', () => {
-    it('should clear all tickets for admin users', () => {
+    it('should clear all tickets for admin users', async () => {
       const ctx = createMockContext(true);
-      
-      commands.clearCommand(ctx);
+
+      await commands.clearCommand(ctx);
 
       expect(mockCloseAll).toHaveBeenCalled();
       expect(cache.ticketIDs).toHaveLength(0);
       expect(mockReply).toHaveBeenCalledWith(ctx, 'All tickets closed.');
     });
 
-    it('should reject non-admin users', () => {
+    it('should reject non-admin users', async () => {
       const ctx = createMockContext(false);
-      
-      commands.clearCommand(ctx);
+
+      await commands.clearCommand(ctx);
 
       expect(mockCloseAll).not.toHaveBeenCalled();
       expect(mockReply).not.toHaveBeenCalled();

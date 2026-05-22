@@ -1,8 +1,10 @@
 import * as db from './db';
 import cache from './cache';
-import * as middleware from './middleware';
+import { buildInlineKeyboard, reply, sendMessage } from './middleware';
 import { Addon, Context, ModeData } from './interfaces';
 import { ISupportee } from './db';
+
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Generates the reply markup for a private reply.
@@ -64,9 +66,9 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   const ticket = await db.getTicketByUserId(userid, session.groupCategory);
   if (!ticket) {
     if (session.admin && userInfo === undefined) {
-      middleware.reply(ctx, config.language.ticketClosedError);
+      reply(ctx, config.language.ticketClosedError);
     } else {
-      middleware.reply(ctx, config.language.textFirst);
+      reply(ctx, config.language.textFirst);
     }
     return;
   }
@@ -90,79 +92,45 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   };
 
   // Send the file based on its type
-  var messageId = null;
+  let messageId: string | null | undefined = undefined;
+  const shouldForwardToGroup = (
+    session.group !== '' &&
+    session.group !== config.staffchat_id &&
+    Object.keys(session.modeData).length > 0
+  );
+
   switch (type) {
     case 'document':
-      messageId = await bot.sendDocument(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
+      messageId = (await bot.sendDocument(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
         bot.sendDocument(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, ticket.id),
         });
-      } 
+      }
       break;
     case 'photo':
-      messageId = await bot.sendPhoto(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
+      messageId = (await bot.sendPhoto(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
         bot.sendPhoto(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, ticket.id),
         });
       }
       break;
     case 'video':
-      messageId = await bot.sendVideo(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
+      messageId = (await bot.sendVideo(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
         bot.sendVideo(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, ticket.id),
         });
       }
       break;
   }
-  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  if (messageId) {
+    db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  }
 
   // Send confirmation message if enabled
   if (!config.autoreply_confirmation) return;
@@ -172,12 +140,12 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
     }`;
   if (session.admin && userInfo === undefined) {
     const nameMatch = replyText.match(
-      new RegExp(`${config.language.from} (.*) ${config.language.language}`)
+      new RegExp(`${escapeRegex(config.language.from)} (.*) ${escapeRegex(config.language.language)}`)
     );
     if (!nameMatch) return;
     confirmationMessage = `${config.language.file_sent} ${nameMatch[1]}`;
   }
-  middleware.sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
+  sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
 };
 
 /**
@@ -205,7 +173,7 @@ async function forwardFile(ctx: Context) {
       return forwardHandler(ctx);
     } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
       cache.ticketSent[cache.userId]++;
-      middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
+      sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
     }
   }
 };

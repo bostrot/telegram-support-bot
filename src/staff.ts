@@ -5,6 +5,8 @@ import { Context } from './interfaces';
 import { ISupportee } from './db';
 import * as log from 'fancy-log'
 
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * Generates a ticket message.
  *
@@ -46,22 +48,14 @@ function privateReply(ctx: Context, msg: any = {}) {
     ticketMsg(`${modeData.name}`, msg),
     {
       parse_mode: cache.config.parse_mode,
-      reply_markup: {
-        html: '',
-        inline_keyboard: [
-          [
-            cache.config.direct_reply
-              ? {
-                text: cache.config.language.replyPrivate,
-                url: `https://t.me/${from.username}`,
-              }
-              : {
-                text: cache.config.language.replyPrivate,
-                callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
-              },
+      reply_markup: cache.config.direct_reply
+        ? {
+          html: '',
+          inline_keyboard: [
+            [{ text: cache.config.language.replyPrivate, url: `https://t.me/${from.username}` }],
           ],
-        ],
-      },
+        }
+        : middleware.buildInlineKeyboard(from.id, message.from.first_name, modeData.category, modeData.ticketid),
     },
   );
   // Send confirmation message
@@ -74,11 +68,11 @@ function privateReply(ctx: Context, msg: any = {}) {
  * @param replyText - The text from which to extract the ticket ID.
  * @returns The extracted ticket ID or null if not found.
  */
-function extractTicketId(replyText: string, ctx: Context): string | null {
+function extractTicketId(replyText: string): string | null {
   const { language } = cache.config;
-  let match = replyText.match(new RegExp(`#T(.*) ${language.from}`));
+  let match = replyText.match(new RegExp(`#T(.*) ${escapeRegex(language.from)}`));
   if (!match) {
-    match = replyText.match(new RegExp(`#T(.*)\n${language.from}`));
+    match = replyText.match(new RegExp(`#T(.*)\\n${escapeRegex(language.from)}`));
   }
   return match ? match[1].trim() : null;
 }
@@ -91,7 +85,7 @@ function extractTicketId(replyText: string, ctx: Context): string | null {
  */
 function extractName(replyText: string): string | null {
   const { language } = cache.config;
-  const match = replyText.match(new RegExp(`${language.from} (.*) ${language.language}`));
+  const match = replyText.match(new RegExp(`${escapeRegex(language.from)} (.*) ${escapeRegex(language.language)}`));
   return match ? match[1].trim() : null;
 }
 
@@ -112,16 +106,17 @@ async function chat(ctx: Context) {
   const replyMessageId = ctx.message.external_reply?.message_id;
   if (!replyText && !replyMessageId) return;
 
-  var ticket;
-  var ticketId;
+  let ticket: ISupportee | null;
+  let ticketId: number;
   if (replyMessageId) {
     ticket = await db.getTicketByInternalId(replyMessageId);
     if (ticket) {
       ticketId = ticket.ticketId;
     }
   } else {
-    ticketId = parseInt(await extractTicketId(replyText, ctx));
-    
+    const extractedId = extractTicketId(replyText);
+    if (!extractedId) return;
+    ticketId = parseInt(extractedId);
     if (!ticketId) return;
     ticket = await db.getTicketById(ticketId, ctx.session.groupCategory);
   }
@@ -130,7 +125,7 @@ async function chat(ctx: Context) {
     middleware.reply(ctx, cache.config.language.ticketClosedError);
     return;
   }
-  var name;
+  let name: string | null;
   if (ticket.name) {
     name = ticket.name;
   } else {

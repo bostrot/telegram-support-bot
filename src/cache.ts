@@ -6,7 +6,7 @@ const cache: Cache = {
   userId: '',
   ticketIDs: [],
   ticketStatus: {},
-  ticketSent: [],
+  ticketSent: {},
   html: '',
   noSound: '',
   markdown: '',

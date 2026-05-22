@@ -2,7 +2,7 @@ import { Context, Messenger, ParseMode } from './interfaces';
 import cache from './cache';
 import * as llm from './addons/llm';
 import * as db from './db';
-import { strictEscape as esc, reply, sendMessage } from './middleware';
+import { buildInlineKeyboard, strictEscape as esc, reply, sendMessage } from './middleware';
 import { ISupportee } from './db';
 import * as log from 'fancy-log'
 
@@ -24,7 +24,7 @@ function formatMessageAsTicket(
   autoReplyInfo?: any,
 ): string {
   const { config, userId } = cache;
-  var name = `[${esc(ctx.message.from.first_name,)}](tg://user?id=${userId})`;
+  let name = `[${esc(ctx.message.from.first_name,)}](tg://user?id=${userId})`;
   if (config.anonymous_tickets || config.staffchat_parse_mode === ParseMode.PLAINTEXT) {
     name = ctx.message.from.first_name;
   }
@@ -132,24 +132,7 @@ async function processTicket(
     const groupOptions = config.allow_private
       ? {
         parse_mode: 'none',
-        reply_markup: {
-          html: '',
-          inline_keyboard: [
-            [
-              {
-                text: config.language.replyPrivate,
-                callback_data:
-                  ctx.from.id +
-                  '---' +
-                  ctx.message.from.first_name +
-                  '---' +
-                  ctx.session.groupCategory +
-                  '---' +
-                  ticket.ticketId,
-              },
-            ],
-          ],
-        },
+        reply_markup: buildInlineKeyboard(ctx.from.id, ctx.message.from.first_name, ctx.session.groupCategory, ticket.ticketId),
       }
       : { parse_mode: config.parse_mode };
 

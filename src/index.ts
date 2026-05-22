@@ -67,13 +67,9 @@ async function main(logs = true) {
 
   // Create and store all enabled addons.
   const addons = createAddons();
-  // cache.addons = addons;
 
   // Initialize the webserver if enabled and if there's a Telegram addon.
   const telegramAddon = addons.find((addon) => (addon as any).platform === 'telegram');
-  if (cache.config.web_server && telegramAddon) {
-    // webserver.init(telegramAddon);
-  }
 
   // Initialize global error handling.
   error.init(logs);

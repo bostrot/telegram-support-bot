@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as util from 'util';
 import cache from './cache';
 import * as middleware from './middleware';
 import * as log from 'fancy-log'
@@ -53,22 +52,6 @@ function init(logs = true) {
     waiting = true;
     currentErrors++;
   };
-
-  // Overload log.info to write to file when logging is enabled
-  // log.info = (d: any) => {
-  //   if (logs) {
-  //     const formatted = util.format(d);
-  //     logStdout.write(formatted + '\n');
-  //     fs.appendFile(
-  //       debugFile,
-  //       `${new Date()}: ${formatted}\n`,
-  //       'utf8',
-  //       err => {
-  //         if (err) throw err;
-  //       }
-  //     );
-  //   }
-  // };
 
   // Catch uncaught exceptions to log them and notify staff
   process.on('uncaughtException', (err) => {

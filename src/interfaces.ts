@@ -3,7 +3,7 @@ import TelegramAddon from './addons/telegram';
 export interface ModeData {
   ticketid: string;
   userid: string | number;
-  name: any;
+  name: string | null;
   category: string;
 }
 
@@ -15,7 +15,7 @@ export interface SessionData {
   groupCategory: string | null;
   groupTag: string;
   group: string;
-  groupAdmin: any;
+  groupAdmin: boolean | null;
   getSessionKey: Function;
 }
 
@@ -129,9 +129,9 @@ export class Config {
 
 export interface Cache {
   userId: string;
-  ticketIDs: any;
-  ticketStatus: any;
-  ticketSent: any;
+  ticketIDs: (string | number)[];
+  ticketStatus: Record<string, boolean>;
+  ticketSent: Record<string, number>;
   html: string;
   noSound: string;
   markdown: string;
@@ -181,11 +181,11 @@ export class Context {
     type: string;
   };
   session: SessionData;
-  callbackQuery: { data: string; from: { id: any }; id: any };
-  from: { username: any; id: string };
-  inlineQuery: any;
+  callbackQuery: { data: string; from: { id: string | number }; id: string };
+  from: { username: string; id: string | number };
+  inlineQuery: unknown;
   reply: Function;
-  answerCbQuery: (arg0: any, arg1: boolean) => void;
+  answerCbQuery: (arg0?: unknown, arg1?: boolean) => void;
   getChat: Function;
   getFile: Function;
 }

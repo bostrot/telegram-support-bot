@@ -16,9 +16,9 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
     const username = envelope.sourceName.replace(/\s/g, '').toLowerCase();
   
     // Create a chat object based on envelope data.
-    var chatType = 'private';
-    var chatId = senderId;
-    var replyId = dataMessage.quote?.id;
+    let chatType = 'private';
+    let chatId = senderId;
+    const replyId = dataMessage.quote?.id;
     if (dataMessage.groupInfo) {
       chatId = dataMessage.groupInfo.groupId;
       chatType = 'group';

@@ -4,6 +4,32 @@ import { Context, Messenger } from './interfaces';
 import TelegramAddon from './addons/telegram';
 
 /**
+ * Builds an inline keyboard with a "Reply Private" button.
+ *
+ * @param userId - The user's ID.
+ * @param firstName - The user's first name.
+ * @param category - The ticket category.
+ * @param ticketId - The ticket identifier.
+ * @returns The reply markup object.
+ */
+const buildInlineKeyboard = (
+  userId: string | number,
+  firstName: string,
+  category: string | null,
+  ticketId: string | number,
+): object => ({
+  html: '',
+  inline_keyboard: [
+    [
+      {
+        text: cache.config.language.replyPrivate,
+        callback_data: `${userId}---${firstName}---${category}---${ticketId}`,
+      },
+    ],
+  ],
+});
+
+/**
  * Escapes special characters for MarkdownV2, HTML, or Markdown formats.
  *
  * @param str - The string to escape.
@@ -72,12 +98,12 @@ async function sendMessage (
  * @param msgText - The reply text.
  * @param extra - Extra options (default includes the configured parse mode).
  */
-const reply = (
+const reply = async (
   ctx: Context,
   msgText: string,
   extra: any = { parse_mode: cache.config.parse_mode }
-): void => {
-  sendMessage(ctx.message.chat.id, ctx.messenger, msgText, extra);
+): Promise<void> => {
+  await sendMessage(ctx.message.chat.id, ctx.messenger, msgText, extra);
 };
 
-export { strictEscape, sendMessage, reply };
+export { buildInlineKeyboard, strictEscape, sendMessage, reply };

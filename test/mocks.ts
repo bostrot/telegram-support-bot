@@ -45,9 +45,9 @@ jest.mock('../src/cache', () => ({
 }));
 
 jest.mock('../src/db', () => ({
-    closeAll: jest.fn(),
+    closeAll: jest.fn().mockResolvedValue(undefined),
     open: jest.fn((callback, groups) => callback([])),
-    add: jest.fn(),
+    add: jest.fn().mockResolvedValue(0),
     getTicketById: jest.fn((id, group, callback) =>
         callback({ id: 1, userid: 456, category: 'test' })
     ),

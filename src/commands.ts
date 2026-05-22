@@ -11,8 +11,16 @@ import * as log from 'fancy-log'
  * @param replyText - The text to extract the ticket ID from.
  * @returns The ticket ID as a string or undefined if not found.
  */
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Extracts ticket ID from the reply text.
+ *
+ * @param replyText - The text to extract the ticket ID from.
+ * @returns The ticket ID as a string or undefined if not found.
+ */
 const extractTicketId = (replyText: string): string | undefined => {
-  const match = replyText.match(new RegExp(`#T(.*) ${cache.config.language.from}`));
+  const match = replyText.match(new RegExp(`#T(.*) ${escapeRegex(cache.config.language.from)}`));
   return match ? match[1] : undefined;
 };
 
@@ -32,13 +40,13 @@ const helpCommand = (ctx: Context): void => {
  *
  * @param ctx - The bot context.
  */
-const clearCommand = (ctx: Context): void => {
+const clearCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  db.closeAll();
-  // Reset the ticket arrays
+  await db.closeAll();
+  // Reset the ticket caches
   cache.ticketIDs.length = 0;
-  cache.ticketStatus.length = 0;
-  cache.ticketSent.length = 0;
+  Object.keys(cache.ticketStatus).forEach(key => delete cache.ticketStatus[key]);
+  Object.keys(cache.ticketSent).forEach(key => delete cache.ticketSent[key]);
   middleware.reply(ctx, 'All tickets closed.');
 };
 
@@ -55,10 +63,10 @@ const openCommand = (ctx: Context): void => {
   if (categories && categories.length > 0) {
     categories.forEach(category => {
       if (!category.subgroups) {
-        if (category.group_id == ctx.chat.id) groups.push(category.name);
+        if (category.group_id === ctx.chat.id) groups.push(category.name);
       } else {
         category.subgroups.forEach((sub: { group_id: any; name: string }) => {
-          if (sub.group_id == ctx.chat.id) groups.push(sub.name);
+          if (sub.group_id === ctx.chat.id) groups.push(sub.name);
         });
       }
     });
@@ -95,10 +103,10 @@ const closeCommand = (ctx: Context): void => {
   if (categories) {
     categories.forEach(category => {
       if (!category.subgroups || category.subgroups.length === 0) {
-        if (category.group_id == ctx.chat.id) groups.push(category.name);
+        if (category.group_id === ctx.chat.id) groups.push(category.name);
       } else {
         category.subgroups.forEach((sub: { group_id: any; name: string }) => {
-          if (sub.group_id == ctx.chat.id) groups.push(sub.name);
+          if (sub.group_id === ctx.chat.id) groups.push(sub.name);
         });
       }
     });
