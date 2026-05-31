@@ -22,10 +22,15 @@ import * as db from '../src/db';
 // Mock dependencies
 jest.mock('../src/cache');
 jest.mock('../src/middleware');
-jest.mock('../src/db');
+jest.mock('../src/db', () => ({
+    addTicketMessage: jest.fn().mockResolvedValue(undefined),
+    recordAnalyticsEvent: jest.fn().mockResolvedValue(undefined),
+    setFirstResponseAt: jest.fn().mockResolvedValue(undefined),
+    setClosedAt: jest.fn().mockResolvedValue(undefined),
+}));
 jest.mock('fancy-log');
 
-const mockSendMessage = jest.fn();
+const mockSendMessage = jest.fn().mockResolvedValue(undefined);
 const mockStrictEscape = jest.fn((text) => text);
 const mockReply = jest.fn();
 

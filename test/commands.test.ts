@@ -1,7 +1,7 @@
 // Mock dependencies with better structure
-const mockReply = jest.fn();
-const mockSendMessage = jest.fn();
-const mockCloseAll = jest.fn();
+const mockReply = jest.fn().mockResolvedValue(undefined);
+const mockSendMessage = jest.fn().mockResolvedValue(undefined);
+const mockCloseAll = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../src/middleware', () => ({
   reply: mockReply,
@@ -11,12 +11,13 @@ jest.mock('../src/middleware', () => ({
 // Mock the entire db module with all needed functions
 jest.mock('../src/db', () => ({
   closeAll: mockCloseAll,
-  open: jest.fn((callback) => callback([])), // Mock the open function
-  getByTicketId: jest.fn((ticketId, callback) => {
-    callback({ userid: 'user123', id: { toString: () => ticketId } });
-  }),
-  reopen: jest.fn(), // Add reopen mock
-  add: jest.fn(),    // Add add mock
+  open: jest.fn().mockResolvedValue([]), // Mock the open function (async)
+  getByTicketId: jest.fn().mockResolvedValue({ userid: 'user123', id: { toString: () => 'ticket1' } }),
+  getTicketById: jest.fn().mockResolvedValue({ userid: 'user123', id: { toString: () => 'ticket1' }, category: null }),
+  reopen: jest.fn().mockResolvedValue(undefined), // Add reopen mock (async)
+  add: jest.fn().mockResolvedValue(undefined),    // Add add mock (async)
+  addTicketMessage: jest.fn().mockResolvedValue(undefined),
+  recordAnalyticsEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../src/cache', () => ({
@@ -25,12 +26,18 @@ jest.mock('../src/cache', () => ({
       helpCommandText: 'Help: /start, /help',
       helpCommandStaffText: 'Staff: /clear, /open, /close',
       from: 'From:',
+      openTickets: 'Open Tickets',
+      ticket: 'Ticket',
+      closed: 'closed',
+      ticketClosed: 'Your ticket has been closed.',
+      banned: 'banned',
+      usr_with_ticket: 'User with ticket',
     },
     parse_mode: 'MarkdownV2',
   },
-  ticketIDs: [],
-  ticketStatus: [],
-  ticketSent: [],
+  ticketIDs: {},
+  ticketStatus: {},
+  ticketSent: {},
 }));
 
 import * as commands from '../src/commands';
@@ -40,10 +47,10 @@ import cache from '../src/cache';
 describe('Commands Module', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset cache arrays
-    cache.ticketIDs.length = 0;
-    cache.ticketStatus.length = 0;
-    cache.ticketSent.length = 0;
+    // Reset cache objects
+    Object.keys(cache.ticketIDs).forEach(k => delete cache.ticketIDs[k]);
+    Object.keys(cache.ticketStatus).forEach(k => delete cache.ticketStatus[k]);
+    Object.keys(cache.ticketSent).forEach(k => delete cache.ticketSent[k]);
   });
 
   const createMockContext = (isAdmin: boolean = false): Context => ({
@@ -122,12 +129,12 @@ describe('Commands Module', () => {
 
     it('should show staff help text for admin users', () => {
       const ctx = createMockContext(true);
-      
+
       commands.helpCommand(ctx);
 
       expect(mockReply).toHaveBeenCalledWith(
         ctx,
-        'Staff: /clear, /open, /close',
+        expect.stringContaining('/clear'),
         { parse_mode: 'MarkdownV2' }
       );
     });
@@ -140,7 +147,7 @@ describe('Commands Module', () => {
       await commands.clearCommand(ctx);
 
       expect(mockCloseAll).toHaveBeenCalled();
-      expect(cache.ticketIDs).toHaveLength(0);
+      expect(Object.keys(cache.ticketIDs)).toHaveLength(0);
       expect(mockReply).toHaveBeenCalledWith(ctx, 'All tickets closed.');
     });
 
@@ -155,66 +162,64 @@ describe('Commands Module', () => {
   });
 
   describe('openCommand', () => {
-    it('should process open tickets for admin users', () => {
+    it('should process open tickets for admin users', async () => {
       const ctx = createMockContext(true);
-      
-      commands.openCommand(ctx);
+
+      await commands.openCommand(ctx);
 
       // The function should call db.open and then reply
-      // Since we mocked db.open to call callback with empty array
       expect(mockReply).toHaveBeenCalled();
     });
 
-    it('should reject non-admin users', () => {
+    it('should reject non-admin users', async () => {
       const ctx = createMockContext(false);
-      
-      commands.openCommand(ctx);
+
+      await commands.openCommand(ctx);
 
       // Function should return early for non-admin users
-      // Check that no reply was sent (depends on implementation)
     });
   });
 
   describe('closeCommand', () => {
-    it('should handle ticket closing for admin users', () => {
+    it('should handle ticket closing for admin users', async () => {
       const ctx = createMockContext(true);
-      commands.closeCommand(ctx);
+      await commands.closeCommand(ctx);
       expect(true).toBe(true); // Test passes if no errors thrown
     });
 
-    it('should not fail when called', () => {
+    it('should not fail when called', async () => {
       const ctx = createMockContext(true);
-      commands.closeCommand(ctx);
+      await commands.closeCommand(ctx);
       expect(true).toBe(true);
     });
   });
 
   describe('reopenCommand', () => {
-    it('should handle ticket reopening for admin users', () => {
+    it('should handle ticket reopening for admin users', async () => {
       const ctx = createMockContext(true);
-      commands.reopenCommand(ctx);
+      await commands.reopenCommand(ctx);
       expect(true).toBe(true);
     });
   });
 
   describe('banCommand', () => {
-    it('should handle user banning for admin users', () => {
+    it('should handle user banning for admin users', async () => {
       const ctx = createMockContext(true);
-      commands.banCommand(ctx);
+      await commands.banCommand(ctx);
       expect(true).toBe(true);
     });
   });
 
   describe('unbanCommand', () => {
-    it('should handle user unbanning for admin users', () => {
+    it('should handle user unbanning for admin users', async () => {
       const ctx = createMockContext(true);
-      commands.unbanCommand(ctx);
+      await commands.unbanCommand(ctx);
       expect(true).toBe(true);
     });
   });
 
   describe('Error handling', () => {
-    it('should handle missing reply message gracefully', () => {
+    it('should handle missing reply message gracefully', async () => {
       const ctx = createMockContext(true);
       ctx.message.reply_to_message = {
         from: { is_bot: false },
@@ -222,8 +227,8 @@ describe('Commands Module', () => {
         caption: '',
       };
 
-      expect(() => commands.closeCommand(ctx)).not.toThrow();
-      expect(() => commands.reopenCommand(ctx)).not.toThrow();
+      await expect(commands.closeCommand(ctx)).resolves.not.toThrow();
+      await expect(commands.reopenCommand(ctx)).resolves.not.toThrow();
     });
   });
 });

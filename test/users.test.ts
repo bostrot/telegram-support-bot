@@ -9,44 +9,68 @@ jest.mock('../src/middleware', () => ({
   sendMessage: mockSendMessage,
   reply: mockReply,
   strictEscape: jest.fn((str) => str),
+  buildInlineKeyboard: jest.fn().mockReturnValue([]),
 }));
 
 jest.mock('../src/db', () => ({
   add: mockAdd,
   getTicketByUserId: mockGetTicketByUserId,
   addIdAndName: mockAddIdAndName,
+  addTicketMessage: jest.fn().mockResolvedValue(undefined),
+  recordAnalyticsEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../src/cache', () => ({
-  config: {
-    language: {
-      confirmationMessage: 'Thank you for contacting us.',
-      ticket: 'Ticket',
-      automatedReplySent: 'Automated reply sent',
-      blockedSpam: 'You are sending too many messages',
+  __esModule: true,
+  default: {
+    config: {
+      language: {
+        confirmationMessage: 'Thank you for contacting us.',
+        ticket: 'Ticket',
+        automatedReplySent: 'Automated reply sent',
+        blockedSpam: 'You are sending too many messages',
+      },
+      autoreply: [
+        { question: 'hello', answer: 'Hi there!' },
+      ],
+      use_llm: false,
+      autoreply_confirmation: true,
+      show_auto_replied: true,
+      show_user_ticket: true,
+      spam_cant_msg: 3,
+      spam_time: 5000,
+      staffchat_id: 'staff123',
+      staffchat_type: 'telegram',
+      allow_private: false,
+      parse_mode: 'MarkdownV2',
     },
-    autoreply: [
-      { question: 'hello', answer: 'Hi there!' },
-    ],
-    use_llm: false,
-    autoreply_confirmation: true,
-    show_auto_replied: true,
-    show_user_ticket: true,
-    spam_cant_msg: 3,
-    spam_time: 5000,
-    staffchat_id: 'staff123',
-    staffchat_type: 'telegram',
-    allow_private: false,
-    parse_mode: 'MarkdownV2',
+    userId: '',
+    ticketIDs: [],
+    ticketStatus: {},
+    ticketSent: {},
   },
-  userId: '',
-  ticketIDs: [],
-  ticketStatus: {},
-  ticketSent: [],
 }));
 
 jest.mock('../src/addons/llm', () => ({
   getResponseFromLLM: jest.fn(),
+}));
+
+jest.mock('../src/triage', () => ({
+  analyzeMessage: jest.fn().mockResolvedValue(null),
+  formatTriagePrefix: jest.fn().mockReturnValue(''),
+}));
+
+jest.mock('../src/webhooks', () => ({
+  webhooks: {
+    ticketCreated: jest.fn().mockResolvedValue(undefined),
+    ticketReplied: jest.fn().mockResolvedValue(undefined),
+    ticketClosed: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('../src/workflows', () => ({
+  isWithinBusinessHours: jest.fn().mockReturnValue(true),
+  runWorkflowChecks: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('fancy-log', () => ({
