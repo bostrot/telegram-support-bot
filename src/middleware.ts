@@ -103,7 +103,9 @@ const reply = async (
   msgText: string,
   extra: any = { parse_mode: cache.config.parse_mode }
 ): Promise<void> => {
-  await sendMessage(ctx.message.chat.id, ctx.messenger, msgText, extra);
+  const chatId = ctx.message?.chat?.id ?? ctx.chat?.id;
+  if (!chatId) return;
+  await sendMessage(chatId, ctx.messenger, msgText, extra);
 };
 
 export { buildInlineKeyboard, strictEscape, sendMessage, reply };

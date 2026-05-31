@@ -13,8 +13,8 @@ jest.mock('fancy-log', () => ({
 }));
 
 // Mock OpenAI globally to prevent API key requirements
-jest.mock('openai', () => ({
-  OpenAI: jest.fn().mockImplementation(() => ({
+jest.mock('openai', () => {
+  const MockOpenAI = jest.fn().mockImplementation(() => ({
     chat: {
       completions: {
         create: jest.fn().mockResolvedValue({
@@ -28,8 +28,12 @@ jest.mock('openai', () => ({
         }),
       },
     },
-  })),
-}));
+  }));
+  return {
+    OpenAI: MockOpenAI,
+    default: MockOpenAI,
+  };
+});
 
 // Console warnings during tests can be noise - optionally suppress them
 const originalWarn = console.warn;
