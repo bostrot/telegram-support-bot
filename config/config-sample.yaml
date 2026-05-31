@@ -83,6 +83,24 @@ language:
   automatedReplySent: 'Automated reply was send to the user.'
   ticketReopened: 'Ticket reopened.'
   regardsGroup: 'Botty Group'
+  # CSAT survey strings
+  csatRatingRequest: "How would you rate your support experience?"
+  csatThankYou: "Thank you for your feedback!"
+  # Triage / priority strings
+  triagePriority: "Priority"
+  triageSummary: "Summary"
+  sentimentAlert: "🚨 Frustrated customer detected"
+  # Assignment strings
+  ticketAssignedTo: "assigned to"
+  ticketUnassigned: "unassigned"
+  assignedBy: "by"
+  # Internal note strings
+  internalNote: "Internal Note"
+  noteAddedBy: "Note by"
+  # Workflow strings
+  offlineMessage: "We're currently offline. Leave a message and we'll get back to you."
+  businessHoursClosed: "Our support team is currently offline. We'll respond during business hours."
+  escalationNotify: "⚠️ Ticket escalated — no response for"
 
 autoreply:
   - question: 'install'
@@ -160,3 +178,63 @@ llm_knowledge: >
 
     Q: What's the uptime guarantee?
     A: 99.9% SLA for paid plans.
+
+# --- AI Advanced Settings ---
+llm_memory_depth: 10 # Number of messages to include in conversation history (0 = disabled)
+auto_triage: false # Auto-classify incoming tickets with AI (category, priority, summary)
+sentiment_alert_threshold: 2 # Flag tickets with sentiment score <= this value (1-5 scale)
+staff_assist: false # Generate AI draft replies for staff members
+translate_enabled: false # Auto-translate messages between user and staff
+translate_target_language: 'en' # Target language for translation (ISO code)
+
+# --- Team Collaboration ---
+enable_csat: false # Send CSAT survey when ticket is closed
+daily_summary_time: '09:00' # Time (UTC) to send daily analytics summary to staff chat
+staff_roles: [] # List of staff members and their roles
+  # - telegram_id: "123456"
+  #   role: "admin" # admin, supervisor, agent
+  #   name: "John Doe"
+
+# --- Webhooks ---
+webhooks: [] # Event-driven webhooks to external URLs
+  # - url: "https://example.com/webhook"
+  #   events: ["ticket.created", "ticket.closed"]
+  #   secret: "whsec_..." # Optional HMAC verification secret
+
+# --- Integrations ---
+slack_enabled: false # Mirror tickets to Slack channel
+slack_bot_token: '' # Slack bot token (xoxb-...)
+slack_channel_id: '' # Slack channel ID (#general or Cxxxxxxxx)
+
+discord_enabled: false # Mirror tickets to Discord channel
+discord_bot_token: '' # Discord bot token
+discord_channel_id: '' # Discord channel/voice channel ID
+
+api_enabled: false # Enable REST API for programmatic access
+api_token: '' # Bearer token for API authentication
+
+# --- Web Chat Widget ---
+web_chat:
+  enabled: false
+  greeting: "Hi! How can we help you?"
+  primary_color: "#6366f1"
+  logo_url: ""
+  position: "right" # left or right
+  pre_chat_form:
+    name: true
+    email: true
+    subject: false
+    order_number: false
+
+# --- Workflows & Automation ---
+canned_responses: [] # Pre-written response templates for staff
+  # - key: "shipping"
+  #   text: "Your order should arrive within 3-5 business days."
+  # - key: "refund"
+  #   text: "We process refunds within 14 days. A team member will reach out shortly."
+
+escalation_rules: [] # Auto-escalate tickets based on rules
+  # - after_hours: 4
+  #   action: "notify_supervisor" # notify_supervisor or tag_urgent
+
+auto_close_after_days: 0 # Auto-close inactive tickets (0 = disabled)
