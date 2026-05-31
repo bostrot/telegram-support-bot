@@ -1,23 +1,19 @@
 import { Context, Config } from './interfaces';
 import * as db from './db';
+import * as team from './team';
 import * as log from 'fancy-log'
 
 /**
  * Checks permissions for group and admin.
- *
- * @param ctx - Bot context.
- * @param config - Configuration containing categories and staffchat_id.
- * @returns A promise that resolves to true if permission is granted, otherwise false.
  */
 async function checkRights(
   ctx: Context,
-  config: { categories: any[]; staffchat_id: any },
+  config: { categories: Array<{ group_id: number | string; name?: string; subgroups?: Array<{ group_id: number | string; name: string }> }>; staffchat_id: string | number },
 ): Promise<boolean> {
   const { categories, staffchat_id } = config;
 
   if (categories) {
     for (const category of categories) {
-      // If there are no subgroups, check directly.
       if (!category.subgroups) {
         if (category.group_id === ctx.chat.id) {
           ctx.session.groupAdmin = category.name;
@@ -35,7 +31,6 @@ async function checkRights(
     }
   }
 
-  // If in a private chat, clear any group admin assignment.
   if (ctx.session.groupAdmin && ctx.chat.type === 'private') {
     ctx.session.groupAdmin = undefined;
   }
@@ -50,10 +45,7 @@ async function checkRights(
 
 /**
  * Defines user permissions by checking group/admin rights and ban status.
- *
- * @param ctx - Bot context.
- * @param next - Next function to call if permission checks pass.
- * @param config - Configuration settings.
+ * Also initializes staff role cache.
  */
 async function checkPermissions(ctx: Context, next: () => any, config: Config) {
   ctx.session.admin = false;
@@ -61,16 +53,19 @@ async function checkPermissions(ctx: Context, next: () => any, config: Config) {
     const access = await checkRights(ctx, config);
     if (access) {
       ctx.session.admin = true;
+      const role = team.getStaffRole(ctx.from.id.toString());
+      if (role) {
+        ctx.session.staffRole = role;
+      }
     }
   } catch (error) {
     log.error('Error checking rights:', error);
   } finally {
-    db.checkBan(ctx.chat.id, ctx.messenger, (ticket) => {
-      if (ticket && ticket.status === 'banned') {
-        return;
-      }
-      return next();
-    });
+    const ticket = await db.checkBan(ctx.chat.id, ctx.messenger);
+    if (ticket && ticket.status === 'banned') {
+      return;
+    }
+    next();
   }
 }
 
