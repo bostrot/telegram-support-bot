@@ -40,21 +40,23 @@ const shouldReplyWithCategoryKeyboard = (ctx: Context): boolean => {
  * @param ctx - The context of the message.
  * @param keys - Keyboard keys to use for replies.
  */
-export function handleText(bot: Addon, ctx: Context, keys: any[] = []) {
+export async function handleText(bot: Addon, ctx: Context, keys: string[][] = []): Promise<void> {
   // Handle private replies via staff
   if (ctx.session.mode === 'private_reply') {
-    return staff.privateReply(ctx);
+    await staff.privateReply(ctx);
+    return;
   }
 
   // If conditions met, reply with the category keyboard
   if (shouldReplyWithCategoryKeyboard(ctx)) {
-    return middleware.reply(ctx, cache.config.language.services, {
+    await middleware.reply(ctx, cache.config.language.services, {
       reply_markup: { keyboard: keys },
     });
+    return;
   }
 
   // In all other cases, process the ticket
-  return ticketHandler(bot, ctx);
+  await ticketHandler(bot, ctx);
 }
 
 /**
@@ -77,4 +79,5 @@ export async function ticketHandler(bot: Addon, ctx: Context): Promise<ISupporte
 
   // For non-private chats, use the staff chat handler.
   await staff.chat(ctx);
+  return null;
 }

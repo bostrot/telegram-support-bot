@@ -5,16 +5,17 @@ import * as db from './db';
 import { buildInlineKeyboard, strictEscape as esc, reply, sendMessage } from './middleware';
 import { ISupportee } from './db';
 import * as log from 'fancy-log'
+import * as triage from './triage';
+import * as webhooks from './webhooks';
+import * as workflows from './workflows';
 
 const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
 
 /**
- * Generates a ticket message.
+ * Generates a ticket message with triage prefix and priority indicators.
  *
  * @param ticket - Ticket object with a toString() method.
- * @param message - Message object containing text and sender info.
- * @param tag - Tag string.
- * @param anonymousUser - Whether the ticket is anonymous (default: true).
+ * @param ctx - Bot context.
  * @param autoReplyInfo - Optional auto-reply info to append.
  * @returns The formatted ticket message.
  */
@@ -28,9 +29,32 @@ function formatMessageAsTicket(
   if (config.anonymous_tickets || config.staffchat_parse_mode === ParseMode.PLAINTEXT) {
     name = ctx.message.from.first_name;
   }
-  return `${config.language.ticket} #T${ticket
+
+  // Priority indicator prefix
+  const priorityIcons: Record<string, string> = { urgent: '🔴', high: '🟠', normal: '🟡', low: '⚪' };
+  const ticketObj = (ctx.session as any).ticketData;
+  let priorityPrefix = '';
+  if (ticketObj && ticketObj.priority && ticketObj.priority !== 'normal') {
+    priorityPrefix = `${priorityIcons[ticketObj.priority] || ''} `;
+  }
+
+  // Assignment info prefix
+  let assignPrefix = '';
+  if (ticketObj && ticketObj.assigned_to) {
+    const assignedMember = cache.staffMembers?.get(ticketObj.assigned_to);
+    const assignName = assignedMember?.name || ticketObj.assigned_to;
+    assignPrefix = `📋 Assigned: ${assignName}\n`;
+  }
+
+  // Tags prefix
+  let tagsPrefix = '';
+  if (ticketObj && ticketObj.tags && ticketObj.tags.length > 0) {
+    tagsPrefix = `🏷️ ${ticketObj.tags.map((t: string) => `#${t}`).join(' ')}\n`;
+  }
+
+  return `${priorityPrefix}${config.language.ticket} #T${ticket
     .toString()
-    .padStart(6, '0')} ${config.language.from} ${name} ${config.language.language}: ${ctx.message.from.language_code} ${ctx.session.groupTag}\n\n${esc(
+    .padStart(6, '0')} ${config.language.from} ${name} ${config.language.language}: ${ctx.message.from.language_code} ${ctx.session.groupTag}\n\n${assignPrefix}${tagsPrefix}${esc(
       ctx.message.text,
     )}\n\n${autoReplyInfo ? `*${autoReplyInfo}*` : ''}`;
 }
@@ -85,6 +109,7 @@ async function autoReply(ctx: Context): Promise<boolean> {
 
 /**
  * Processes a ticket by sending confirmation and forwarding it to staff and group chats.
+ * Integrates triage analysis, conversation memory logging, and webhook events.
  *
  * @param ticket - The ticket retrieved from the database.
  * @param ctx - Bot context.
@@ -98,6 +123,51 @@ async function processTicket(
   autoReplyInfo?: string,
 ) {
   const { config } = cache;
+
+  // Store ticket data on session for formatting (priority, assignment, tags)
+  (ctx.session as any).ticketData = {
+    priority: ticket.priority,
+    assigned_to: ticket.assigned_to,
+    tags: ticket.tags || [],
+  };
+
+  // Run AI triage analysis on new tickets
+  if (!autoReplyInfo && config.auto_triage) {
+    const userText = ctx.message.text;
+    await triage.analyzeMessage(userText, ticket.ticketId);
+
+    // Refresh ticket data with triage results
+    const refreshedTicket = await db.getTicketById(ticket.ticketId, ctx.session.groupCategory);
+    if (refreshedTicket) {
+      (ctx.session as any).ticketData = {
+        priority: refreshedTicket.priority,
+        assigned_to: refreshedTicket.assigned_to,
+        tags: refreshedTicket.tags || [],
+      };
+
+      // Add triage prefix to the message for staff
+      const triagePrefix = triage.formatTriagePrefix({
+        category: refreshedTicket.triage_category,
+        priority: refreshedTicket.priority as import('./interfaces').TicketPriority,
+        summary: refreshedTicket.triage_summary || '',
+        sentimentScore: refreshedTicket.sentiment_score || 3,
+      });
+      if (triagePrefix) {
+        // Prepend triage info to the formatted message by modifying context temporarily
+        ctx.message.text = triagePrefix + ctx.message.text;
+      }
+    }
+  }
+
+  // Log conversation memory
+  await db.addTicketMessage(ticket.ticketId, 'user', ctx.from.id.toString(), ctx.message.text);
+
+  // Fire webhook for ticket creation (only on first message)
+  if (!autoReplyInfo) {
+    await webhooks.webhooks.ticketCreated(ticket.ticketId, ctx.from.id.toString(), ctx.message.text.substring(0, 200));
+    await db.recordAnalyticsEvent('ticket_created', ticket.ticketId, null);
+  }
+
   // Send confirmation if applicable
   if (
     !autoReplyInfo &&
@@ -112,7 +182,7 @@ async function processTicket(
       (config.show_user_ticket
         ? `${config.language.ticket} #T${ticket.ticketId.toString().padStart(6, '0')}`
         : '');
-    sendMessage(chatId, ticket.messenger, confirmationMsg);
+    sendMessage(chatId, ticket.messenger, confirmationMsg).catch(log.error);
   }
 
   // Send ticket message to staff chat
@@ -125,7 +195,9 @@ async function processTicket(
       autoReplyInfo,
     ),
   );
-  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  if (messageId) {
+    db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  }
 
   // If group flag is set and not the admin chat, forward to group chat
   if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
@@ -145,18 +217,26 @@ async function processTicket(
         autoReplyInfo,
       ),
       groupOptions,
-    );
+    ).catch(log.error);
   }
-};
+}
 
 /**
- * Handles ticket processing with spam protection.
+ * Handles ticket processing with spam protection and business hours check.
  *
  * @param ctx - Bot context.
  * @param chat - Chat object containing an id.
  */
 async function chat(ctx: Context, chat: { id: string }) {
   const { config } = cache;
+
+  // Check business hours — if outside hours, send offline message and skip processing
+  if (!workflows.isWithinBusinessHours()) {
+    const offlineMsg = config.language.businessHoursClosed || 'Our support team is currently offline. We will respond during business hours.';
+    reply(ctx, offlineMsg);
+    return;
+  }
+
   cache.userId = ctx.message.from.id;
   const isAutoReply = await autoReply(ctx);
   if (isAutoReply && !config.show_auto_replied) return;
@@ -164,23 +244,27 @@ async function chat(ctx: Context, chat: { id: string }) {
 
   // Ensure the user's ticket is tracked
   if (cache.ticketIDs[cache.userId] === undefined) {
-    cache.ticketIDs.push(cache.userId);
+    cache.ticketIDs[cache.userId] = cache.userId;
   }
   cache.ticketStatus[cache.userId] = true;
 
   // If no ticket has been sent yet, fetch from DB and set up spam timer
-  if (cache.ticketSent[cache.userId] === undefined) {
+  const sentCount = cache.ticketSent[cache.userId];
+  if (sentCount === undefined) {
     const ticket = await db.getTicketByUserId(chat.id, ctx.session.groupCategory);
-    processTicket(ticket, ctx, chat.id, autoReplyInfo);
+    if (ticket) {
+      await processTicket(ticket, ctx, chat.id, autoReplyInfo);
+    }
 
     // Prevent multiple notifications for a period defined by spam_time
     setTimeout(() => {
-      cache.ticketSent[cache.userId] = undefined;
+      delete cache.ticketSent[cache.userId];
     }, config.spam_time);
     cache.ticketSent[cache.userId] = 0;
-  } else if (cache.ticketSent[cache.userId] < config.spam_cant_msg) {
-    cache.ticketSent[cache.userId]++;
+  } else if (sentCount < config.spam_cant_msg) {
+    cache.ticketSent[cache.userId] = sentCount + 1;
     const ticket = await db.getTicketByUserId(cache.userId, ctx.session.groupCategory);
+    if (!ticket) return;
     sendMessage(
       config.staffchat_id,
       config.staffchat_type,
@@ -189,7 +273,7 @@ async function chat(ctx: Context, chat: { id: string }) {
         ctx,
         autoReplyInfo,
       ),
-    );
+    ).catch(log.error);
     if (ctx.session.group && ctx.session.group !== config.staffchat_id) {
       sendMessage(
         ctx.session.group,
@@ -199,22 +283,24 @@ async function chat(ctx: Context, chat: { id: string }) {
           ctx,
           autoReplyInfo,
         ),
-      );
+      ).catch(log.error);
     }
-  } else if (cache.ticketSent[cache.userId] === config.spam_cant_msg) {
-    cache.ticketSent[cache.userId]++;
-    sendMessage(chat.id, ctx.messenger, config.language.blockedSpam);
+  } else if (sentCount === config.spam_cant_msg) {
+    cache.ticketSent[cache.userId] = sentCount + 1;
+    sendMessage(chat.id, ctx.messenger, config.language.blockedSpam).catch(log.error);
   }
 
   // Log the ticket message for debugging
-  const ticket = await db.getTicketByUserId(cache.userId, ctx.session.groupCategory)
-  log.info(
-    formatMessageAsTicket(
-      ticket.ticketId,
-      ctx,
-      autoReplyInfo,
-    ),
-  );
+  const logTicket = await db.getTicketByUserId(cache.userId, ctx.session.groupCategory);
+  if (logTicket) {
+    log.info(
+      formatMessageAsTicket(
+        logTicket.ticketId,
+        ctx,
+        autoReplyInfo,
+      ),
+    );
+  }
 }
 
 export { chat };
