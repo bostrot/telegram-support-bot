@@ -15,9 +15,9 @@
     "main": "build/src/index.js",
     "scripts": {
         "tsc": "tsc",
+        "build": "tsc",
         "dev": "NODE_ENV=development ts-node-dev ./src/index.ts",
-        "prod": "npm run build && NODE_ENV=production node ./build/index.js",
-        "build": "npm run tsc",
+        "prod": "NODE_ENV=production node ./build/index.js",
         "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
     },
     "engines": {

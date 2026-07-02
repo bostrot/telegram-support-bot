@@ -2,6 +2,7 @@ import cache from './cache';
 import SignalAddon from './addons/signal';
 import { Context, Messenger } from './interfaces';
 import TelegramAddon from './addons/telegram';
+import * as log from 'fancy-log';
 
 /**
  * Escapes special characters for MarkdownV2, HTML, or Markdown formats.
@@ -48,10 +49,13 @@ async function sendMessage (
 ): Promise<string | null> {
   const messengerType = messenger as Messenger;
   // Remove extra spaces
+  log.info(`[sendMessage] raw messenger: ${messenger}`);
+  log.info(`[sendMessage] id: ${id}`);
+
   const cleanedMsg = msg.replace(/ {2,}/g, ' ');
-  
-  switch (messengerType) {  
+  switch (messengerType) {
     case Messenger.TELEGRAM:
+      log.info(`[sendMessage] route: TELEGRAM`);
       return await TelegramAddon.getInstance().sendMessage(id, cleanedMsg, extra);
     case Messenger.SIGNAL:
       return await SignalAddon.getInstance().sendMessage(id, cleanedMsg, extra);

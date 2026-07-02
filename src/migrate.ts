@@ -1,5 +1,6 @@
 // Dynamically require better-sqlite3 to make it optional and avoid native build errors
 import mongoose, { Model } from 'mongoose';
+import { Messenger } from './interfaces';
 import cache from './cache';
 import { ISupportee, SupporteeSchema } from './db';
 import * as log from 'fancy-log'
@@ -7,7 +8,7 @@ import * as log from 'fancy-log'
 const MONGO_URI = cache.config.mongodb_uri || 'mongodb://localhost:27017/support';
 const collectionName = `bot_${cache.config.owner_id}_${cache.config.bot_token.slice(-5)}`;
 
-const Supportee: Model<ISupportee> = 
+const Supportee: Model<ISupportee> =
   mongoose.models[collectionName] as Model<ISupportee> ||
   mongoose.model<ISupportee>(collectionName, SupporteeSchema);
 
@@ -20,7 +21,7 @@ export const migrateData = async () => {
     // better-sqlite3 not available, skip migration
     return;
   }
-  await mongoose.connect(MONGO_URI);
+  
 
   try {
     // Fetch all records from SQLite
@@ -35,6 +36,7 @@ export const migrateData = async () => {
         {
           ticketId,
           userid: userid.toString(),
+          messenger: Messenger.TELEGRAM,
           status,
           category: category || null,
         },
@@ -47,6 +49,5 @@ export const migrateData = async () => {
     log.error('Migration error:', error);
   } finally {
     sqliteDb.close();
-    await mongoose.disconnect();
   }
 };
