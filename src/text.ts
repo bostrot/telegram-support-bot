@@ -67,9 +67,15 @@ export async function ticketHandler(bot: Addon, ctx: Context): Promise<ISupporte
   const { chat, message, session, messenger } = ctx;
   // For private chats, check for an existing ticket; otherwise, create one.
   if (chat.type === 'private') {
-    const ticket = await db.getTicketByUserId(message.from.id, session.groupCategory)
+    let ticket = await db.getTicketByUserId(message.from.id, session.groupCategory)
     if (!ticket) {
-      db.add(message.from.id, 'open', session.groupCategory, messenger);
+      // db.add must be awaited: users.chat() reads the ticket back from the DB
+      // immediately, so firing this off unawaited made every first message from
+      // a new user crash in processTicket() with "Cannot read properties of null
+      // (reading 'ticketId')" - and never reach the staff chat.
+      await db.add(message.from.id, 'open', session.groupCategory, messenger);
+      // findOneAndReplace() returns the pre-image (null on insert), so re-read.
+      ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
     }
     users.chat(ctx, message.chat);
     return ticket;
