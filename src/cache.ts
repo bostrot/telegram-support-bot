@@ -1,6 +1,8 @@
 import { Cache, Config, Language, Messenger, ParseMode, SocketTo } from './interfaces';
 import * as YAML from 'yaml';
 import * as fs from 'fs';
+import * as log from './logger';
+import { mergeLanguage } from './language';
 
 const cache: Cache = {
   userId: '',
@@ -17,65 +19,6 @@ const cache: Cache = {
   recoveryBaseline: 0,
 };
 
-// Default language strings — used when config doesn't provide them
-const defaultLanguage: Partial<Language> = {
-  startCommandText: '/start - Start the bot',
-  faqCommandText: '/faq - Frequently Asked Questions',
-  helpCommandText: '/help - Get help',
-  confirmationMessage: 'Your message has been sent. We will get back to you as soon as possible.',
-  contactMessage: '',
-  blockedSpam: 'You are blocked due to spam.',
-  ticket: 'Ticket',
-  closed: 'Closed',
-  acceptedBy: 'Accepted by',
-  dear: 'Dear',
-  regards: 'Regards',
-  from: 'from',
-  language: 'Language',
-  msg_sent: 'Message sent!',
-  file_sent: 'File sent!',
-  usr_with_ticket: 'User with ticket',
-  banned: 'Banned',
-  replyPrivate: 'Reply in private chat',
-  services: 'Services',
-  customer: 'Customer',
-  msgForwarding: 'Message forwarding',
-  back: 'Back',
-  whatSubCategory: 'What sub-category?',
-  prvChatEnded: 'Private chat ended.',
-  prvChatOpened: 'Private chat opened.',
-  prvChatEnd: 'End private chat',
-  prvChatOpenedCustomer: 'Staff has opened a private chat with you.',
-  instructionsSent: 'Instructions sent!',
-  openTickets: 'Open Tickets',
-  support: 'Support',
-  prvChatOnly: 'Private chat only',
-  ticketClosed: 'Ticket closed',
-  links: 'Links',
-  textFirst: 'Please send a text message first.',
-  ticketClosedError: 'This ticket is closed. Please open a new one.',
-  automatedReply: 'Automated Reply',
-  automatedReplyAuthor: 'Support Team',
-  doesntHelp: "That doesn't help",
-  automatedReplySent: 'An automated reply has been sent.',
-  ticketReopened: 'Ticket reopened!',
-  yourTicketId: 'Your Ticket ID',
-  helpCommandStaffText: '/help - Staff commands reference',
-  regardsGroup: 'Regards, Support Team',
-  csatRatingRequest: 'Please rate your support experience (1-5):',
-  csatThankYou: 'Thank you for your feedback!',
-  triagePriority: 'Priority',
-  triageSummary: 'Triage Summary',
-  sentimentAlert: 'Sentiment Alert',
-  ticketAssignedTo: 'Ticket assigned to',
-  ticketUnassigned: 'Ticket unassigned',
-  assignedBy: 'Assigned by',
-  internalNote: 'Internal Note',
-  noteAddedBy: 'Note added by',
-  offlineMessage: "We're currently offline. We'll get back to you when we're available.",
-  businessHoursClosed: 'Our support hours are from {start} to {end}.',
-  escalationNotify: 'This ticket has been escalated.',
-};
 
 let parsedConfig: Record<string, unknown>;
 try {
@@ -150,9 +93,12 @@ for (const field of arrayFields) {
   }
 }
 
-// Merge language config: user values override defaults, missing keys get default fallback
-if (parsedConfig.language && typeof parsedConfig.language === 'object') {
-  cache.config.language = { ...defaultLanguage, ...parsedConfig.language } as unknown as Language;
+cache.config.language = mergeLanguage(parsedConfig.language);
+
+if (cache.config.use_llm && !cache.config.llm_knowledge) {
+  log.error(
+    'use_llm is enabled but llm_knowledge is empty: the LLM is instructed to answer only from the knowledge base and will not auto-reply.',
+  );
 }
 
 export default cache;

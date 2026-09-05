@@ -72,7 +72,8 @@ async function getResponseFromLLM(ctx: Context, ticketId?: number): Promise<stri
         });
 
         const message = response.choices[0]?.message?.content;
-        if (message === "null" || message === "Null" || message === null) {
+        if (message === "null" || message === "Null" || message === null || message === undefined) {
+            log.info('LLM returned no answer (question not covered by llm_knowledge)');
             return null;
         }
         return message;
