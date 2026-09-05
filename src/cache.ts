@@ -78,13 +78,23 @@ cache.config = {
   canned_responses: [],
   escalation_rules: [],
   auto_close_after_days: 0,
+  staffchat_thread_id: null,
+  ticket_per_message: false,
+  allow_broadcast: false,
+  forward_edited_messages: true,
+  start_keyboard: [],
+  show_replied_mark: true,
+  allow_user_close: false,
+  forward_stickers: true,
+  user_commands: [],
+  forward_replies_to_parent: false,
   ...parsedConfig,
 } as unknown as Config;
 
 // Ensure array fields are actually arrays (YAML `{}` becomes empty object)
 const arrayFields = [
   'categories', 'staff_roles', 'webhooks', 'autoreply',
-  'canned_responses', 'escalation_rules',
+  'canned_responses', 'escalation_rules', 'user_commands', 'start_keyboard',
 ];
 for (const field of arrayFields) {
   const cfg = cache.config as any;

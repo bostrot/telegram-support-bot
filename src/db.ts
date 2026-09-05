@@ -314,6 +314,32 @@ export async function open(
   }
 }
 
+/**
+ * All known, non-banned users that can receive a broadcast (#159).
+ * Web chat visitors are excluded because their socket ids are transient.
+ */
+export async function getAllUsers(): Promise<Array<{ userid: string; messenger: string }>> {
+  try {
+    const docs = await Supportee.find({ status: { $ne: 'banned' } })
+      .select('userid messenger')
+      .lean();
+    const seen = new Set<string>();
+    const users: Array<{ userid: string; messenger: string }> = [];
+    for (const doc of docs) {
+      const userid = String(doc.userid ?? '');
+      if (!userid || userid.startsWith('WEB')) continue;
+      const key = `${doc.messenger}:${userid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      users.push({ userid, messenger: String(doc.messenger) });
+    }
+    return users;
+  } catch (err) {
+    log.error('DB getAllUsers error:', err);
+    return [];
+  }
+}
+
 // --- Ticket Message methods (conversation memory) ---
 
 export async function addTicketMessage(

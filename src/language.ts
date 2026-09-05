@@ -58,6 +58,11 @@ export const defaultLanguage: Partial<Language> = {
   offlineMessage: "We're currently offline. We'll get back to you when we're available.",
   businessHoursClosed: 'Our support hours are from {start} to {end}.',
   escalationNotify: 'This ticket has been escalated.',
+  replied: 'replied',
+  ticketDetails: 'Ticket details',
+  editedMessage: 'edited their message',
+  broadcastSent: 'Broadcast sent to',
+  closedByUser: 'closed by the user',
 };
 
 /**

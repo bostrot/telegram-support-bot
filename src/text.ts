@@ -69,9 +69,12 @@ export async function ticketHandler(bot: Addon, ctx: Context): Promise<ISupporte
   const { chat, message, session, messenger } = ctx;
   // For private chats, check for an existing ticket; otherwise, create one.
   if (chat.type === 'private') {
-    const ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
-    if (!ticket) {
+    let ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
+    // ticket_per_message (#172): every message gets a fresh ticket id — except for banned users.
+    const needsNewTicket = !ticket || (cache.config.ticket_per_message && ticket.status !== 'banned');
+    if (needsNewTicket) {
       await db.add(message.from.id, 'open', session.groupCategory, messenger);
+      ticket = await db.getTicketByUserId(message.from.id, session.groupCategory);
     }
     await users.chat(ctx, message.chat);
     return ticket;

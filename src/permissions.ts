@@ -1,7 +1,19 @@
 import { Context, Config } from './interfaces';
 import * as db from './db';
 import * as team from './team';
+import cache from './cache';
 import * as log from './logger'
+
+/**
+ * Returns true when a staff chat message is outside the configured forum topic (#183).
+ * Without staffchat_thread_id every topic of the staff chat is accepted.
+ */
+function isOutsideStaffThread(ctx: Context, staffchatId: string | number): boolean {
+  const threadId = cache.config?.staffchat_thread_id;
+  if (!threadId || ctx.chat.id.toString() !== staffchatId.toString()) return false;
+  const msg = ctx.message?.message_id ? ctx.message : ctx.editedMessage;
+  return (msg?.message_thread_id ?? null) !== threadId;
+}
 
 /**
  * Checks permissions for group and admin.
@@ -35,10 +47,13 @@ async function checkRights(
     ctx.session.groupAdmin = undefined;
   }
 
-  const hasPermission =
-    ctx.chat.id.toString() === staffchat_id || Boolean(ctx.session.groupAdmin);
+  let hasPermission =
+    ctx.chat.id.toString() === staffchat_id.toString() || Boolean(ctx.session.groupAdmin);
+  if (hasPermission && isOutsideStaffThread(ctx, staffchat_id)) {
+    hasPermission = false;
+  }
   if (hasPermission) {
-    log.info(`Permission granted for ${ctx.from.username}`);
+    log.info(`Permission granted for @${ctx.from.username ?? '-'} (${ctx.from.id})`);
   }
   return hasPermission;
 }
@@ -69,4 +84,4 @@ async function checkPermissions(ctx: Context, next: () => any, config: Config) {
   }
 }
 
-export { checkRights, checkPermissions };
+export { checkRights, checkPermissions, isOutsideStaffThread };

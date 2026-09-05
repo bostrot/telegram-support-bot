@@ -70,10 +70,27 @@ class TelegramAddon implements Addon {
     return session({ initial });
   }
 
+  /**
+   * Confines staff chat traffic to the configured forum topic (staffchat_thread_id, #183):
+   * every message sent to the staff chat carries message_thread_id unless the caller set one.
+   */
+  private withThread(chatId: string | number, options: Record<string, unknown> = {}): Record<string, unknown> {
+    const threadId = cache.config.staffchat_thread_id;
+    if (
+      threadId &&
+      String(chatId) === String(cache.config.staffchat_id) &&
+      options.message_thread_id === undefined
+    ) {
+      options.message_thread_id = threadId;
+    }
+    return options;
+  }
+
   // --- Methods required by the Addon interface ---
   async sendMessage(chatId: string | number, text: string, options: Record<string, unknown> = {}): Promise<string | null> {
     options.disable_web_page_preview = true as unknown as string;
     if (typeof chatId !== 'string' && typeof chatId !== 'number') return null;
+    options = this.withThread(chatId, options);
     // Telegram only supports HTML and MarkdownV2 — convert deprecated Markdown to HTML
     const validModes = ['HTML', 'MarkdownV2'];
     if (options?.parse_mode === 'Markdown') {
@@ -92,7 +109,7 @@ class TelegramAddon implements Addon {
     signal?: AbortSignal,
   ): Promise<void> {
     try {
-      await this.bot.api.sendDocument(chatId, document as never, other as never, signal as any);
+      await this.bot.api.sendDocument(chatId, document as never, this.withThread(chatId, other) as never, signal as any);
     } catch (err) {
       log.error('Failed to send document:', err);
     }
@@ -100,7 +117,7 @@ class TelegramAddon implements Addon {
 
   async sendPhoto(chatId: string | number, photo: unknown, options?: Record<string, unknown>): Promise<void> {
     try {
-      await this.bot.api.sendPhoto(chatId, photo as never, options as never);
+      await this.bot.api.sendPhoto(chatId, photo as never, this.withThread(chatId, options) as never);
     } catch (err) {
       log.error('Failed to send photo:', err);
     }
@@ -108,9 +125,19 @@ class TelegramAddon implements Addon {
 
   async sendVideo(chatId: string | number, video: unknown, options?: Record<string, unknown>): Promise<void> {
     try {
-      await this.bot.api.sendVideo(chatId, video as never, options as never);
+      await this.bot.api.sendVideo(chatId, video as never, this.withThread(chatId, options) as never);
     } catch (err) {
       log.error('Failed to send video:', err);
+    }
+  }
+
+  async sendSticker(chatId: string | number, sticker: unknown, options?: Record<string, unknown>): Promise<string | null> {
+    try {
+      const response = await this.bot.api.sendSticker(chatId, sticker as never, this.withThread(chatId, options) as never);
+      return response?.message_id?.toString() ?? null;
+    } catch (err) {
+      log.error('Failed to send sticker:', err);
+      return null;
     }
   }
 

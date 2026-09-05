@@ -32,6 +32,23 @@ web_server_port: 8080 # Port for web server
 
 log_level: 'NONE' # NONE, ERROR, INFO — controls debug.log file output
 
+# --- Staff chat & ticket behaviour ---
+staffchat_thread_id: null # Forum topic (thread) id inside the staff group the bot is confined to; null = whole group
+ticket_per_message: false # Open a new ticket (new id) for every incoming message instead of one per user
+show_replied_mark: true # Mark tickets that already got a staff reply in /open
+forward_edited_messages: true # Re-post a user's edited message to the staff chat, marked as edited
+forward_stickers: true # Forward stickers between users and staff
+forward_replies_to_parent: false # Mirror staff replies from a subcategory group into the parent category group
+allow_user_close: false # Let users close their own ticket with /close
+allow_broadcast: false # Enable the staff command /broadcast <text> (sends to every known user)
+start_keyboard: [] # Reply-keyboard buttons shown with /start; each button sends its label as a message
+  # - "FAQ"
+  # - "/hours"
+user_commands: [] # Custom user commands answered with static text (listed in /help)
+  # - command: "hours"
+  #   text: "We are available Mon-Fri 9-17 CET."
+  #   description: "Opening hours"
+
 dev_mode: true # Enable/disable dev mode
 
 # customize your language
@@ -103,6 +120,12 @@ language:
   offlineMessage: "We're currently offline. Leave a message and we'll get back to you."
   businessHoursClosed: "Our support team is currently offline. We'll respond during business hours."
   escalationNotify: "⚠️ Ticket escalated — no response for"
+  # Ticket list / details, edited messages, broadcast, user close
+  replied: "replied"
+  ticketDetails: "Ticket details"
+  editedMessage: "edited their message"
+  broadcastSent: "Broadcast sent to"
+  closedByUser: "closed by the user"
 
 autoreply:
   - question: 'install'

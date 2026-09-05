@@ -112,6 +112,39 @@ function extractName(replyText: string): string | null {
 }
 
 /**
+ * Finds the parent category of the (sub)category a ticket was routed to (#79).
+ * Matches by the ticket's category name or by the group the reply was written in.
+ */
+function findParentCategory(ticketCategory: string | null, chatId: string | number) {
+  const { categories } = cache.config;
+  if (!Array.isArray(categories)) return null;
+  for (const category of categories) {
+    if (!Array.isArray(category.subgroups) || category.subgroups.length === 0) continue;
+    const matches = category.subgroups.some(
+      (sub) => sub.name === ticketCategory || String(sub.group_id) === String(chatId),
+    );
+    if (matches && category.group_id && String(category.group_id) !== String(chatId)) {
+      return category;
+    }
+  }
+  return null;
+}
+
+/**
+ * Mirrors a staff reply into the parent category group so supervisors can follow
+ * subcategory traffic (forward_replies_to_parent, #79).
+ */
+async function forwardReplyToParent(ctx: Context, ticket: ISupportee, staffMessage: string): Promise<void> {
+  if (!cache.config.forward_replies_to_parent) return;
+  const parent = findParentCategory(ticket.category, ctx.chat.id);
+  if (!parent) return;
+  const esc = middleware.strictEscape;
+  const { language, staffchat_type } = cache.config;
+  const text = `${language.ticket} #T${ticket.ticketId.toString().padStart(6, '0')} ${language.acceptedBy} ${esc(ctx.message.from.first_name)}:\n\n${esc(staffMessage)}`;
+  await middleware.sendMessage(parent.group_id, staffchat_type, text).catch(log.error);
+}
+
+/**
  * Handles staff chat replies to tickets.
  *
  * @param ctx - The bot context.
@@ -222,8 +255,11 @@ async function chat(ctx: Context) {
     cache.config.staffchat_type,
     `${cache.config.language.msg_sent} ${esc(name)}`,
   ).catch(log.error);
-  log.info(`Answer: ${ticketMsg(name, ctx.message)}`);
+  log.info(`Answer by @${ctx.from.username ?? '-'} (${ctx.from.id}) to ${ticket.userid} (${name}) on #T${ticketId}: ${staffMessage}`);
   delete cache.ticketSent[ticketId];
+
+  // Mirror the reply to the parent category group if configured
+  await forwardReplyToParent(ctx, ticket, staffMessage);
 
   // Record analytics event for staff reply
   await db.recordAnalyticsEvent('staff_reply', ticketId, senderId);
@@ -243,4 +279,4 @@ async function chat(ctx: Context) {
   }
 }
 
-export { privateReply, chat, ticketMsg, extractSupporteeId };
+export { privateReply, chat, ticketMsg, extractSupporteeId, findParentCategory, forwardReplyToParent };
