@@ -6,7 +6,7 @@ import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 import { registerCommonHandlers } from '../../handlers';
 import * as db from '../../db';
-import * as log from 'fancy-log';
+import * as log from '../../logger';
 
 const SEND_ENDPOINT = 'v2/send';
 const GROUP_ENDPOINT = 'v1/groups';

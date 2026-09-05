@@ -1,11 +1,21 @@
 import mongoose from 'mongoose';
 import cache from './cache';
 import { Messenger, TicketPriority } from './interfaces';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
-const MONGO_URI = cache.config.mongodb_uri || process.env.MONGO_URI || 'mongodb://localhost:27017/support';
-const botTokenSuffix = cache.config.bot_token.slice(-5);
-const collectionName = `bot_${cache.config.owner_id}_${botTokenSuffix}`;
+// Lazy config accessors — defer reading cache.config until runtime
+// to avoid circular module initialization issues (index → migrate → db → cache)
+function getMongoUri(): string {
+  return cache.config?.mongodb_uri || process.env.MONGO_URI || 'mongodb://localhost:27017/support';
+}
+
+function getBotTokenSuffix(): string {
+  return cache.config?.bot_token?.slice(-5) || '';
+}
+
+function getCollectionName(): string {
+  return `bot_${cache.config?.owner_id}_${getBotTokenSuffix()}`;
+}
 
 export interface ISupportee extends mongoose.Document {
   ticketId: number;
@@ -46,7 +56,7 @@ export const SupporteeSchema = new mongoose.Schema<ISupportee>({
   closed_at: { type: Date, default: null },
 });
 
-const Supportee = mongoose.model(collectionName, SupporteeSchema);
+const Supportee = mongoose.model(getCollectionName(), SupporteeSchema);
 
 export { Supportee };
 
@@ -114,7 +124,7 @@ export async function connect() {
     process.exit(1);
   });
 
-  const connection = await mongoose.connect(MONGO_URI, {
+  const connection = await mongoose.connect(getMongoUri(), {
     serverSelectionTimeoutMS: 5000,
   });
 

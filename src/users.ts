@@ -4,7 +4,7 @@ import * as llm from './addons/llm';
 import * as db from './db';
 import { buildInlineKeyboard, strictEscape as esc, reply, sendMessage } from './middleware';
 import { ISupportee } from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
 import * as triage from './triage';
 import * as webhooks from './webhooks';
 import * as workflows from './workflows';

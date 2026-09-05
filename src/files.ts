@@ -3,7 +3,7 @@ import cache from './cache';
 import { buildInlineKeyboard, reply, sendMessage } from './middleware';
 import { Addon, Context, ModeData } from './interfaces';
 import { ISupportee } from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

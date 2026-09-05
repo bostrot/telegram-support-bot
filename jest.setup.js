@@ -12,6 +12,14 @@ jest.mock('fancy-log', () => ({
   debug: jest.fn(),
 }));
 
+// Mock logger module to prevent file I/O during tests
+jest.mock('./src/logger', () => ({
+  __esModule: true,
+  default: { info: jest.fn(), error: jest.fn() },
+  info: jest.fn(),
+  error: jest.fn(),
+}));
+
 // Mock OpenAI globally to prevent API key requirements
 jest.mock('openai', () => {
   const MockOpenAI = jest.fn().mockImplementation(() => ({

@@ -230,6 +230,7 @@ export class Config {
   web_server_ssl_cert: string = '';
   web_server_ssl_key: string = '';
   dev_mode: boolean = false;
+  log_level: 'NONE' | 'ERROR' | 'INFO' = 'NONE';
   show_user_ticket: boolean = false;
   language: Language = {} as Language;
   autoreply_confirmation: boolean = true;

@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import { Addon, Context } from '../../interfaces';
 import cache from '../../cache';
 import { registerCommonHandlers } from '../../handlers';
-import * as log from 'fancy-log';
+import * as log from '../../logger';
 
 const SLACK_API = 'https://slack.com/api';
 

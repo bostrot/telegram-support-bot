@@ -12,7 +12,7 @@ import * as team from './team';
 import * as analytics from './analytics';
 import * as workflows from './workflows';
 import * as recovery from './recovery';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 /**
  * Check and migrate SQLite database to MongoDB.

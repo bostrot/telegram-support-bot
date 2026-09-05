@@ -1,7 +1,7 @@
 import { Context, Config } from './interfaces';
 import * as db from './db';
 import * as team from './team';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 /**
  * Checks permissions for group and admin.

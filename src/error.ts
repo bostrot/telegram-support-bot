@@ -1,17 +1,13 @@
-import * as fs from 'fs';
 import cache from './cache';
 import * as middleware from './middleware';
-import * as log from 'fancy-log'
-
-const debugFile = './config/debug.log';
-const logStdout = process.stdout;
+import * as log from './logger'
 
 /**
  * Initializes error logging and global exception handlers.
  *
  * @param logs - Whether to log to file (default true).
  */
-function init(logs = true) {
+function init(logs: boolean) {
   // Rate limiting state — tracks recent errors to avoid spamming staff chat
   let currentErrors = 0;
   let lastErrorReset: number = Date.now();
@@ -32,14 +28,6 @@ function init(logs = true) {
   };
 
   /**
-   * Writes error details to the debug log file.
-   */
-  const writeDebugLog = (error: unknown): void => {
-    const message = `${new Date().toISOString()}: ${error instanceof Error ? error.stack : String(error)}\n`;
-    fs.appendFileSync(debugFile, message, 'utf8');
-  };
-
-  /**
    * Sends a notification to the staff chat about the error.
    */
   const notifyStaff = (errorMessage: string): void => {
@@ -56,7 +44,6 @@ function init(logs = true) {
   process.on('uncaughtException', (err: unknown) => {
     const error = err instanceof Error ? err : new Error(String(err));
     log.info('=== UNHANDLED ERROR ===');
-    writeDebugLog(error);
     log.error(`${new Date()}: Unhandled exception:`, error);
     notifyStaff(`An uncaught error occurred. Please report this to your admin:\n\n${error.message}`);
     process.exit(1);
@@ -66,8 +53,8 @@ function init(logs = true) {
   process.on('unhandledRejection', (reason: unknown) => {
     const errorMessage = reason instanceof Error ? reason.stack : String(reason);
     log.info('=== UNHANDLED REJECTION ===');
-    writeDebugLog(errorMessage);
-    console.error(`${new Date()}: Unhandled rejection:`, errorMessage);
+    log.error(`Unhandled rejection:`, errorMessage);
+    console.error(`[${new Date().toISOString()}] Unhandled rejection:`, errorMessage);
     notifyStaff(`An unhandled promise rejection occurred. Please report this to your admin:\n\n${errorMessage}`);
   });
 }

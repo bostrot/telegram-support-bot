@@ -77,9 +77,19 @@ const defaultLanguage: Partial<Language> = {
   escalationNotify: 'This ticket has been escalated.',
 };
 
-const parsedConfig = YAML.parse(
-  fs.readFileSync('./config/config.yaml', 'utf8'),
-);
+let parsedConfig: Record<string, unknown>;
+try {
+  parsedConfig = YAML.parse(
+    fs.readFileSync('./config/config.yaml', 'utf8'),
+  );
+} catch (err) {
+  // Config file missing or unreadable — use empty object so defaults apply
+  parsedConfig = {};
+}
+// YAML.parse('') returns null, not undefined — normalize to empty object
+if (parsedConfig === null) {
+  parsedConfig = {};
+}
 
 // Apply defaults for missing config fields to prevent runtime errors
 cache.config = {
@@ -88,7 +98,7 @@ cache.config = {
   staffchat_parse_mode: ParseMode.MarkdownV2,
   spam_time: 5 * 60 * 1000,
   parse_mode: ParseMode.MarkdownV2,
-  language: defaultLanguage,
+  language: {} as Language,
   allow_private: false,
   direct_reply: false,
   auto_close_tickets: false,
@@ -101,6 +111,7 @@ cache.config = {
   web_server: false,
   web_server_port: 3000,
   dev_mode: false,
+  log_level: 'NONE',
   show_user_ticket: false,
   pass_start: false,
   clean_replies: false,
@@ -125,7 +136,7 @@ cache.config = {
   escalation_rules: [],
   auto_close_after_days: 0,
   ...parsedConfig,
-} as Config;
+} as unknown as Config;
 
 // Ensure array fields are actually arrays (YAML `{}` becomes empty object)
 const arrayFields = [
@@ -141,7 +152,7 @@ for (const field of arrayFields) {
 
 // Merge language config: user values override defaults, missing keys get default fallback
 if (parsedConfig.language && typeof parsedConfig.language === 'object') {
-  cache.config.language = { ...defaultLanguage, ...parsedConfig.language };
+  cache.config.language = { ...defaultLanguage, ...parsedConfig.language } as unknown as Language;
 }
 
 export default cache;

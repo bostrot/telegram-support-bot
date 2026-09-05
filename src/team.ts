@@ -2,7 +2,7 @@ import { Context } from './interfaces';
 import cache from './cache';
 import * as db from './db';
 import * as middleware from './middleware';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 /**
  * Initializes staff member cache from config on startup.

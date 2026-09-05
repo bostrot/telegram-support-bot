@@ -24,6 +24,7 @@ jest.mock('../src/cache', () => ({
             msg_sent: 'Message sent',
         },
         dev_mode: false,
+        log_level: 'NONE',
         clean_replies: false,
         anonymous_replies: false,
         staffchat_type: 'telegram',

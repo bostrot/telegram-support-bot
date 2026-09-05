@@ -3,7 +3,7 @@ import cache from './cache';
 import * as middleware from './middleware';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
 import * as team from './team';
 import * as analytics from './analytics';
 import * as workflows from './workflows';

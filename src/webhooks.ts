@@ -1,6 +1,6 @@
 import axios from 'axios';
 import cache from './cache';
-import * as log from 'fancy-log'
+import * as log from './logger'
 import { WebhookEvent } from './interfaces';
 
 export interface WebhookPayload {

@@ -3,7 +3,7 @@ import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
 import * as team from './team';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 /**
  * Helper function for reply keyboard.

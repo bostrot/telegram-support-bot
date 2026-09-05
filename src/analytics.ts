@@ -2,7 +2,7 @@ import cache from './cache';
 import * as db from './db';
 import * as middleware from './middleware';
 import { Context } from './interfaces';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 /**
  * Records a CSAT rating for a ticket.

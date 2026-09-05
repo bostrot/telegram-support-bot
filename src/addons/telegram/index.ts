@@ -6,7 +6,7 @@ import * as permissions from '../../permissions';
 import * as inline from '../../inline';
 import cache from '../../cache';
 import { registerCommonHandlers } from '../../handlers';
-import * as log from 'fancy-log'
+import * as log from '../../logger'
 
 type BotContext = GrammyContext & SessionFlavor<SessionData>;
 

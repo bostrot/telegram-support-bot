@@ -1,5 +1,5 @@
 import cache from './cache';
-import * as log from 'fancy-log';
+import * as log from './logger';
 
 /**
  * Runs startup recovery to establish a resilient ticket ID baseline.

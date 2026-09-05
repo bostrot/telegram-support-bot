@@ -30,6 +30,8 @@ signal_host: 'localhost:40153' # Signal host (default: localhost:40153)
 web_server: false # Enable/disable web server
 web_server_port: 8080 # Port for web server
 
+log_level: 'NONE' # NONE, ERROR, INFO — controls debug.log file output
+
 dev_mode: true # Enable/disable dev mode
 
 # customize your language

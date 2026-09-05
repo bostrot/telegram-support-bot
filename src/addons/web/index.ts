@@ -3,7 +3,7 @@ import {ticketHandler} from '../../text';
 import cache from '../../cache';
 import TelegramAddon from '../telegram';
 import rateLimit from 'express-rate-limit';
-import * as log from 'fancy-log'
+import * as log from '../../logger'
 
 /* include script
 <script id="chatScript" src="localhost:8080/chat.js"></script>

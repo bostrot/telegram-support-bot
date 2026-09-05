@@ -1,5 +1,5 @@
 # Build stage
-FROM node:24-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /bot
 
@@ -19,7 +19,7 @@ COPY ./tsconfig.json /bot/tsconfig.json
 RUN npm run build
 
 # Production stage
-FROM node:24-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /bot
 

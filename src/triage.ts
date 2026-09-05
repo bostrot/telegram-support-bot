@@ -2,7 +2,7 @@ import { Context } from './interfaces';
 import OpenAI from 'openai';
 import cache from './cache';
 import * as db from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 // Lazy-initialize OpenAI client to avoid issues when config isn't loaded (e.g., tests)
 let llm: InstanceType<typeof OpenAI> | null = null;

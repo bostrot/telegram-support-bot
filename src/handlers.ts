@@ -7,7 +7,7 @@ import cache from './cache';
 import { Addon, Context } from './interfaces';
 import * as analytics from './analytics';
 import * as workflows from './workflows';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
 export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
   // Register commands common to both platforms.
