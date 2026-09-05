@@ -2,7 +2,7 @@ import {Context, Messenger, SessionData} from '../interfaces';
 
 const fakectx: Context = {
   update_id: 617718635,
-  messenger: null,
+  messenger: Messenger.TELEGRAM,
   message: {
     web_msg: true,
     message_id: 4260,
@@ -57,12 +57,12 @@ const fakectx: Context = {
     id: '',
   },
   inlineQuery: () => {},
-  answerCbQuery: function(arg0: any, arg1: boolean): void {
+  answerCbQuery: async (_text?: string, _showAlert?: boolean): Promise<void> => {
     throw new Error('Function not implemented.');
   },
-  reply: () => {},
-  getChat: () => {},
-  getFile: () => {},
+  reply: async (): Promise<void> => {},
+  getChat: async (): Promise<{ id: string; first_name: string; username: string; type: string }> => ({ id: '', first_name: '', username: '', type: 'private' }),
+  getFile: async (): Promise<unknown> => ({}),
 };
 
 export default fakectx;

@@ -2,14 +2,20 @@
 import mongoose, { Model } from 'mongoose';
 import cache from './cache';
 import { ISupportee, SupporteeSchema } from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
 
-const MONGO_URI = cache.config.mongodb_uri || 'mongodb://localhost:27017/support';
-const collectionName = `bot_${cache.config.owner_id}_${cache.config.bot_token.slice(-5)}`;
+// Lazy config accessors — defer reading cache.config until runtime
+function getMongoUri(): string {
+  return cache.config?.mongodb_uri || 'mongodb://localhost:27017/support';
+}
+
+function getCollectionName(): string {
+  return `bot_${cache.config?.owner_id}_${cache.config?.bot_token?.slice(-5) || ''}`;
+}
 
 const Supportee: Model<ISupportee> = 
-  mongoose.models[collectionName] as Model<ISupportee> ||
-  mongoose.model<ISupportee>(collectionName, SupporteeSchema);
+  mongoose.models[getCollectionName()] as Model<ISupportee> ||
+  mongoose.model<ISupportee>(getCollectionName(), SupporteeSchema);
 
 export const migrateData = async () => {
   let sqliteDb;
@@ -20,7 +26,7 @@ export const migrateData = async () => {
     // better-sqlite3 not available, skip migration
     return;
   }
-  await mongoose.connect(MONGO_URI);
+  await mongoose.connect(getMongoUri());
 
   try {
     // Fetch all records from SQLite

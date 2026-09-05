@@ -1,107 +1,61 @@
-import * as fs from 'fs';
-import * as util from 'util';
 import cache from './cache';
 import * as middleware from './middleware';
-import * as log from 'fancy-log'
-
-const debugFile = './config/debug.log';
-const logStdout = process.stdout;
+import * as log from './logger'
 
 /**
  * Initializes error logging and global exception handlers.
  *
  * @param logs - Whether to log to file (default true).
  */
-function init(logs = true) {
-  // Rate limiting variables
+function init(logs: boolean) {
+  // Rate limiting state — tracks recent errors to avoid spamming staff chat
   let currentErrors = 0;
-  let lastErrors = 0;
-  let waiting = false;
-  let waitingLast = false;
+  let lastErrorReset: number = Date.now();
 
   /**
-   * Sleeps for the specified number of seconds.
-   *
-   * @param seconds - Number of seconds to sleep.
-   * @returns A promise that resolves after the delay.
+   * Checks if we should suppress notifications due to error flood.
+   * Returns true when in normal operation (safe to notify).
    */
-  const sleep = (seconds: number) =>
-    new Promise(resolve => setTimeout(resolve, seconds * 1000));
-
-  /**
-   * Applies rate limiting by delaying execution when errors occur too frequently.
-   */
-  const rateLimit = () => {
-    if (currentErrors > 3) {
-      // "Synchronous" wait (note: not truly synchronous in Node)
-      sleep(5 * lastErrors);
+  const shouldNotify = (): boolean => {
+    // Reset counter every 30 seconds
+    if (Date.now() - lastErrorReset > 30_000) {
       currentErrors = 0;
-      lastErrors++;
+      lastErrorReset = Date.now();
     }
-    if (!waiting) {
-      setTimeout(() => {
-        currentErrors = 0;
-        waiting = false;
-      }, 3000);
-    }
-    if (!waitingLast) {
-      setTimeout(() => {
-        currentErrors = 0;
-        waitingLast = false;
-      }, 30000);
-    }
-    waiting = true;
     currentErrors++;
+    // Only notify on the first error in a window, then suppress to avoid spam
+    return currentErrors <= 1 || currentErrors % 5 === 0;
   };
 
-  // Overload log.info to write to file when logging is enabled
-  // log.info = (d: any) => {
-  //   if (logs) {
-  //     const formatted = util.format(d);
-  //     logStdout.write(formatted + '\n');
-  //     fs.appendFile(
-  //       debugFile,
-  //       `${new Date()}: ${formatted}\n`,
-  //       'utf8',
-  //       err => {
-  //         if (err) throw err;
-  //       }
-  //     );
-  //   }
-  // };
-
-  // Catch uncaught exceptions to log them and notify staff
-  process.on('uncaughtException', (err) => {
-    rateLimit();
-    log.info('=== UNHANDLED ERROR ===');
-    fs.appendFile(debugFile, err.stack + '\n', 'utf8', appendErr => {
-      if (appendErr) throw appendErr;
-    });
-    log.error(`${new Date()}: Error: `, err);
+  /**
+   * Sends a notification to the staff chat about the error.
+   */
+  const notifyStaff = (errorMessage: string): void => {
+    if (!shouldNotify()) return;
     middleware.sendMessage(
       cache.config.staffchat_id,
       cache.config.staffchat_type,
-      `An error occurred, please report this to your admin: \n\n ${err}`,
-      {}
-    );
+      errorMessage,
+      {},
+    ).catch(log.error);
+  };
+
+  // Catch uncaught exceptions to log them and notify staff
+  process.on('uncaughtException', (err: unknown) => {
+    const error = err instanceof Error ? err : new Error(String(err));
+    log.info('=== UNHANDLED ERROR ===');
+    log.error(`${new Date()}: Unhandled exception:`, error);
+    notifyStaff(`An uncaught error occurred. Please report this to your admin:\n\n${error.message}`);
     process.exit(1);
   });
 
   // Catch unhandled promise rejections to log them and notify staff if necessary
-  process.on('unhandledRejection', (err: any) => {
-    rateLimit();
+  process.on('unhandledRejection', (reason: unknown) => {
+    const errorMessage = reason instanceof Error ? reason.stack : String(reason);
     log.info('=== UNHANDLED REJECTION ===');
-    fs.appendFile(debugFile, err + '\n', 'utf8', appendErr => {
-      if (appendErr) throw appendErr;
-    });
-    console.dir(`${new Date()}: ${err.stack}`);
-    if (currentErrors === 0) {
-      middleware.sendMessage(
-        cache.config.staffchat_id,
-        cache.config.staffchat_type,
-        `An error occurred, please report this to your admin: \n\n ${err}`
-      );
-    }
+    log.error(`Unhandled rejection:`, errorMessage);
+    console.error(`[${new Date().toISOString()}] Unhandled rejection:`, errorMessage);
+    notifyStaff(`An unhandled promise rejection occurred. Please report this to your admin:\n\n${errorMessage}`);
   });
 }
 

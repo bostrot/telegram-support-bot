@@ -16,9 +16,9 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
     const username = envelope.sourceName.replace(/\s/g, '').toLowerCase();
   
     // Create a chat object based on envelope data.
-    var chatType = 'private';
-    var chatId = senderId;
-    var replyId = dataMessage.quote?.id;
+    let chatType = 'private';
+    let chatId = senderId;
+    const replyId = dataMessage.quote?.id;
     if (dataMessage.groupInfo) {
       chatId = dataMessage.groupInfo.groupId;
       chatType = 'group';
@@ -48,14 +48,14 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
         date: dateInSeconds,
         text: dataMessage.message,
         external_reply: {
-          message_id: replyId,
+          message_id: replyId ?? 0,
         },
         reply_to_message: {
           from: {
             is_bot: false,
           },
-          text: signalMsg.envelope.dataMessage.quote?.text,
-          caption: signalMsg.envelope.dataMessage.quote?.text,
+          text: signalMsg.envelope.dataMessage.quote?.text ?? '',
+          caption: signalMsg.envelope.dataMessage.quote?.text ?? '',
         },
         getFile: () => {},
         caption: dataMessage.message,
@@ -78,16 +78,15 @@ export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
         id: senderId,
       },
       inlineQuery: () => {},
-      answerCbQuery: function(arg0: any, arg1: boolean): void {
+      answerCbQuery: async (_text?: string, _showAlert?: boolean): Promise<void> => {
         throw new Error('Function not implemented.');
       },
-      reply: () => {},
-      getChat: () => {},
-      getFile: async () => {
-        return {
-          file_id: signalMsg.envelope.dataMessage.attachments[0].id,
-        };
-      }
+      reply: async (): Promise<void> => {},
+      getChat: async (): Promise<{ id: string; first_name: string; username: string; type: string }> => ({ id: senderId, first_name: '', username: '', type: 'private' }),
+      getFile: async (): Promise<unknown> => {
+        const attachments = signalMsg.envelope.dataMessage.attachments ?? [];
+        return { file_id: attachments[0]?.id };
+      },
 
     };
   

@@ -2,12 +2,11 @@ import { Context, Messenger, ModeData } from './interfaces';
 import TelegramAddon from './addons/telegram';
 import cache from './cache';
 import * as middleware from './middleware';
+import * as team from './team';
+import * as log from './logger'
 
 /**
  * Helper function for reply keyboard.
- *
- * @param keys - Keyboard keys.
- * @returns An object containing reply_markup.
  */
 const replyKeyboard = (keys: any[]) => ({
   parse_mode: cache.config.parse_mode,
@@ -16,8 +15,6 @@ const replyKeyboard = (keys: any[]) => ({
 
 /**
  * Helper function to remove keyboard.
- *
- * @returns An object with remove_keyboard option.
  */
 const removeKeyboard = () => ({
   parse_mode: cache.config.parse_mode,
@@ -126,20 +123,47 @@ function initInline(bot: TelegramAddon) {
 }
 
 /**
- * Handles callback queries.
- *
- * @param ctx - The context of the callback.
+ * Handles callback queries (assignment, private chat, CSAT).
  */
-function callbackQuery(ctx: Context) {
+async function callbackQuery(ctx: Context) {
+  const data = ctx.callbackQuery.data;
+
+  // Handle assignment callbacks: assign:<staff_id>:<ticketId>
+  if (data && data.startsWith('assign:')) {
+    const parts = data.split(':');
+    const staffId = parts[1];
+    const ticketId = parseInt(parts[2]);
+
+    if (!team.canPerformAction(ctx.callbackQuery.from.id.toString(), 'assign')) {
+      await ctx.answerCbQuery('You cannot assign tickets.', true);
+      return;
+    }
+
+    await team.assignTicketCommand(ctx, staffId, ticketId);
+    await ctx.answerCbQuery('Ticket assigned!', true);
+    return;
+  }
+
+  // Handle unassign callback: unassign:<ticketId>
+  if (data && data.startsWith('unassign:')) {
+    const parts = data.split(':');
+    const ticketId = parseInt(parts[1]);
+
+    await team.unassignTicketCommand(ctx, ticketId);
+    await ctx.answerCbQuery('Ticket unassigned.', true);
+    return;
+  }
+
   // End callback session if data equals 'R'
-  if (ctx.callbackQuery.data === 'R') {
+  if (data === 'R') {
     ctx.session.mode = '';
     ctx.session.modeData = {} as ModeData;
     middleware.reply(ctx, cache.config.language.prvChatEnded);
     return;
   }
+
   // Extract parts from callback data.
-  const [id, name, category, ticketid] = ctx.callbackQuery.data.split('---');
+  const [id, name, category, ticketid] = data.split('---');
 
   ctx.session.mode = 'private_reply';
   ctx.session.modeData = {
@@ -167,7 +191,7 @@ function callbackQuery(ctx: Context) {
         ],
       ],
     },
-  });
+  }).catch(log.error);
 
   ctx.answerCbQuery(cache.config.language.instructionsSent, true);
 }

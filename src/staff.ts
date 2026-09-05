@@ -3,7 +3,12 @@ import * as middleware from './middleware';
 import * as db from './db';
 import { Context } from './interfaces';
 import { ISupportee } from './db';
-import * as log from 'fancy-log'
+import * as log from './logger'
+import * as webhooks from './webhooks';
+import * as analytics from './analytics';
+import * as team from './team';
+
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Generates a ticket message.
@@ -46,26 +51,18 @@ function privateReply(ctx: Context, msg: any = {}) {
     ticketMsg(`${modeData.name}`, msg),
     {
       parse_mode: cache.config.parse_mode,
-      reply_markup: {
-        html: '',
-        inline_keyboard: [
-          [
-            cache.config.direct_reply
-              ? {
-                text: cache.config.language.replyPrivate,
-                url: `https://t.me/${from.username}`,
-              }
-              : {
-                text: cache.config.language.replyPrivate,
-                callback_data: `${from.id}---${message.from.first_name}---${modeData.category}---${modeData.ticketid}`,
-              },
+      reply_markup: cache.config.direct_reply
+        ? {
+          html: '',
+          inline_keyboard: [
+            [{ text: cache.config.language.replyPrivate, url: `https://t.me/${from.username}` }],
           ],
-        ],
-      },
+        }
+        : middleware.buildInlineKeyboard(from.id, message.from.first_name, modeData.category, modeData.ticketid),
     },
-  );
+  ).catch(log.error);
   // Send confirmation message
-  middleware.sendMessage(chat.id, messenger, cache.config.language.msg_sent, {});
+  middleware.sendMessage(chat.id, messenger, cache.config.language.msg_sent, {}).catch(log.error);
 }
 
 /**
@@ -74,13 +71,32 @@ function privateReply(ctx: Context, msg: any = {}) {
  * @param replyText - The text from which to extract the ticket ID.
  * @returns The extracted ticket ID or null if not found.
  */
-function extractTicketId(replyText: string, ctx: Context): string | null {
+function extractTicketId(replyText: string): string | null {
   const { language } = cache.config;
-  let match = replyText.match(new RegExp(`#T(.*) ${language.from}`));
+  let match = replyText.match(new RegExp(`#T(.*) ${escapeRegex(language.from)}`));
   if (!match) {
-    match = replyText.match(new RegExp(`#T(.*)\n${language.from}`));
+    match = replyText.match(new RegExp(`#T(.*)\\n${escapeRegex(language.from)}`));
   }
   return match ? match[1].trim() : null;
+}
+
+/**
+ * Extracts the supportee's Telegram user ID from a forwarded ticket message.
+ * Handles both MarkdownV2/HTML link formats and plain text fallback.
+ *
+ * @param replyText - The original forwarded ticket message text.
+ * @returns The extracted user ID or null if not found.
+ */
+function extractSupporteeId(replyText: string): string | null {
+  // Try to extract from tg://user?id=<id> link (MarkdownV2 / HTML format)
+  const linkMatch = replyText.match(/tg:\/\/user\?id=(\d+)/);
+  if (linkMatch) return linkMatch[1];
+
+  // Fallback: try [name](tg://user?id=<id>) Markdown pattern
+  const mdMatch = replyText.match(/\[.*?\]\(tg:\/\/user\?id=(\d+)\)/);
+  if (mdMatch) return mdMatch[1];
+
+  return null;
 }
 
 /**
@@ -91,7 +107,7 @@ function extractTicketId(replyText: string, ctx: Context): string | null {
  */
 function extractName(replyText: string): string | null {
   const { language } = cache.config;
-  const match = replyText.match(new RegExp(`${language.from} (.*) ${language.language}`));
+  const match = replyText.match(new RegExp(`${escapeRegex(language.from)} (.*) ${escapeRegex(language.language)}`));
   return match ? match[1].trim() : null;
 }
 
@@ -112,25 +128,42 @@ async function chat(ctx: Context) {
   const replyMessageId = ctx.message.external_reply?.message_id;
   if (!replyText && !replyMessageId) return;
 
-  var ticket;
-  var ticketId;
+  let ticket: ISupportee | null = null;
+  let ticketId: number = 0;
   if (replyMessageId) {
     ticket = await db.getTicketByInternalId(replyMessageId);
     if (ticket) {
       ticketId = ticket.ticketId;
     }
-  } else {
-    ticketId = parseInt(await extractTicketId(replyText, ctx));
-    
-    if (!ticketId) return;
-    ticket = await db.getTicketById(ticketId, ctx.session.groupCategory);
   }
 
-  if (!ticket) {
+  // If internal ID lookup failed, try regex extraction from text
+  if (!ticket && replyText) {
+    const extractedId = extractTicketId(replyText);
+    if (extractedId) {
+      ticketId = parseInt(extractedId, 10);
+      if (ticketId) {
+        ticket = await db.getTicketById(ticketId, ctx.session.groupCategory);
+      }
+    }
+  }
+
+  // If regex also failed, try to find the supportee by extracting their Telegram ID from the forwarded message
+  if (!ticket && replyText) {
+    const supporteeId = extractSupporteeId(replyText);
+    if (supporteeId) {
+      ticket = await db.getTicketByUserId(supporteeId, ctx.session.groupCategory);
+      if (ticket) {
+        ticketId = ticket.ticketId;
+      }
+    }
+  }
+
+  if (!ticket || !ticketId) {
     middleware.reply(ctx, cache.config.language.ticketClosedError);
     return;
   }
-  var name;
+  let name: string | null;
   if (ticket.name) {
     name = ticket.name;
   } else {
@@ -138,8 +171,25 @@ async function chat(ctx: Context) {
   }
   if (!name) return;
 
+  // Check for internal note prefix (!note or !internal)
+  const staffMessage = ctx.message.text || '';
+  if (staffMessage.startsWith('!note ') || staffMessage.startsWith('!internal ')) {
+    const noteText = staffMessage.replace(/^!(?:note|internal)\s+/i, '');
+    await team.addInternalNoteCommand(ctx, ticketId, noteText);
+    return;
+  }
+
   // Mark ticket as no longer active
   cache.ticketStatus[ticketId] = false;
+
+  // Set first response time if not already set
+  if (!ticket.first_response_at) {
+    await db.setFirstResponseAt(ticketId);
+  }
+
+  // Log conversation memory
+  const senderId = ctx.from.id.toString();
+  await db.addTicketMessage(ticketId, 'staff', senderId, staffMessage);
 
   // Reply to web users differently
   if (ticket.userid.includes('WEB')) {
@@ -151,25 +201,46 @@ async function chat(ctx: Context) {
         ctx.chat.id,
         ticket.messenger,
         `Web chat already closed.`,
-      );
+      ).catch(log.error);
       log.error(e);
     }
   } else {
-    middleware.sendMessage(ticket.userid, ticket.messenger, ticketMsg(name, ctx.message));
+    // Apply translation if enabled
+    let replyContent = ticketMsg(name, ctx.message);
+    if (cache.config.translate_enabled) {
+      const translated = await import('./addons/llm.js').then(m => m.translateText(staffMessage));
+      if (translated) {
+        replyContent = ticketMsg(name, { text: translated, from: ctx.message.from });
+      }
+    }
+    middleware.sendMessage(ticket.userid, ticket.messenger, replyContent).catch(log.error);
   }
+
   const esc = middleware.strictEscape;
   middleware.sendMessage(
     ctx.chat.id,
     cache.config.staffchat_type,
     `${cache.config.language.msg_sent} ${esc(name)}`,
-  );
+  ).catch(log.error);
   log.info(`Answer: ${ticketMsg(name, ctx.message)}`);
-  cache.ticketSent[ticketId] = null;
+  delete cache.ticketSent[ticketId];
+
+  // Record analytics event for staff reply
+  await db.recordAnalyticsEvent('staff_reply', ticketId, senderId);
+
+  // Fire webhook for ticket reply
+  await webhooks.webhooks.ticketReplied(ticketId, senderId, staffMessage.substring(0, 200));
 
   // Auto-close the ticket if enabled
   if (cache.config.auto_close_tickets) {
-      db.add(ticketId, 'closed', null, ticket.messenger);
+    await db.add(String(ticketId), 'closed', '', ticket.messenger);
+    await db.setClosedAt(ticketId);
+    await db.recordAnalyticsEvent('ticket_closed', ticketId, senderId);
+    await webhooks.webhooks.ticketClosed(ticketId, senderId.toString());
+
+    // Send CSAT survey on close
+    await analytics.sendCSATSurvey(ticket.userid, ticket.messenger, ticketId);
   }
 }
 
-export { privateReply, chat, ticketMsg };
+export { privateReply, chat, ticketMsg, extractSupporteeId };

@@ -17,6 +17,8 @@ jest.mock('../src/db', () => ({
   add: mockAdd,
   checkBan: mockCheckBan,
   getTicketByUserId: mockGetTicketByUserId,
+  addTicketMessage: jest.fn().mockResolvedValue(undefined),
+  recordAnalyticsEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../src/users', () => ({

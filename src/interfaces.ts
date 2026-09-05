@@ -3,7 +3,7 @@ import TelegramAddon from './addons/telegram';
 export interface ModeData {
   ticketid: string;
   userid: string | number;
-  name: any;
+  name: string | null;
   category: string;
 }
 
@@ -15,13 +15,113 @@ export interface SessionData {
   groupCategory: string | null;
   groupTag: string;
   group: string;
-  groupAdmin: any;
-  getSessionKey: Function;
+  groupAdmin: string | boolean | null | undefined;
+  staffRole?: 'admin' | 'supervisor' | 'agent';
+  getSessionKey: (ctx: Context) => string | null;
 }
 
 export interface Autoreply {
   question: string;
   answer: string;
+}
+
+export enum StaffRole {
+  AGENT = 'agent',
+  SUPERVISOR = 'supervisor',
+  ADMIN = 'admin',
+}
+
+export enum TicketPriority {
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+
+export interface StaffMemberConfig {
+  telegram_id: string;
+  role: StaffRole;
+  name: string;
+}
+
+export interface WebhookConfig {
+  url: string;
+  events: WebhookEvent[];
+  secret?: string;
+}
+
+export type WebhookEvent =
+  | 'ticket.created'
+  | 'ticket.replied'
+  | 'ticket.closed'
+  | 'ticket.banned'
+  | 'csat.rated'
+  | 'ticket.escalated';
+
+export interface CannedResponse {
+  key: string;
+  text: string;
+}
+
+export interface EscalationRule {
+  after_hours: number;
+  action: 'notify_supervisor' | 'tag_urgent';
+}
+
+export interface BusinessHoursConfig {
+  enabled: boolean;
+  start: string;
+  end: string;
+  timezone: string;
+  offline_message?: string;
+}
+
+export interface WebChatConfig {
+  enabled: boolean;
+  greeting: string;
+  primary_color: string;
+  logo_url: string;
+  position: 'left' | 'right';
+  pre_chat_form: {
+    name: boolean;
+    email: boolean;
+    subject: boolean;
+    order_number: boolean;
+  };
+  business_hours?: BusinessHoursConfig;
+}
+
+export interface SlackConfig {
+  enabled: boolean;
+  bot_token: string;
+  channel_id: string;
+}
+
+export interface DiscordConfig {
+  enabled: boolean;
+  bot_token: string;
+  channel_id: string;
+}
+
+export interface LLMConfig {
+  use_llm: boolean;
+  llm_api_key: string;
+  llm_base_url: string;
+  llm_model: string;
+  llm_knowledge: string;
+  llm_memory_depth: number;
+  auto_triage: boolean;
+  sentiment_alert_threshold: number;
+  staff_assist: boolean;
+  translate_enabled: boolean;
+  translate_target_language: string;
+}
+
+export interface WorkflowConfig {
+  canned_responses: CannedResponse[];
+  escalation_rules: EscalationRule[];
+  auto_close_after_days: number;
+  business_hours?: BusinessHoursConfig;
 }
 
 export interface Language {
@@ -69,6 +169,24 @@ export interface Language {
   helpCommandStaffText: string;
   regardsGroup: string;
   autoreply: Autoreply[];
+  // CSAT survey strings
+  csatRatingRequest: string;
+  csatThankYou: string;
+  // Triage / priority strings
+  triagePriority: string;
+  triageSummary: string;
+  sentimentAlert: string;
+  // Assignment strings
+  ticketAssignedTo: string;
+  ticketUnassigned: string;
+  assignedBy: string;
+  // Internal note strings
+  internalNote: string;
+  noteAddedBy: string;
+  // Workflow strings
+  offlineMessage: string;
+  businessHoursClosed: string;
+  escalationNotify: string;
 }
 
 export interface Category {
@@ -90,12 +208,12 @@ export enum ParseMode {
 }
 
 export class Config {
-  bot_token: string;
-  spam_cant_msg: number;
-  staffchat_id: string | number;
+  bot_token: string = '';
+  spam_cant_msg: number = 0;
+  staffchat_id: string | number = '';
   staffchat_type: Messenger = Messenger.TELEGRAM;
   staffchat_parse_mode: ParseMode = ParseMode.MarkdownV2;
-  owner_id: string;
+  owner_id: string = '';
   spam_time: number = 5;
   parse_mode: string = ParseMode.MarkdownV2;
   allow_private: boolean = false;
@@ -112,39 +230,90 @@ export class Config {
   web_server_ssl_cert: string = '';
   web_server_ssl_key: string = '';
   dev_mode: boolean = false;
+  log_level: 'NONE' | 'ERROR' | 'INFO' = 'NONE';
   show_user_ticket: boolean = false;
-  language: Language;
+  language: Language = {} as Language;
   autoreply_confirmation: boolean = true;
-  autoreply: Autoreply[];
+  autoreply: Autoreply[] = [];
   clean_replies: boolean = false;
   pass_start: boolean = false;
   categories: Category[] = [];
   mongodb_uri: string = 'mongodb://mongodb:27017/support';
+  // LLM settings (legacy flat fields for backward compat)
   use_llm: boolean = false;
-  llm_api_key: string;
-  llm_base_url: string;
-  llm_model: string;
-  llm_knowledge: string;
+  llm_api_key: string = '';
+  llm_base_url: string = '';
+  llm_model: string = '';
+  llm_knowledge: string = '';
+  // New AI features
+  llm_memory_depth: number = 10;
+  auto_triage: boolean = false;
+  sentiment_alert_threshold: number = 2;
+  staff_assist: boolean = false;
+  translate_enabled: boolean = false;
+  translate_target_language: string = 'en';
+  // Team collaboration
+  staff_roles: StaffMemberConfig[] = [];
+  enable_csat: boolean = false;
+  daily_summary_time: string = '09:00';
+  // Webhooks
+  webhooks: WebhookConfig[] = [];
+  // Integrations
+  slack_enabled: boolean = false;
+  slack_bot_token: string = '';
+  slack_channel_id: string = '';
+  discord_enabled: boolean = false;
+  discord_bot_token: string = '';
+  discord_channel_id: string = '';
+  api_enabled: boolean = false;
+  api_token: string = '';
+  // Web chat widget
+  web_chat: WebChatConfig = {
+    enabled: false,
+    greeting: 'Hi! How can we help you?',
+    primary_color: '#6366f1',
+    logo_url: '',
+    position: 'right',
+    pre_chat_form: { name: true, email: true, subject: false, order_number: false },
+  };
+  // Workflows & automation
+  canned_responses: CannedResponse[] = [];
+  escalation_rules: EscalationRule[] = [];
+  auto_close_after_days: number = 0;
+}
+
+export interface SocketEmit {
+  emit(event: string, data: unknown): void;
+}
+
+export interface SocketTo {
+  to(roomId: string): SocketEmit;
 }
 
 export interface Cache {
   userId: string;
-  ticketIDs: any;
-  ticketStatus: any;
-  ticketSent: any;
+  ticketIDs: Record<string, string | number>;
+  ticketStatus: Record<string, boolean>;
+  ticketSent: Record<string, number | undefined>;
   html: string;
   noSound: string;
   markdown: string;
-  io: any;
+  io: SocketTo;
   config: Config;
+  // Team collaboration cache
+  staffMembers: Map<string, StaffMemberConfig>;
+  mutedTickets: Set<string>;
+  // Recovery baseline — highest ticket ID discovered from chat history on startup
+  recoveryBaseline: number;
 }
 
 /**
  * Context
  */
 export class Context {
-  messenger: Messenger = null;
-  update_id: number;
+  messenger: Messenger = 'telegram' as Messenger;
+  update_id: number = 0;
+  match?: string;
   message: {
     web_msg: boolean;
     message_id: number;
@@ -168,36 +337,39 @@ export class Context {
       text: string;
       caption: string;
     };
-    external_reply: {
+    external_reply?: {
       message_id: number,
     },
     getFile?: any;
     caption: string;
-  };
+  } = {} as Context['message'];
   chat: {
     id: string;
     first_name: string;
     username: string;
     type: string;
-  };
-  session: SessionData;
-  callbackQuery: { data: string; from: { id: any }; id: any };
-  from: { username: any; id: string };
-  inlineQuery: any;
-  reply: Function;
-  answerCbQuery: (arg0: any, arg1: boolean) => void;
-  getChat: Function;
-  getFile: Function;
+  } = {} as Context['chat'];
+  session: SessionData = {} as SessionData;
+  callbackQuery: { data: string; from: { id: string | number }; id: string } = { data: '', from: { id: '' }, id: '' };
+  from: { username: string; id: string | number } = { username: '', id: '' };
+  inlineQuery: unknown = null;
+  reply: (text: string, options?: Record<string, unknown>) => Promise<void> = async () => {};
+  answerCbQuery: (text?: string, showAlert?: boolean) => Promise<void> = async () => {};
+  getChat: () => Promise<{ id: string; first_name: string; username: string; type: string }> = async () => ({ id: '', first_name: '', username: '', type: 'private' });
+  getFile: () => Promise<unknown> = async () => {};
 }
 
 export interface Addon {
+  platform?: string;
+  botInfo?: Record<string, unknown>;
+
   /**
    * Sends a text message.
    * @param chatId The target chat identifier.
    * @param text The text message to send.
    * @param options Optional parameters.
    */
-  sendMessage(chatId: string | number, text: string, options?: any): void | Promise<void> | Promise<string | null>;
+  sendMessage(chatId: string | number, text: string, options?: Record<string, unknown>): void | Promise<void> | Promise<string | null>;
 
   /**
    * Sends a photo.
@@ -205,7 +377,7 @@ export interface Addon {
    * @param photo The photo content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendPhoto(chatId: string | number, photo: any, options?: any): void | Promise<void> | Promise<string | null>;
+  sendPhoto(chatId: string | number, photo: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
 
   /**
    * Sends a document.
@@ -213,7 +385,7 @@ export interface Addon {
    * @param document The document content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendDocument(chatId: string | number, document: any, options?: any): void | Promise<void> | Promise<string | null>;
+  sendDocument(chatId: string | number, document: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
 
   /**
    * Sends a video.
@@ -221,21 +393,21 @@ export interface Addon {
    * @param video The video content to send.
    * @param options Optional parameters (e.g. caption, recipients).
    */
-  sendVideo(chatId: string | number, video: any, options?: any): void | Promise<void> | Promise<string | null>;
+  sendVideo(chatId: string | number, video: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
 
   /**
    * Registers a command handler.
    * @param command The command string (e.g. 'start', 'help').
    * @param callback The function to handle the command.
    */
-  command(command: string, callback: (ctx: any) => void): void;
+  command(command: string, callback: (ctx: Context) => void): void;
 
   /**
    * Registers an event handler.
    * @param event The event name or an array of event names.
    * @param callback The function to handle the event.
    */
-  on(event: string | string[], callback: (ctx: any) => void): void;
+  on(event: string | string[], callback: (ctx: Context) => void): void;
 
   /**
    * Starts the addon (e.g. begin processing incoming messages).
@@ -246,7 +418,12 @@ export interface Addon {
    * Sets up an error handler.
    * @param handler The error handler function.
    */
-  catch(handler: (error: any, ctx?: any) => void): void;
+  catch(handler: (error: Error, ctx?: Context) => void): void;
+
+  /**
+   * Registers a text/regex handler.
+   */
+  hears(trigger: string | string[] | RegExp, callback: (ctx: Context) => void): void;
 }
 
 export enum Messenger {

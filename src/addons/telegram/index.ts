@@ -1,18 +1,18 @@
 import { Bot, Context as GrammyContext, SessionFlavor, session } from 'grammy';
-import { Addon, Context, Messenger, SessionData } from '../../interfaces';
+import { Addon, Context, Messenger, ModeData, SessionData } from '../../interfaces';
 import { apiThrottler } from '@grammyjs/transformer-throttler';
 import * as middleware from '../../middleware';
 import * as permissions from '../../permissions';
 import * as inline from '../../inline';
 import cache from '../../cache';
 import { registerCommonHandlers } from '../../handlers';
-import * as log from 'fancy-log'
+import * as log from '../../logger'
 
 type BotContext = GrammyContext & SessionFlavor<SessionData>;
 
 class TelegramAddon implements Addon {
   public bot: Bot<BotContext>;
-  public botInfo: any = {};
+  public botInfo: Record<string, unknown> = {};
 
   private static instance: TelegramAddon | null = null;
 
@@ -20,9 +20,17 @@ class TelegramAddon implements Addon {
     this.bot = new Bot<BotContext>(token);
     const throttler = apiThrottler();
     this.bot.api.config.use(throttler);
-    this.bot.init().then(() => {
-      this.botInfo = this.bot.botInfo;
-    });
+    // Defer bot info init to avoid unhandled promise in constructor
+    this.initBotInfo();
+  }
+
+  private async initBotInfo(): Promise<void> {
+    try {
+      await this.bot.init();
+      this.botInfo = this.bot.botInfo as unknown as Record<string, unknown>;
+    } catch (err) {
+      log.error('Failed to initialize Telegram bot info:', err);
+    }
   }
 
   public static getInstance(token?: string): TelegramAddon {
@@ -41,13 +49,13 @@ class TelegramAddon implements Addon {
   initSession() {
     const initial = (): SessionData => ({
       admin: null,
-      modeData: {} as any,
+      modeData: { ticketid: '', userid: '', name: null, category: '' } as ModeData,
       mode: null,
-      lastContactDate: null,
+      lastContactDate: 0,
       groupCategory: null,
       groupTag: '',
       group: '',
-      groupAdmin: {} as any,
+      groupAdmin: null,
       getSessionKey: (ctx: Context) => {
         if (ctx.callbackQuery && ctx.callbackQuery.id) {
           return `${ctx.from.id}:${ctx.from.id}`;
@@ -63,44 +71,65 @@ class TelegramAddon implements Addon {
   }
 
   // --- Methods required by the Addon interface ---
-  async sendMessage(chatId: string | number, text: string, options: any = {}): Promise<string | null> {
-    options.disable_web_page_preview = true;
-    if (typeof chatId !== 'string' && typeof chatId !== 'number') return;
+  async sendMessage(chatId: string | number, text: string, options: Record<string, unknown> = {}): Promise<string | null> {
+    options.disable_web_page_preview = true as unknown as string;
+    if (typeof chatId !== 'string' && typeof chatId !== 'number') return null;
+    // Telegram only supports HTML and MarkdownV2 — convert deprecated Markdown to HTML
+    const validModes = ['HTML', 'MarkdownV2'];
+    if (options?.parse_mode === 'Markdown') {
+      options.parse_mode = 'HTML';
+    } else if (options?.parse_mode && !validModes.includes(options.parse_mode as string)) {
+      delete options.parse_mode;
+    }
     const response = await this.bot.api.sendMessage(chatId.toString(), text, options);
     return response.message_id.toString();
   }
 
-  sendDocument = (
+  async sendDocument(
     chatId: string | number,
-    document: any,
-    other?: any,
-    signal?: any
-  ) => {
-    this.bot.api.sendDocument(chatId, document, other, signal);
+    document: unknown,
+    other?: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    try {
+      await this.bot.api.sendDocument(chatId, document as never, other as never, signal as any);
+    } catch (err) {
+      log.error('Failed to send document:', err);
+    }
+  }
+
+  async sendPhoto(chatId: string | number, photo: unknown, options?: Record<string, unknown>): Promise<void> {
+    try {
+      await this.bot.api.sendPhoto(chatId, photo as never, options as never);
+    } catch (err) {
+      log.error('Failed to send photo:', err);
+    }
+  }
+
+  async sendVideo(chatId: string | number, video: unknown, options?: Record<string, unknown>): Promise<void> {
+    try {
+      await this.bot.api.sendVideo(chatId, video as never, options as never);
+    } catch (err) {
+      log.error('Failed to send video:', err);
+    }
+  }
+
+  command(command: string, callback: (ctx: Context) => void): void {
+    this.bot.command(command, (gCtx) => callback(gCtx as unknown as Context));
+  }
+
+  on(filter: string | string[], ...callbacks: ((ctx: Context) => void)[]): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.bot.on as any)(filter, ...(callbacks.map(cb => (gCtx: never) => cb(gCtx as unknown as Context))));
   };
 
-  sendPhoto(chatId: string | number, photo: any, options?: any) {
-    this.bot.api.sendPhoto(chatId, photo, options);
+  catch(handler: (error: Error, ctx?: Context) => void): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.bot.catch as any)((err: Error, gCtx: BotContext | undefined) => handler(err, gCtx as unknown as Context | undefined));
   }
 
-  sendVideo(chatId: string | number, video: any, options?: any) {
-    this.bot.api.sendVideo(chatId, video, options);
-  }
-
-  command(command: string, callback: (ctx: any) => void): void {
-    this.bot.command(command, ctx => callback(ctx));
-  }
-
-  on = (filter: any, ...middleware: any) => {
-    this.bot.on(filter, ...middleware);
-  };
-
-  catch(handler: (error: any, ctx?: Context) => void): void {
-    this.bot.catch(handler);
-  }
-
-  hears(trigger: string | string[] | RegExp, callback: (ctx: any) => void): void {
-    this.bot.hears(trigger, ctx => callback(ctx));
+  hears(trigger: string | string[] | RegExp, callback: (ctx: Context) => void): void {
+    this.bot.hears(trigger, (gCtx) => callback(gCtx as unknown as Context));
   }
 
   // --- Start and Configure the Bot ---
@@ -109,15 +138,18 @@ class TelegramAddon implements Addon {
 
     // Setup session and middleware.
     this.bot.use(this.initSession());
-    this.bot.use((ctx: any, next: () => any) => {
-      ctx.messenger = Messenger.TELEGRAM;
+    this.bot.use(async (ctx: BotContext, next) => {
+      // Set messenger type on context for downstream handlers
+      const typedCtx = ctx as unknown as Context;
+      typedCtx.messenger = Messenger.TELEGRAM;
+
       if (cache.config.dev_mode) {
-        middleware.reply(
-          ctx,
+        await middleware.reply(
+          typedCtx,
           `_Dev mode is on: You might notice some delay in messages, no replies or other errors._`
         );
       }
-      permissions.checkPermissions(ctx, next, cache.config);
+      permissions.checkPermissions(typedCtx, next, cache.config);
     });
 
     const keys = inline.initInline(this);

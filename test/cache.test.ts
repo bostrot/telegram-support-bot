@@ -1,4 +1,5 @@
 import cache from '../src/cache';
+import { mergeLanguage } from '../src/language';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 
@@ -68,5 +69,25 @@ describe('Cache Module', () => {
     expect(cache.config).toHaveProperty('categories');
     expect(cache.config).toHaveProperty('anonymous_replies');
     expect(cache.config).toHaveProperty('clean_replies');
+  });
+});
+
+describe('mergeLanguage', () => {
+  it('applies all default language strings when the config has no language block', () => {
+    const language = mergeLanguage(undefined);
+    expect(language.confirmationMessage).toBeTruthy();
+    expect(language.back).toBeTruthy();
+    expect(language.dear).toBeDefined();
+  });
+
+  it('keeps user overrides while filling missing language keys', () => {
+    const language = mergeLanguage({ ticket: 'Anfrage' });
+    expect(language.ticket).toBe('Anfrage');
+    expect(language.confirmationMessage).toBeTruthy();
+  });
+
+  it('falls back to the legacy contactMessage for confirmationMessage', () => {
+    const language = mergeLanguage({ contactMessage: 'Danke für Ihre Nachricht' });
+    expect(language.confirmationMessage).toBe('Danke für Ihre Nachricht');
   });
 });

@@ -1,8 +1,11 @@
 import * as db from './db';
 import cache from './cache';
-import * as middleware from './middleware';
+import { buildInlineKeyboard, reply, sendMessage } from './middleware';
 import { Addon, Context, ModeData } from './interfaces';
 import { ISupportee } from './db';
+import * as log from './logger'
+
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 /**
  * Generates the reply markup for a private reply.
@@ -10,7 +13,7 @@ import { ISupportee } from './db';
  * @param ctx - The current bot context.
  * @returns The reply markup object.
  */
-const replyMarkup = (ctx: Context): object => {
+const replyMarkup = (ctx: Context): { html: string; inline_keyboard: Array<Array<{ text: string; url?: string; callback_data?: string }>> } => {
   const { config } = cache;
   const { language, direct_reply } = config;
   const { from, message, session } = ctx;
@@ -43,15 +46,18 @@ const replyMarkup = (ctx: Context): object => {
 async function fileHandler(type: string, bot: Addon, ctx: Context) {
   const { message, session } = ctx;
   const { config } = cache;
-  let userid: string | null;
+  let userid: string | null = null;
   let replyText = '';
 
   // If replying to a message and if the session is admin, extract ticket info
   if (message && message.reply_to_message?.text && session.admin) {
     replyText = message.reply_to_message.text || message.reply_to_message.caption;
     if (!replyText) return;
-    userid = await (await db.getTicketByInternalId(message.external_reply.message_id)).userid;
-    if (!userid) return;
+    const externalReplyId = message.external_reply?.message_id ?? null;
+    if (externalReplyId) {
+      const ticket = await db.getTicketByInternalId(externalReplyId);
+      userid = ticket?.userid ?? null;
+    }
   }
   if (!userid) {
     userid = message.from.id;
@@ -61,17 +67,17 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   let receiverId: string | number = config.staffchat_id;
   let isPrivate = false;
 
-  const ticket = await db.getTicketByUserId(userid, session.groupCategory);
+  const ticket = await db.getTicketByUserId(userid.toString(), session.groupCategory);
   if (!ticket) {
     if (session.admin && userInfo === undefined) {
-      middleware.reply(ctx, config.language.ticketClosedError);
+      reply(ctx, config.language.ticketClosedError);
     } else {
-      middleware.reply(ctx, config.language.textFirst);
+      reply(ctx, config.language.textFirst);
     }
     return;
   }
 
-  let captionText = `${config.language.ticket} #T${ticket.id
+  let captionText = `${config.language.ticket} #T${(ticket.ticketId ?? ticket.id ?? 0)
     .toString()
     .padStart(6, '0')} ${userInfo}\n${message.caption || ''}`;
   if (session.admin && userInfo === undefined) {
@@ -83,101 +89,68 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
     isPrivate = true;
   }
 
-  const fileId = (await ctx.getFile()).file_id;
+  const fileResult = await ctx.getFile();
+  const fileId = (fileResult as { file_id: string }).file_id;
   const commonOptions = {
     caption: captionText,
     reply_markup: isPrivate ? replyMarkup(ctx) : {},
   };
 
   // Send the file based on its type
-  var messageId = null;
+  let messageId: string | null | undefined = undefined;
+  const shouldForwardToGroup = (
+    session.group !== '' &&
+    session.group !== config.staffchat_id &&
+    Object.keys(session.modeData).length > 0
+  );
+
   switch (type) {
     case 'document':
-      messageId = await bot.sendDocument(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendDocument(session.group, fileId, {
+      messageId = (await bot.sendDocument(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
+        Promise.resolve(bot.sendDocument(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
-      } 
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, (ticket.ticketId ?? ticket.id ?? 0) as number),
+        })).catch(log.error);
+      }
       break;
     case 'photo':
-      messageId = await bot.sendPhoto(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendPhoto(session.group, fileId, {
+      messageId = (await bot.sendPhoto(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
+        Promise.resolve(bot.sendPhoto(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, (ticket.ticketId ?? ticket.id ?? 0) as number),
+        })).catch(log.error);
       }
       break;
     case 'video':
-      messageId = await bot.sendVideo(receiverId, fileId, commonOptions);
-      if (
-        session.group !== '' &&
-        session.group !== config.staffchat_id &&
-        JSON.stringify(session.modeData) !== JSON.stringify({})
-      ) {
-        bot.sendVideo(session.group, fileId, {
+      messageId = (await bot.sendVideo(receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
+        Promise.resolve(bot.sendVideo(session.group, fileId, {
           caption: captionText,
-          reply_markup: {
-            html: '',
-            inline_keyboard: [
-              [
-                {
-                  text: config.language.replyPrivate,
-                  callback_data: `${ctx.from.id}---${message.from.first_name}---${session.groupCategory}---${ticket.id}`,
-                },
-              ],
-            ],
-          },
-        });
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, (ticket.ticketId ?? ticket.id ?? 0) as number),
+        })).catch(log.error);
       }
       break;
   }
-  db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  if (messageId) {
+    db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);
+  }
 
   // Send confirmation message if enabled
   if (!config.autoreply_confirmation) return;
   let confirmationMessage = `${config.language.confirmationMessage}${config.show_user_ticket
-    ? config.language.yourTicketId + ' #T' + ticket.id.toString().padStart(6, '0')
+    ? config.language.yourTicketId + ' #T' + (ticket.ticketId ?? ticket.id ?? 0).toString().padStart(6, '0')
     : ''
     }`;
   if (session.admin && userInfo === undefined) {
     const nameMatch = replyText.match(
-      new RegExp(`${config.language.from} (.*) ${config.language.language}`)
+      new RegExp(`${escapeRegex(config.language.from)} (.*) ${escapeRegex(config.language.language)}`)
     );
     if (!nameMatch) return;
     confirmationMessage = `${config.language.file_sent} ${nameMatch[1]}`;
   }
-  middleware.sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage);
+  sendMessage(ctx.chat.id, ticket.messenger, confirmationMessage).catch(log.error);
 };
 
 /**
@@ -186,26 +159,27 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
  * @param ctx - The bot context.
  * @param callback - Callback function receiving user information.
  */
-async function forwardFile(ctx: Context) {
-  const ticket = await db.getTicketByUserId(ctx.message.from.id, ctx.session.groupCategory);
+async function forwardFile(ctx: Context): Promise<string | undefined> {
+  const ticket = await db.getTicketByUserId(ctx.message.from.id.toString(), ctx.session.groupCategory);
   let ok = false;
   if (!ticket || !ticket.status || ticket.status === 'closed') {
-    db.add(ctx.message.from.id, 'open', null, ctx.messenger);
+    await db.add(ctx.message.from.id.toString(), 'open', null, ctx.messenger);
     ok = true;
   }
   if (ok || (ticket && ticket.status !== 'banned')) {
-    if (cache.ticketSent[cache.userId] === undefined) {
+    const sentCount = cache.ticketSent[cache.userId];
+    if (sentCount === undefined) {
       setTimeout(() => {
-        cache.ticketSent[cache.userId] = undefined;
+        delete cache.ticketSent[cache.userId];
       }, cache.config.spam_time);
       cache.ticketSent[cache.userId] = 0;
       return forwardHandler(ctx);
-    } else if (cache.ticketSent[cache.userId] < cache.config.spam_cant_msg) {
-      cache.ticketSent[cache.userId]++;
+    } else if (sentCount < cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId] = sentCount + 1;
       return forwardHandler(ctx);
-    } else if (cache.ticketSent[cache.userId] === cache.config.spam_cant_msg) {
-      cache.ticketSent[cache.userId]++;
-      middleware.sendMessage(ctx.chat.id, ticket.messenger, cache.config.language.blockedSpam, {});
+    } else if (sentCount === cache.config.spam_cant_msg) {
+      cache.ticketSent[cache.userId] = sentCount + 1;
+      sendMessage(ctx.chat.id, ticket?.messenger ?? 'telegram', cache.config.language.blockedSpam, {}).catch(log.error);
     }
   }
 };
@@ -216,7 +190,7 @@ async function forwardFile(ctx: Context) {
  * @param ctx - The bot context.
  * @param callback - Callback function receiving user info (or undefined).
  */
-function forwardHandler(ctx: Context) {
+function forwardHandler(ctx: Context): string | undefined {
   if (ctx.chat.type === 'private') {
     cache.userId = ctx.message.from.id;
     const userInfo = `${cache.config.language.from} ${ctx.message.from.first_name} ${cache.config.language.language}: ${ctx.message.from.language_code}\n\n`;

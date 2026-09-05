@@ -12,9 +12,17 @@ jest.mock('fancy-log', () => ({
   debug: jest.fn(),
 }));
 
+// Mock logger module to prevent file I/O during tests
+jest.mock('./src/logger', () => ({
+  __esModule: true,
+  default: { info: jest.fn(), error: jest.fn() },
+  info: jest.fn(),
+  error: jest.fn(),
+}));
+
 // Mock OpenAI globally to prevent API key requirements
-jest.mock('openai', () => ({
-  OpenAI: jest.fn().mockImplementation(() => ({
+jest.mock('openai', () => {
+  const MockOpenAI = jest.fn().mockImplementation(() => ({
     chat: {
       completions: {
         create: jest.fn().mockResolvedValue({
@@ -28,8 +36,12 @@ jest.mock('openai', () => ({
         }),
       },
     },
-  })),
-}));
+  }));
+  return {
+    OpenAI: MockOpenAI,
+    default: MockOpenAI,
+  };
+});
 
 // Console warnings during tests can be noise - optionally suppress them
 const originalWarn = console.warn;

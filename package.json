@@ -12,16 +12,16 @@
     "bugs": {
         "url": "https://github.com/bostrot/telegram-support-bot/issues"
     },
-    "main": "build/src/index.js",
+    "main": "build/index.js",
     "scripts": {
         "tsc": "tsc",
         "dev": "NODE_ENV=development ts-node-dev ./src/index.ts",
-        "prod": "npm run build && NODE_ENV=production node ./build/index.js",
+        "prod": "NODE_ENV=production node ./build/index.js",
         "build": "npm run tsc",
         "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
     },
     "engines": {
-        "node": ">=22.0.0"
+        "node": ">=24.0.0"
     },
     "dependencies": {
         "@grammyjs/transformer-throttler": "^1.2.1",
@@ -31,7 +31,7 @@
         "express": "^5.1.0",
         "express-rate-limit": "^8.0.1",
         "fancy-log": "^2.0.0",
-        "grammy": "^1.38.1",
+        "grammy": "^1.43.0",
         "llamaindex": "^0.11.27",
         "openai": "^4.72.0",
         "mongoose": "^8.17.2",
