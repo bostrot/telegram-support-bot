@@ -3,6 +3,7 @@ import * as YAML from 'yaml';
 import * as fs from 'fs';
 import * as log from './logger';
 import { mergeLanguage } from './language';
+import { defaultMongoUri } from './defaults';
 
 const cache: Cache = {
   userId: '',
@@ -60,7 +61,7 @@ cache.config = {
   clean_replies: false,
   autoreply_confirmation: true,
   categories: [],
-  mongodb_uri: 'mongodb://mongodb:27017/support',
+  mongodb_uri: defaultMongoUri(),
   llm_memory_depth: 10,
   auto_triage: false,
   sentiment_alert_threshold: 2,
