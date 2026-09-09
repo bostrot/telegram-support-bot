@@ -371,7 +371,8 @@ class DiscordAddon implements Addon {
         callback(ctx);
         return;
       } else if (trigger instanceof RegExp && trigger.test(text)) {
-        ctx.match = trigger.exec(text)?.toString() || '';
+        // Hand over the match array like grammY does, so capture groups survive
+        ctx.match = trigger.exec(text) ?? undefined;
         callback(ctx);
         return;
       }

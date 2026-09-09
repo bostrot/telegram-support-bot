@@ -104,6 +104,11 @@ User commands:
 
 All texts are configurable in the `language:` section of `config.yaml`. See the [wiki](https://github.com/bostrot/telegram-support-bot/wiki/Commands) for details.
 
+Commands, canned responses and `user_commands` work on every enabled platform (Telegram, Signal,
+Slack, Discord). A few options depend on features only Telegram has and are ignored elsewhere:
+`staffchat_thread_id` (forum topics), `start_keyboard` (reply keyboards), `forward_stickers`
+(stickers) and `forward_edited_messages` (edit events).
+
 ## 📦 Install
 
 See the [wiki](https://github.com/bostrot/telegram-support-bot/wiki/Getting-started) for detailed instructions.
