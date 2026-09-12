@@ -5,6 +5,7 @@ const mockReply = jest.fn().mockResolvedValue(undefined);
 const mockSendMessage = jest.fn().mockResolvedValue(undefined);
 const mockGetTicketByUserId = jest.fn();
 const mockAdd = jest.fn().mockResolvedValue(0);
+const mockAddNewTicket = jest.fn().mockResolvedValue(2);
 const mockAddTicketMessage = jest.fn().mockResolvedValue(undefined);
 const mockAddIdAndName = jest.fn().mockResolvedValue(undefined);
 const mockUsersChat = jest.fn().mockResolvedValue(undefined);
@@ -19,6 +20,7 @@ jest.mock('../src/middleware', () => ({
 jest.mock('../src/db', () => ({
   getTicketByUserId: mockGetTicketByUserId,
   add: mockAdd,
+  addNewTicket: mockAddNewTicket,
   addTicketMessage: mockAddTicketMessage,
   addIdAndName: mockAddIdAndName,
   getTicketByInternalId: jest.fn().mockResolvedValue(null),
@@ -239,14 +241,26 @@ describe('ticket_per_message (#172)', () => {
     expect(mockUsersChat).toHaveBeenCalled();
   });
 
-  it('opens a fresh ticket for every message when enabled', async () => {
+  it('opens an additional ticket for every message when enabled, keeping the old one', async () => {
     cache.config.ticket_per_message = true;
     mockGetTicketByUserId
       .mockResolvedValueOnce({ ticketId: 1, status: 'open' })
       .mockResolvedValueOnce({ ticketId: 2, status: 'open' });
     const ticket = await text.ticketHandler(bot, makeCtx());
-    expect(mockAdd).toHaveBeenCalledWith('42', 'open', null, 'telegram');
+    expect(mockAddNewTicket).toHaveBeenCalledWith('42', null, 'telegram');
+    // add() replaces the user's document and would drop ticket #1 — must not be used here
+    expect(mockAdd).not.toHaveBeenCalled();
     expect(ticket?.ticketId).toBe(2);
+  });
+
+  it('still uses add() for a user without any ticket', async () => {
+    cache.config.ticket_per_message = true;
+    mockGetTicketByUserId
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ ticketId: 1, status: 'open' });
+    await text.ticketHandler(bot, makeCtx());
+    expect(mockAdd).toHaveBeenCalledWith('42', 'open', null, 'telegram');
+    expect(mockAddNewTicket).not.toHaveBeenCalled();
   });
 
   it('never re-opens a banned user', async () => {
@@ -254,6 +268,7 @@ describe('ticket_per_message (#172)', () => {
     mockGetTicketByUserId.mockResolvedValue({ ticketId: 1, status: 'banned' });
     await text.ticketHandler(bot, makeCtx());
     expect(mockAdd).not.toHaveBeenCalled();
+    expect(mockAddNewTicket).not.toHaveBeenCalled();
   });
 });
 

@@ -29,7 +29,7 @@ When a user sends a message to the support bot it creates a ticket which is forw
 - [x] Categories and sub-categories routed to different staff groups
 - [x] Private 1:1 reply tunnel, anonymous tickets / anonymous replies
 - [x] Configurable confirmation message, ticket ids shown to users (optional)
-- [x] Edited user messages are re-posted to staff, stickers are forwarded, users may close their own ticket (`allow_user_close`)
+- [x] Edited user messages are re-posted to staff marked as edited, stickers are forwarded (`forward_stickers`), users may close their own ticket (`allow_user_close`)
 - [x] Run the bot inside a single forum topic of your staff group (`staffchat_thread_id`) or open a new ticket per message (`ticket_per_message`)
 
 **Team collaboration (v5)**
@@ -37,7 +37,7 @@ When a user sends a message to the support bot it creates a ticket which is forw
 - [x] Internal notes that never reach the user (`/note`, or prefix a reply with `!note`)
 - [x] Staff roles (`admin`, `supervisor`, `agent`) and `/staff` overview
 - [x] Canned responses: define a `key` once, send it with `/key` as a reply
-- [x] `/ticket <id>` shows a ticket's details and last messages, `/open` marks tickets that were already answered
+- [x] `/ticket <id>` shows a ticket's details and last messages, `/open` marks tickets that were already answered (`show_replied_mark`)
 - [x] `/broadcast` to all users (`allow_broadcast`), replies mirrored to the parent category group (`forward_replies_to_parent`)
 - [x] Custom user commands (`user_commands`) and reply-keyboard buttons on `/start` (`start_keyboard`)
 - [x] Escalation rules for unanswered tickets, auto-close of stale tickets, business hours with offline message

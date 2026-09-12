@@ -12,7 +12,9 @@ function isOutsideStaffThread(ctx: Context, staffchatId: string | number): boole
   const threadId = cache.config?.staffchat_thread_id;
   if (!threadId || ctx.chat.id.toString() !== staffchatId.toString()) return false;
   const msg = ctx.message?.message_id ? ctx.message : ctx.editedMessage;
-  return (msg?.message_thread_id ?? null) !== threadId;
+  // Callback queries and other non-message updates carry no thread id; leave them alone
+  if (!msg) return false;
+  return (msg.message_thread_id ?? null) !== threadId;
 }
 
 /**

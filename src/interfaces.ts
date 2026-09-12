@@ -307,11 +307,11 @@ export class Config {
   // Reply keyboard buttons shown with the /start message (#142)
   start_keyboard: string[] = [];
   // Mark tickets that already received a staff reply in /open (#137)
-  show_replied_mark: boolean = true;
+  show_replied_mark: boolean = false;
   // Allow users to close their own ticket with /close (#112)
   allow_user_close: boolean = false;
   // Forward stickers between users and staff (#107)
-  forward_stickers: boolean = true;
+  forward_stickers: boolean = false;
   // Custom user commands answered with static text (#84)
   user_commands: UserCommand[] = [];
   // Mirror staff replies from a subcategory group to its parent category group (#79)

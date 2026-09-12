@@ -189,8 +189,24 @@ export async function getTicketByUserId (
     $or: [{ userid: userId }],
     ...(category ? { category } : { category: null }),
   };
-  const result = await Supportee.findOne(query);
+  // Newest ticket first: with ticket_per_message a user has several documents
+  const result = await Supportee.findOne(query).sort({ ticketId: -1 });
   return result;
+};
+
+/**
+ * Opens an additional ticket for a user without touching their existing ones
+ * (ticket_per_message, #172). `add(..., 'open', ...)` replaces the user's document,
+ * which would make every earlier ticket id unresolvable for staff replies.
+ */
+export const addNewTicket = async (
+  userid: string | number,
+  category: string | number | null,
+  messenger: string,
+): Promise<number> => {
+  const ticketId = await getNextTicketId();
+  await Supportee.create({ userid, messenger, ticketId, status: 'open', category: category ?? null });
+  return ticketId;
 };
 
 export async function getByTicketId(

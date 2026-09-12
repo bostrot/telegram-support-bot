@@ -660,7 +660,7 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
  */
 const broadcastCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const { language, parse_mode, allow_broadcast } = cache.config;
+  const { language, allow_broadcast } = cache.config;
   if (!allow_broadcast) {
     middleware.reply(ctx, 'Broadcast is disabled. Set allow_broadcast: true in config.yaml to enable it.');
     return;
@@ -675,7 +675,8 @@ const broadcastCommand = async (ctx: Context): Promise<void> => {
   let sent = 0;
   for (const user of users) {
     try {
-      await middleware.sendMessage(user.userid, user.messenger, text, { parse_mode });
+      // Plain text: unbalanced Markdown in the staff message must not fail per recipient
+      await middleware.sendMessage(user.userid, user.messenger, text, {});
       sent++;
     } catch (err) {
       log.error(`Broadcast to ${user.userid} failed:`, err);

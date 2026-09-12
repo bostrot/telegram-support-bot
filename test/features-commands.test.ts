@@ -259,8 +259,9 @@ describe('broadcastCommand (#159)', () => {
 
     await commands.broadcastCommand(makeCtx(true, { match: 'Maintenance tonight' } as Partial<Context>));
 
-    expect(mockSendMessage).toHaveBeenCalledWith('1', 'telegram', 'Maintenance tonight', { parse_mode: 'MarkdownV2' });
-    expect(mockSendMessage).toHaveBeenCalledWith('2', 'signal', 'Maintenance tonight', { parse_mode: 'MarkdownV2' });
+    // Sent as plain text (no parse_mode): staff Markdown must not fail per recipient
+    expect(mockSendMessage).toHaveBeenCalledWith('1', 'telegram', 'Maintenance tonight', {});
+    expect(mockSendMessage).toHaveBeenCalledWith('2', 'signal', 'Maintenance tonight', {});
     expect(mockReply).toHaveBeenCalledWith(expect.anything(), 'Broadcast sent to 1/2');
   });
 
