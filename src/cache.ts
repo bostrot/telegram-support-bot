@@ -81,6 +81,12 @@ cache.config = {
   ...parsedConfig,
 } as unknown as Config;
 
+// Environment variables should override config.yaml/defaults.
+// This is especially important for authenticated MongoDB deployments.
+if (process.env.MONGO_URI) {
+  cache.config.mongodb_uri = process.env.MONGO_URI;
+}
+
 // Ensure array fields are actually arrays (YAML `{}` becomes empty object)
 const arrayFields = [
   'categories', 'staff_roles', 'webhooks', 'autoreply',
