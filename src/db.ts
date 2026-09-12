@@ -152,7 +152,7 @@ export async function check(
       $or: [{ userid: String(userid) }, { ticketId: userid }],
     };
     if (category) query.category = category;
-    return await Supportee.find(query).lean();
+    return await Supportee.find(query).lean<ISupportee[]>();
   } catch (err) {
     log.error('DB check error:', err);
     return [];
@@ -307,7 +307,7 @@ export async function open(
     } else {
       query.category = null;
     }
-    return await Supportee.find(query).lean();
+    return await Supportee.find(query).lean<ISupportee[]>();
   } catch (err) {
     log.error('DB open error:', err);
     return [];
@@ -348,7 +348,7 @@ export async function getConversationHistory(
     return await TicketMessage.find({ ticketId })
       .sort({ timestamp: -1 })
       .limit(limit)
-      .lean();
+      .lean<ITicketMessage[]>();
   } catch (err) {
     log.error('DB getConversationHistory error:', err);
     return [];
@@ -384,7 +384,9 @@ export async function getAnalyticsEvents(
       if (startDate) query.timestamp.$gte = startDate;
       if (endDate) query.timestamp.$lte = endDate;
     }
-    return await AnalyticsEvent.find(query).sort({ timestamp: -1 }).lean();
+    return await AnalyticsEvent.find(query)
+      .sort({ timestamp: -1 })
+      .lean<IAnalyticsEvent[]>();
   } catch (err) {
     log.error('DB getAnalyticsEvents error:', err);
     return [];
@@ -412,7 +414,7 @@ export async function getInternalNotes(
   try {
     return await InternalNote.find({ ticketId })
       .sort({ timestamp: -1 })
-      .lean();
+      .lean<IInternalNote[]>();
   } catch (err) {
     log.error('DB getInternalNotes error:', err);
     return [];
@@ -544,7 +546,7 @@ export async function openByTag(
     } else {
       query.category = null;
     }
-    return await Supportee.find(query).lean();
+    return await Supportee.find(query).lean<ISupportee[]>();
   } catch (err) {
     log.error('DB openByTag error:', err);
     return [];
