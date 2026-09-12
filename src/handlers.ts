@@ -7,7 +7,33 @@ import cache from './cache';
 import { Addon, Context } from './interfaces';
 import * as analytics from './analytics';
 import * as workflows from './workflows';
+import * as edited from './edited';
 import * as log from './logger'
+
+/**
+ * grammY sets ctx.match to a string for string triggers and to a RegExpMatchArray for
+ * RegExp triggers; normalise to the first capture group (or the whole match).
+ */
+export function matchedCommand(match: unknown): string | null {
+  if (typeof match === 'string') return match.replace(/^\//, '') || null;
+  if (Array.isArray(match)) {
+    const value = (match[1] ?? match[0]) as string | undefined;
+    return value ? value.replace(/^\//, '') : null;
+  }
+  return null;
+}
+
+/**
+ * Reply-keyboard markup for the /start message (start_keyboard, #142).
+ */
+export function startKeyboardMarkup(): Record<string, unknown> | null {
+  const buttons = cache.config.start_keyboard;
+  if (!Array.isArray(buttons) || buttons.length === 0) return null;
+  return {
+    parse_mode: cache.config.parse_mode,
+    reply_markup: { keyboard: buttons.map((label) => [label]), resize_keyboard: true },
+  };
+}
 
 export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
   // Register commands common to both platforms.
@@ -35,6 +61,10 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
 
   // Workflow commands
   addon.command('templates', (ctx: Context) => commands.templatesCommand(ctx));
+
+  // Ticket details (#85) and broadcast (#159)
+  addon.command('ticket', (ctx: Context) => commands.ticketCommand(ctx));
+  addon.command('broadcast', (ctx: Context) => commands.broadcastCommand(ctx));
 
   addon.command('id', (ctx: Context) =>
     middleware.reply(ctx, `User ID: ${ctx.from.id}\nGroup ID: ${ctx.chat.id}`, {
@@ -85,8 +115,14 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
   if (cache.config.pass_start === false) {
     addon.command('start', (ctx: Context) => {
       if (ctx.chat.type === 'private') {
-        middleware.reply(ctx, cache.config.language.startCommandText);
-        if (cache.config.categories && cache.config.categories.length > 0) {
+        const hasCategories = cache.config.categories && cache.config.categories.length > 0;
+        const startMarkup = !hasCategories && addon.platform === 'telegram' ? startKeyboardMarkup() : null;
+        if (startMarkup) {
+          middleware.reply(ctx, cache.config.language.startCommandText, startMarkup);
+        } else {
+          middleware.reply(ctx, cache.config.language.startCommandText);
+        }
+        if (hasCategories) {
           // For Telegram, use inline keyboard keys if available.
           if (addon.platform === 'telegram' && keys) {
             setTimeout(() => {
@@ -120,6 +156,12 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
   addon.on([':photo'], (ctx: Context) => files.fileHandler('photo', addon, ctx));
   addon.on([':video'], (ctx: Context) => files.fileHandler('video', addon, ctx));
   addon.on([':document'], (ctx: Context) => files.fileHandler('document', addon, ctx));
+  if (cache.config.forward_stickers && addon.sendSticker) {
+    addon.on([':sticker'], (ctx: Context) => files.fileHandler('sticker', addon, ctx));
+  }
+  if (cache.config.forward_edited_messages) {
+    addon.on('edited_message', (ctx: Context) => edited.handleEditedMessage(ctx));
+  }
 
   // Register generic text handlers.
   addon.hears(cache.config.language.back, (ctx: Context) => {
@@ -130,10 +172,20 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
     }
   });
 
-  // Handle canned response commands (/key pattern)
-  addon.hears(/^(\/\w+)$/, async (ctx: Context) => {
-    const cmd = ctx.match?.substring(1);
-    if (!cmd || !ctx.session.admin) return;
+  // Handle custom user commands (#84) and canned response commands (/key pattern)
+  addon.hears(/^\/(\w+)(?:@\w+)?$/, async (ctx: Context) => {
+    const cmd = matchedCommand(ctx.match);
+    if (!cmd) return;
+
+    // Custom user commands answer everyone in private chats and non-staff anywhere
+    if (!ctx.session.admin || ctx.chat.type === 'private') {
+      const userCommand = commands.findUserCommand(cmd);
+      if (userCommand) {
+        middleware.reply(ctx, userCommand.text, { parse_mode: cache.config.parse_mode });
+        return;
+      }
+    }
+    if (!ctx.session.admin) return;
 
     // Check if this is a canned response key
     const cannedText = workflows.getCannedResponse(cmd);

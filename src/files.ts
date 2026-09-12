@@ -37,9 +37,9 @@ const replyMarkup = (ctx: Context): { html: string; inline_keyboard: Array<Array
 };
 
 /**
- * Handles forwarding of files (document, photo, video) to staff.
+ * Handles forwarding of files (document, photo, video, sticker) to staff.
  *
- * @param type - The type of file ('document', 'photo', or 'video').
+ * @param type - The type of file ('document', 'photo', 'video' or 'sticker').
  * @param bot - The bot addon instance.
  * @param ctx - The bot context.
  */
@@ -132,6 +132,19 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
         })).catch(log.error);
       }
       break;
+    case 'sticker': {
+      // Stickers cannot carry a caption: send the sticker, then the ticket header as text (#107)
+      if (!bot.sendSticker) return;
+      messageId = (await bot.sendSticker(receiverId, fileId)) as string | null;
+      const headerMessenger = session.admin && userInfo === undefined ? ticket.messenger : config.staffchat_type;
+      if (captionText.trim()) {
+        sendMessage(receiverId, headerMessenger, captionText).catch(log.error);
+      }
+      if (shouldForwardToGroup) {
+        Promise.resolve(bot.sendSticker(session.group, fileId)).catch(log.error);
+      }
+      break;
+    }
   }
   if (messageId) {
     db.addIdAndName(ticket.ticketId, messageId, ctx.message.from.first_name);

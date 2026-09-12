@@ -8,6 +8,7 @@ import * as team from './team';
 import * as analytics from './analytics';
 import * as workflows from './workflows';
 import { extractSupporteeId } from './staff';
+import * as webhooks from './webhooks';
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -75,9 +76,30 @@ const helpCommand = (ctx: Context): void => {
     text += `/staff — List staff members\n`;
     text += `/stats — Show analytics stats\n`;
     text += `/templates — List canned responses\n`;
+    text += `/ticket <id> — Show ticket details\n`;
+    if (cache.config.allow_broadcast) {
+      text += `/broadcast <text> — Message all users\n`;
+    }
+  }
+
+  // Custom user commands from config (#84)
+  const userCommands = cache.config.user_commands || [];
+  if (userCommands.length > 0) {
+    text += '\n\n' + userCommands
+      .map((c) => `/${c.command}${c.description ? ` — ${c.description}` : ''}`)
+      .join('\n');
   }
 
   middleware.reply(ctx, text, { parse_mode });
+};
+
+/**
+ * Looks up a custom user command from config (#84).
+ */
+const findUserCommand = (command: string) => {
+  const userCommands = cache.config.user_commands || [];
+  const normalized = command.replace(/^\//, '').toLowerCase();
+  return userCommands.find((c) => c.command.replace(/^\//, '').toLowerCase() === normalized) ?? null;
 };
 
 /**
@@ -128,7 +150,10 @@ const openCommand = async (ctx: Context): Promise<void> => {
       } else if (uidStr.includes('SIGNAL')) {
         ticketInfo = '(signal)';
       }
-      openTickets += `#T${(ticket.ticketId ?? 0).toString().padStart(6, '0')} ${ticketInfo}\n`;
+      // Mark tickets that already got a staff reply (#137)
+      const repliedMark =
+        cache.config.show_replied_mark !== false && ticket.first_response_at ? ` ${language.replied}` : '';
+      openTickets += `#T${(ticket.ticketId ?? 0).toString().padStart(6, '0')} ${ticketInfo}${repliedMark}\n`;
     }
   });
   await middleware.reply(ctx, `*${language.openTickets}\n\n* ${openTickets}`);
@@ -140,7 +165,13 @@ const openCommand = async (ctx: Context): Promise<void> => {
  * @param ctx - The bot context.
  */
 const closeCommand = async (ctx: Context): Promise<void> => {
-  if (!ctx.session.admin) return;
+  if (!ctx.session.admin) {
+    // Users may close their own ticket when allow_user_close is set (#112)
+    if (cache.config.allow_user_close && ctx.chat.type === 'private') {
+      await userCloseCommand(ctx);
+    }
+    return;
+  }
   const groups: string[] = [];
   const { categories, language } = cache.config;
 
@@ -194,6 +225,42 @@ const closeCommand = async (ctx: Context): Promise<void> => {
     delete cache.ticketStatus[userId];
     delete cache.ticketSent[userId];
   }
+};
+
+/**
+ * Lets a user close their own open ticket (allow_user_close, #112).
+ */
+const userCloseCommand = async (ctx: Context): Promise<void> => {
+  const { language } = cache.config;
+  const userId = ctx.from.id.toString();
+  const ticket = await db.getTicketByUserId(userId, ctx.session.groupCategory);
+  if (!ticket || ticket.status !== 'open') {
+    await middleware.reply(ctx, language.ticketClosedError);
+    return;
+  }
+  const ticketId = ticket.ticketId;
+  const paddedTicket = ticketId.toString().padStart(6, '0');
+
+  await db.add(ticket.userid, 'closed', ticket.category ?? '', ctx.messenger);
+  await db.setClosedAt(ticketId);
+  await db.recordAnalyticsEvent('ticket_closed', ticketId, null, { closed_by: 'user' });
+  await webhooks.webhooks.ticketClosed(ticketId, userId);
+
+  delete cache.ticketIDs[userId];
+  delete cache.ticketStatus[userId];
+  delete cache.ticketSent[userId];
+
+  await middleware.reply(ctx, `${language.ticket} #T${paddedTicket} ${language.closed}`);
+  const staffTarget = ctx.session.group && ctx.session.group !== cache.config.staffchat_id
+    ? ctx.session.group
+    : cache.config.staffchat_id;
+  await middleware.sendMessage(
+    staffTarget,
+    cache.config.staffchat_type,
+    `${language.ticket} #T${paddedTicket} ${language.closedByUser}`,
+  ).catch(log.error);
+
+  await analytics.sendCSATSurvey(ticket.userid, ticket.messenger, ticketId);
 };
 
 /**
@@ -520,6 +587,105 @@ const statsCommand = async (ctx: Context): Promise<void> => {
   await analytics.showStatsCommand(ctx);
 };
 
+// --- Ticket details & broadcast ---
+
+/**
+ * Parses "/ticket 1234", "/ticket #T001234" or "/ticket T1234" into a ticket id.
+ */
+const parseTicketArg = (arg?: string): number | null => {
+  if (!arg) return null;
+  const match = arg.trim().match(/^#?T?0*(\d+)$/i);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+/**
+ * Show ticket details: /ticket <id> (or reply to a ticket message) (#85)
+ */
+const ticketCommand = async (ctx: Context): Promise<void> => {
+  if (!ctx.session.admin) return;
+  const { language, parse_mode, anonymous_tickets } = cache.config;
+  const esc = middleware.strictEscape;
+
+  let ticket: ISupportee | null = null;
+  const requestedId = parseTicketArg(ctx.match);
+  if (requestedId) {
+    ticket = await db.getByTicketId(String(requestedId));
+  } else {
+    const replyText = ctx.message.reply_to_message?.text || ctx.message.reply_to_message?.caption;
+    if (replyText) {
+      const resolved = await resolveTicketFromReply(replyText);
+      ticket = resolved?.ticket ?? null;
+    }
+  }
+  if (!ticket) {
+    middleware.reply(ctx, 'Usage: /ticket <id> (or reply to a ticket message)');
+    return;
+  }
+
+  const ticketId = ticket.ticketId;
+  const padded = ticketId.toString().padStart(6, '0');
+  const lines: string[] = [];
+  lines.push(`*${esc(language.ticketDetails)} #T${padded}*`);
+  lines.push(`${esc(language.customer)}: ${anonymous_tickets ? esc(ticket.name ?? '-') : `${esc(ticket.name ?? '-')} (${esc(String(ticket.userid))})`}`);
+  lines.push(`status: ${esc(ticket.status ?? '-')} · ${esc(String(ticket.messenger ?? '-'))}`);
+  if (ticket.category) lines.push(`category: ${esc(ticket.category)}`);
+  if (ticket.priority && ticket.priority !== 'normal') lines.push(`priority: ${esc(ticket.priority)}`);
+  if (Array.isArray(ticket.tags) && ticket.tags.length > 0) lines.push(`tags: ${esc(ticket.tags.map((t) => `#${t}`).join(' '))}`);
+  if (ticket.assigned_to) {
+    const member = cache.staffMembers?.get(ticket.assigned_to);
+    lines.push(`${esc(language.ticketAssignedTo)}: ${esc(member?.name ?? ticket.assigned_to)}`);
+  }
+  if (ticket.first_response_at) lines.push(`first response: ${esc(new Date(ticket.first_response_at).toISOString())}`);
+  if (ticket.closed_at) lines.push(`closed: ${esc(new Date(ticket.closed_at).toISOString())}`);
+  if (ticket.triage_summary) lines.push(`${esc(language.triageSummary)}: ${esc(ticket.triage_summary)}`);
+
+  const notes = await db.getInternalNotes(ticketId);
+  if (notes.length > 0) lines.push(`${esc(language.internalNote)}: ${notes.length}`);
+
+  const history = await db.getConversationHistory(ticketId, 5);
+  if (history.length > 0) {
+    lines.push('');
+    for (const entry of [...history].reverse()) {
+      const when = entry.timestamp ? new Date(entry.timestamp).toISOString().slice(0, 16).replace('T', ' ') : '';
+      const snippet = entry.text.length > 200 ? `${entry.text.slice(0, 200)}…` : entry.text;
+      lines.push(`_${esc(when)}_ *${esc(entry.sender)}*: ${esc(snippet)}`);
+    }
+  }
+
+  middleware.reply(ctx, lines.join('\n'), { parse_mode });
+};
+
+/**
+ * Broadcast a message to every known user: /broadcast <text> (allow_broadcast, #159)
+ */
+const broadcastCommand = async (ctx: Context): Promise<void> => {
+  if (!ctx.session.admin) return;
+  const { language, allow_broadcast } = cache.config;
+  if (!allow_broadcast) {
+    middleware.reply(ctx, 'Broadcast is disabled. Set allow_broadcast: true in config.yaml to enable it.');
+    return;
+  }
+  const text = ctx.match?.trim();
+  if (!text) {
+    middleware.reply(ctx, 'Usage: /broadcast <text>');
+    return;
+  }
+
+  const users = await db.getAllUsers();
+  let sent = 0;
+  for (const user of users) {
+    try {
+      // Plain text: unbalanced Markdown in the staff message must not fail per recipient
+      await middleware.sendMessage(user.userid, user.messenger, text, {});
+      sent++;
+    } catch (err) {
+      log.error(`Broadcast to ${user.userid} failed:`, err);
+    }
+  }
+  log.info(`Broadcast by @${ctx.from.username ?? '-'} (${ctx.from.id}) reached ${sent}/${users.length} users`);
+  middleware.reply(ctx, `${language.broadcastSent} ${sent}/${users.length}`);
+};
+
 // --- Workflow Commands ---
 
 /**
@@ -554,4 +720,10 @@ export {
   statsCommand,
   // Workflow commands
   templatesCommand,
+  // Ticket details, broadcast, user close, custom user commands
+  ticketCommand,
+  broadcastCommand,
+  userCloseCommand,
+  findUserCommand,
+  parseTicketArg,
 };

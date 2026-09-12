@@ -189,8 +189,24 @@ export async function getTicketByUserId (
     $or: [{ userid: userId }],
     ...(category ? { category } : { category: null }),
   };
-  const result = await Supportee.findOne(query);
+  // Newest ticket first: with ticket_per_message a user has several documents
+  const result = await Supportee.findOne(query).sort({ ticketId: -1 });
   return result;
+};
+
+/**
+ * Opens an additional ticket for a user without touching their existing ones
+ * (ticket_per_message, #172). `add(..., 'open', ...)` replaces the user's document,
+ * which would make every earlier ticket id unresolvable for staff replies.
+ */
+export const addNewTicket = async (
+  userid: string | number,
+  category: string | number | null,
+  messenger: string,
+): Promise<number> => {
+  const ticketId = await getNextTicketId();
+  await Supportee.create({ userid, messenger, ticketId, status: 'open', category: category ?? null });
+  return ticketId;
 };
 
 export async function getByTicketId(
@@ -310,6 +326,32 @@ export async function open(
     return await Supportee.find(query).lean<ISupportee[]>();
   } catch (err) {
     log.error('DB open error:', err);
+    return [];
+  }
+}
+
+/**
+ * All known, non-banned users that can receive a broadcast (#159).
+ * Web chat visitors are excluded because their socket ids are transient.
+ */
+export async function getAllUsers(): Promise<Array<{ userid: string; messenger: string }>> {
+  try {
+    const docs = await Supportee.find({ status: { $ne: 'banned' } })
+      .select('userid messenger')
+      .lean();
+    const seen = new Set<string>();
+    const users: Array<{ userid: string; messenger: string }> = [];
+    for (const doc of docs) {
+      const userid = String(doc.userid ?? '');
+      if (!userid || userid.startsWith('WEB')) continue;
+      const key = `${doc.messenger}:${userid}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      users.push({ userid, messenger: String(doc.messenger) });
+    }
+    return users;
+  } catch (err) {
+    log.error('DB getAllUsers error:', err);
     return [];
   }
 }

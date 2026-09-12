@@ -3,6 +3,7 @@ import * as YAML from 'yaml';
 import * as fs from 'fs';
 import * as log from './logger';
 import { mergeLanguage } from './language';
+import { defaultMongoUri } from './defaults';
 
 const cache: Cache = {
   userId: '',
@@ -60,7 +61,7 @@ cache.config = {
   clean_replies: false,
   autoreply_confirmation: true,
   categories: [],
-  mongodb_uri: 'mongodb://mongodb:27017/support',
+  mongodb_uri: defaultMongoUri(),
   llm_memory_depth: 10,
   auto_triage: false,
   sentiment_alert_threshold: 2,
@@ -78,6 +79,16 @@ cache.config = {
   canned_responses: [],
   escalation_rules: [],
   auto_close_after_days: 0,
+  staffchat_thread_id: null,
+  ticket_per_message: false,
+  allow_broadcast: false,
+  forward_edited_messages: true,
+  start_keyboard: [],
+  show_replied_mark: false,
+  allow_user_close: false,
+  forward_stickers: false,
+  user_commands: [],
+  forward_replies_to_parent: false,
   ...parsedConfig,
 } as unknown as Config;
 
@@ -90,7 +101,7 @@ if (process.env.MONGO_URI) {
 // Ensure array fields are actually arrays (YAML `{}` becomes empty object)
 const arrayFields = [
   'categories', 'staff_roles', 'webhooks', 'autoreply',
-  'canned_responses', 'escalation_rules',
+  'canned_responses', 'escalation_rules', 'user_commands', 'start_keyboard',
 ];
 for (const field of arrayFields) {
   const cfg = cache.config as any;

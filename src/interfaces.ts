@@ -25,6 +25,13 @@ export interface Autoreply {
   answer: string;
 }
 
+/** Custom user command defined in config (issue #84). */
+export interface UserCommand {
+  command: string;
+  text: string;
+  description?: string;
+}
+
 export enum StaffRole {
   AGENT = 'agent',
   SUPERVISOR = 'supervisor',
@@ -187,6 +194,15 @@ export interface Language {
   offlineMessage: string;
   businessHoursClosed: string;
   escalationNotify: string;
+  // Ticket list / details
+  replied: string;
+  ticketDetails: string;
+  // Edited messages
+  editedMessage: string;
+  // Broadcast
+  broadcastSent: string;
+  // User-initiated close
+  closedByUser: string;
 }
 
 export interface Category {
@@ -280,6 +296,26 @@ export class Config {
   canned_responses: CannedResponse[] = [];
   escalation_rules: EscalationRule[] = [];
   auto_close_after_days: number = 0;
+  // Staff chat topic (forum thread) the bot is confined to (#183)
+  staffchat_thread_id: number | null = null;
+  // Open a new ticket for every incoming message (#172)
+  ticket_per_message: boolean = false;
+  // Allow staff to /broadcast a message to all known users (#159)
+  allow_broadcast: boolean = false;
+  // Forward edited user messages to the staff chat (#147)
+  forward_edited_messages: boolean = true;
+  // Reply keyboard buttons shown with the /start message (#142)
+  start_keyboard: string[] = [];
+  // Mark tickets that already received a staff reply in /open (#137)
+  show_replied_mark: boolean = false;
+  // Allow users to close their own ticket with /close (#112)
+  allow_user_close: boolean = false;
+  // Forward stickers between users and staff (#107)
+  forward_stickers: boolean = false;
+  // Custom user commands answered with static text (#84)
+  user_commands: UserCommand[] = [];
+  // Mirror staff replies from a subcategory group to its parent category group (#79)
+  forward_replies_to_parent: boolean = false;
 }
 
 export interface SocketEmit {
@@ -342,7 +378,11 @@ export class Context {
     },
     getFile?: any;
     caption: string;
+    message_thread_id?: number;
+    sticker?: { file_id: string };
   } = {} as Context['message'];
+  /** Set for `edited_message` updates (grammY exposes it as ctx.editedMessage). */
+  editedMessage?: Context['message'];
   chat: {
     id: string;
     first_name: string;
@@ -378,6 +418,14 @@ export interface Addon {
    * @param options Optional parameters (e.g. caption, recipients).
    */
   sendPhoto(chatId: string | number, photo: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends a sticker (optional — not every platform supports stickers).
+   * @param chatId The target chat identifier.
+   * @param sticker The sticker file id.
+   * @param options Optional parameters.
+   */
+  sendSticker?(chatId: string | number, sticker: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
 
   /**
    * Sends a document.

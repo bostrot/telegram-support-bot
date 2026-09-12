@@ -29,12 +29,17 @@ When a user sends a message to the support bot it creates a ticket which is forw
 - [x] Categories and sub-categories routed to different staff groups
 - [x] Private 1:1 reply tunnel, anonymous tickets / anonymous replies
 - [x] Configurable confirmation message, ticket ids shown to users (optional)
+- [x] Edited user messages are re-posted to staff marked as edited, stickers are forwarded (`forward_stickers`), users may close their own ticket (`allow_user_close`)
+- [x] Run the bot inside a single forum topic of your staff group (`staffchat_thread_id`) or open a new ticket per message (`ticket_per_message`)
 
 **Team collaboration (v5)**
 - [x] Assign tickets to staff, priorities (`low`…`urgent`), tags, mute/unmute
 - [x] Internal notes that never reach the user (`/note`, or prefix a reply with `!note`)
 - [x] Staff roles (`admin`, `supervisor`, `agent`) and `/staff` overview
 - [x] Canned responses: define a `key` once, send it with `/key` as a reply
+- [x] `/ticket <id>` shows a ticket's details and last messages, `/open` marks tickets that were already answered (`show_replied_mark`)
+- [x] `/broadcast` to all users (`allow_broadcast`), replies mirrored to the parent category group (`forward_replies_to_parent`)
+- [x] Custom user commands (`user_commands`) and reply-keyboard buttons on `/start` (`start_keyboard`)
 - [x] Escalation rules for unanswered tickets, auto-close of stale tickets, business hours with offline message
 
 **Analytics & integrations (v5)**
@@ -85,6 +90,7 @@ Staff commands (used in the staff group, mostly as a reply to a ticket):
 - `/assign <telegram_id>` / `/unassign`, `/priority low|normal|high|urgent`, `/tag <tag>` / `/untag <tag>`, `/mute` / `/unmute`
 - `/note <text>` and `/notes` – internal notes (or start a reply with `!note` / `!internal`)
 - `/templates` – list canned responses, `/<key>` – send one as a reply
+- `/ticket <id>` – ticket details and last messages · `/broadcast <text>` – message every user (needs `allow_broadcast`)
 - `/staff` – configured staff and roles · `/stats` – analytics · `/id` – your id and the group id
 
 User commands:
@@ -93,6 +99,8 @@ User commands:
 - `/help` – overview of the commands
 - `/faq` – shows the FAQ
 - `/id` – returns your Telegram or Signal id and the group chat id
+- `/close` – closes the user's own ticket (needs `allow_user_close`)
+- any command defined in `user_commands`
 
 All texts are configurable in the `language:` section of `config.yaml`. See the [wiki](https://github.com/bostrot/telegram-support-bot/wiki/Commands) for details.
 

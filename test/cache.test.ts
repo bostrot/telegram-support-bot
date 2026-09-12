@@ -1,5 +1,6 @@
 import cache from '../src/cache';
 import { mergeLanguage } from '../src/language';
+import { defaultMongoUri } from '../src/defaults';
 import * as fs from 'fs';
 import * as YAML from 'yaml';
 
@@ -89,5 +90,13 @@ describe('mergeLanguage', () => {
   it('falls back to the legacy contactMessage for confirmationMessage', () => {
     const language = mergeLanguage({ contactMessage: 'Danke für Ihre Nachricht' });
     expect(language.confirmationMessage).toBe('Danke für Ihre Nachricht');
+  });
+});
+
+describe('defaultMongoUri', () => {
+  it('prefers MONGO_URI from the environment over the built-in default', () => {
+    expect(defaultMongoUri({ MONGO_URI: 'mongodb://from-env:27017/support' } as NodeJS.ProcessEnv)).toBe('mongodb://from-env:27017/support');
+    expect(defaultMongoUri({} as NodeJS.ProcessEnv)).toBe('mongodb://mongodb:27017/support');
+    expect(defaultMongoUri({ MONGO_URI: '' } as NodeJS.ProcessEnv)).toBe('mongodb://mongodb:27017/support');
   });
 });
