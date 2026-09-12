@@ -392,6 +392,24 @@ describe('handler registration and command matching', () => {
     expect(mockReply).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('3-5 days'), { parse_mode: 'MarkdownV2' });
   });
 
+  it('runs a canned response through the chat handler when it replies to a ticket', async () => {
+    const handleText = jest.spyOn(text, 'handleText').mockResolvedValue(undefined);
+    const ctx = makeCtx({
+      match: ['/shipping', 'shipping'],
+      chat: { id: '-100123', type: 'supergroup' },
+    });
+    ctx.session.admin = true;
+    ctx.message.reply_to_message = { from: { is_bot: true }, text: '#T000001 from Alice', caption: '' } as never;
+
+    await commandHears()(ctx);
+
+    // the template replaces the command text and is delivered to the user, not echoed back
+    expect(ctx.message.text).toBe('3-5 days');
+    expect(handleText).toHaveBeenCalledWith(fakeAddon, ctx, []);
+    expect(mockReply).not.toHaveBeenCalled();
+    handleText.mockRestore();
+  });
+
   it('ignores unknown commands silently', async () => {
     await commandHears()(makeCtx({ match: ['/nothing', 'nothing'] }));
     expect(mockReply).not.toHaveBeenCalled();

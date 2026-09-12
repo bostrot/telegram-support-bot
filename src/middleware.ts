@@ -1,5 +1,7 @@
 import cache from './cache';
 import SignalAddon from './addons/signal';
+import SlackAddon from './addons/slack';
+import DiscordAddon from './addons/discord';
 import { Context, Messenger } from './interfaces';
 import TelegramAddon from './addons/telegram';
 
@@ -81,6 +83,10 @@ async function sendMessage (
       return await TelegramAddon.getInstance().sendMessage(id, cleanedMsg, extra);
     case Messenger.SIGNAL:
       return await SignalAddon.getInstance().sendMessage(id, cleanedMsg, extra);
+    case Messenger.SLACK:
+      return await SlackAddon.getInstance().sendMessage(id, cleanedMsg, extra);
+    case Messenger.DISCORD:
+      return await DiscordAddon.getInstance().sendMessage(id, cleanedMsg, extra);
     case Messenger.WEB: {
       const socketId = id.toString().split('WEB')[1];
       cache.io.to(socketId).emit('chat_staff', cleanedMsg);

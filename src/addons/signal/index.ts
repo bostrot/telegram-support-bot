@@ -303,11 +303,13 @@ class SignalAddon implements Addon {
       let isCommand = false;
       if (messageContext.message && typeof messageContext.message.text === 'string' &&
           messageContext.message.text.startsWith('/')) {
-        isCommand = true;
-        const parts = messageContext.message.text.split(' ');
+        const parts = messageContext.message.text.trim().split(' ');
         const commandName = parts[0].substring(1);
         const commandKey = `command:${commandName}`;
         if (this.eventHandlers[commandKey]) {
+          isCommand = true;
+          // Everything behind the command is its argument, like grammY's ctx.match
+          messageContext.match = parts.slice(1).join(' ');
           this.eventHandlers[commandKey].forEach(handler => handler(messageContext));
         }
       }
@@ -317,15 +319,23 @@ class SignalAddon implements Addon {
         this.eventHandlers['message'].forEach(handler => handler(messageContext));
       }
       
-      // Process hears handlers if message is not a command.
-      if (!isCommand) {
-        this.hearsHandlers.forEach(({ trigger, callback }) => {
-          if (typeof trigger === 'string' && messageContext.message.text === trigger) {
+      // Process hears handlers unless a registered command already handled the message.
+      // Unknown slash commands fall through here so custom user commands (#84) and
+      // canned responses reach Signal users too. Only the first matching trigger runs,
+      // like grammY does — otherwise the catch-all /(.+)/ would open a ticket on top of
+      // every canned answer.
+      const messageText = messageContext.message?.text;
+      if (!isCommand && typeof messageText === 'string') {
+        for (const { trigger, callback } of this.hearsHandlers) {
+          if (typeof trigger === 'string' && messageText === trigger) {
             callback(messageContext);
-          } else if (trigger instanceof RegExp && trigger.test(messageContext.message.text)) {
+            break;
+          } else if (trigger instanceof RegExp && trigger.test(messageText)) {
+            messageContext.match = trigger.exec(messageText) ?? undefined;
             callback(messageContext);
+            break;
           }
-        });
+        }
       }
       
     } catch (err) {

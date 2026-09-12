@@ -349,7 +349,11 @@ export interface Cache {
 export class Context {
   messenger: Messenger = 'telegram' as Messenger;
   update_id: number = 0;
-  match?: string;
+  /**
+   * Command argument (string) or RegExp match (array), depending on the trigger —
+   * see `matchArg`/`matchedCommand` in `src/match.ts` for reading it safely.
+   */
+  match?: string | RegExpMatchArray;
   message: {
     web_msg: boolean;
     message_id: number;
@@ -477,6 +481,8 @@ export interface Addon {
 export enum Messenger {
   TELEGRAM = 'telegram',
   SIGNAL = 'signal',
+  SLACK = 'slack',
+  DISCORD = 'discord',
   WEB = 'web',
 }
 
