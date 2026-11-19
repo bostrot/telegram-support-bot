@@ -181,7 +181,6 @@ export async function getAgentStats(startDate?: Date, endDate?: Date): Promise<A
  */
 export async function generateDailySummary(): Promise<string> {
     const now = new Date();
-    const yesterday = new Date(now.getTime() - 86400000);
     const weekAgo = new Date(now.getTime() - 7 * 86400000);
 
     const todayCount = await getTicketCount(new Date(now.toDateString()), now);

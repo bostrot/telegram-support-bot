@@ -1,8 +1,7 @@
 import * as db from './db';
 import cache from './cache';
 import { buildInlineKeyboard, reply, sendMessage } from './middleware';
-import { Addon, Context, ModeData } from './interfaces';
-import { ISupportee } from './db';
+import { Addon, Context } from './interfaces';
 import * as log from './logger'
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -15,14 +14,14 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
  */
 const replyMarkup = (ctx: Context): { html: string; inline_keyboard: Array<Array<{ text: string; url?: string; callback_data?: string }>> } => {
   const { config } = cache;
-  const { language, direct_reply } = config;
+  const { language, direct_reply: directReply } = config;
   const { from, message, session } = ctx;
   const { modeData } = session;
   return {
     html: '',
     inline_keyboard: [
       [
-        direct_reply
+        directReply
           ? {
             text: language.replyPrivate,
             url: `https://t.me/${from.username}`,

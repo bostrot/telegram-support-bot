@@ -1,4 +1,3 @@
-import { Context } from './interfaces';
 import OpenAI from 'openai';
 import cache from './cache';
 import * as db from './db';

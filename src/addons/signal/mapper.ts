@@ -2,7 +2,7 @@ import { Context, Messenger, SessionData } from "../../interfaces";
 import { SignalMessage } from "./models";
 
 export function mapSignalMessageToContext(signalMsg: SignalMessage): Context {
-    const { envelope, account } = signalMsg;
+    const { envelope } = signalMsg;
     const { dataMessage } = envelope;
   
     // Use envelope.timestamp as a unique update_id and message_id.

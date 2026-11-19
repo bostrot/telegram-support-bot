@@ -323,7 +323,6 @@ class SlackAddon implements Addon {
     const text = msg.text || '';
     const userId = msg.user;
     const chatId = msg.channel;
-    const threadTs = msg.thread_ts || msg.ts;
 
     // Extract reply info (thread parent)
     let replyToText = '';

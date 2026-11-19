@@ -1,4 +1,3 @@
-import TelegramAddon from './addons/telegram';
 
 export interface ModeData {
   ticketid: string;

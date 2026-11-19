@@ -5,9 +5,9 @@ import * as log from './logger'
 /**
  * Initializes error logging and global exception handlers.
  *
- * @param logs - Whether to log to file (default true).
+ * @param _logs - Whether to log to file (default true); currently unused.
  */
-function init(logs: boolean) {
+function init(_logs: boolean) {
   // Rate limiting state — tracks recent errors to avoid spamming staff chat
   let currentErrors = 0;
   let lastErrorReset: number = Date.now();

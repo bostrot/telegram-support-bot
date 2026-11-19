@@ -183,7 +183,7 @@ export async function listStaffCommand(ctx: Context): Promise<void> {
     }
 
     let output = '👥 *Staff Members*:\n\n';
-    for (const [id, member] of cache.staffMembers) {
+    for (const member of cache.staffMembers.values()) {
         const roleIcons: Record<string, string> = { admin: '👑', supervisor: '⭐', agent: '🔧' };
         output += `${roleIcons[member.role] || ''} ${member.name} (${member.role})\n`;
     }
