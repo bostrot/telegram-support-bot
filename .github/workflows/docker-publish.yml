@@ -33,4 +33,4 @@ jobs:
           tags: |
             bostrot/telegram-support-bot:latest
             bostrot/telegram-support-bot:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64

@@ -142,6 +142,7 @@ There are some breaking changes in the new versions. Please read the following i
 - Node.js **26** or newer is required for npm/native installs (`engines` in `package.json`). The Docker image ships Node 26.
 - MongoDB server **4.4** or newer is required (Mongoose 9 / MongoDB driver 7). The compose stack already uses MongoDB 8; no data migration is needed.
 - The `MONGO_URI` environment variable now overrides `mongodb_uri` in `config.yaml`. `docker-compose.yml` sets `MONGO_URI=mongodb://mongodb:27017/support`, so if you use an external database, put its connection string in `MONGO_URI` in `docker-compose.yml` (or remove that line) — otherwise the bot connects to the bundled MongoDB.
+- The Docker image is published for `linux/amd64` and `linux/arm64` only. Node 26 has no 32-bit ARM (`linux/arm/v7`) builds, so on a 32-bit OS (e.g. older Raspberry Pi OS) stay on `bostrot/telegram-support-bot:v5.0.0` or move to a 64-bit OS.
 - `forward_edited_messages` defaults to `true`: edited user messages are re-posted to the staff chat marked as edited. Set it to `false` to get the old behaviour.
 - New optional settings, all off by default: `staffchat_thread_id`, `ticket_per_message`, `show_replied_mark`, `forward_stickers`, `forward_replies_to_parent`, `allow_user_close`, `allow_broadcast`, `ticket_ref_codes`, `start_keyboard`, `user_commands`.
 
