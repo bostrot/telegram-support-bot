@@ -7,6 +7,32 @@ import * as log from '../../logger';
 const DISCORD_API = 'https://discord.com/api/v10';
 const GATEWAY_URL = 'wss://gateway.discord.gg';
 
+// Bounds for the gateway-provided heartbeat interval (Discord currently sends ~41250ms)
+const DEFAULT_HEARTBEAT_MS = 41250;
+const MIN_HEARTBEAT_MS = 1000;
+const MAX_HEARTBEAT_MS = 120000;
+
+/**
+ * Checks whether a value is a valid Discord snowflake ID (17-20 digit numeric string).
+ */
+export function isValidSnowflake(id: unknown): id is string {
+  return typeof id === 'string' && /^\d{17,20}$/.test(id);
+}
+
+/**
+ * Returns a safe heartbeat interval, falling back to the default when the
+ * gateway-provided value is missing or out of bounds.
+ */
+export function sanitizeHeartbeatInterval(intervalMs: unknown): number {
+  if (typeof intervalMs !== 'number' || !Number.isFinite(intervalMs)) {
+    return DEFAULT_HEARTBEAT_MS;
+  }
+  if (intervalMs < MIN_HEARTBEAT_MS || intervalMs > MAX_HEARTBEAT_MS) {
+    return DEFAULT_HEARTBEAT_MS;
+  }
+  return intervalMs;
+}
+
 class DiscordAddon implements Addon {
   private axiosInstance: AxiosInstance;
   private errorHandler: ((error: any, ctx?: any) => void) | null = null;
@@ -18,6 +44,7 @@ class DiscordAddon implements Addon {
   private channels: Map<string, { name: string; id: string }> = new Map();
   private sequence: number | null = null;
   private session_id: string | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
   private static instance: DiscordAddon | null = null;
 
@@ -326,8 +353,12 @@ class DiscordAddon implements Addon {
    * Fetches channels for a guild to populate the channel cache.
    */
   private async fetchGuildChannels(guildId: string): Promise<void> {
+    if (!isValidSnowflake(guildId)) {
+      log.error(`Discord: Ignoring invalid guild ID ${guildId}`);
+      return;
+    }
     try {
-      const response = await this.axiosInstance.get(`/guilds/${guildId}/channels`);
+      const response = await this.axiosInstance.get(`/guilds/${encodeURIComponent(guildId)}/channels`);
       for (const ch of response.data) {
         if (ch.type === 0 || ch.type === 15) { // Text or announcement thread
           this.channels.set(ch.name, { name: ch.name, id: ch.id });
@@ -451,8 +482,11 @@ class DiscordAddon implements Addon {
   /**
    * Starts heartbeat interval to keep gateway connection alive.
    */
-  private startHeartbeat(intervalMs: number): void {
-    setInterval(() => {
+  private startHeartbeat(requestedIntervalMs: number): void {
+    const intervalMs = sanitizeHeartbeatInterval(requestedIntervalMs);
+    // Replace any heartbeat from a previous connection
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = setInterval(() => {
       this.send({
         op: 1, // HEARTBEAT
         d: this.sequence,
@@ -468,7 +502,7 @@ class DiscordAddon implements Addon {
     const idStr = String(chatId);
 
     // If it's already a snowflake ID (17-20 digit numeric)
-    if (/^\d{17,20}$/.test(idStr)) return idStr;
+    if (isValidSnowflake(idStr)) return idStr;
 
     // Check configured channel
     if (idStr === 'default' || !idStr) {
