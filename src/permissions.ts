@@ -26,7 +26,7 @@ async function checkRights(
   ctx: Context,
   config: { categories: Array<{ group_id: number | string; name?: string; subgroups?: Array<{ group_id: number | string; name: string }> }>; staffchat_id: string | number },
 ): Promise<boolean> {
-  const { categories, staffchat_id } = config;
+  const { categories, staffchat_id: staffchatId } = config;
 
   if (categories) {
     for (const category of categories) {
@@ -52,8 +52,8 @@ async function checkRights(
   }
 
   let hasPermission =
-    ctx.chat.id.toString() === staffchat_id.toString() || Boolean(ctx.session.groupAdmin);
-  if (hasPermission && isOutsideStaffThread(ctx, staffchat_id)) {
+    ctx.chat.id.toString() === staffchatId.toString() || Boolean(ctx.session.groupAdmin);
+  if (hasPermission && isOutsideStaffThread(ctx, staffchatId)) {
     hasPermission = false;
   }
   if (hasPermission) {

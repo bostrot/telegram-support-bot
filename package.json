@@ -15,60 +15,61 @@
     "main": "build/index.js",
     "scripts": {
         "tsc": "tsc",
-        "dev": "NODE_ENV=development ts-node-dev ./src/index.ts",
+        "dev": "NODE_ENV=development tsx watch ./src/index.ts",
         "prod": "NODE_ENV=production node ./build/index.js",
         "build": "npm run tsc",
         "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
     },
     "engines": {
-        "node": ">=24.0.0"
+        "node": ">=26.0.0"
     },
     "dependencies": {
         "@grammyjs/transformer-throttler": "^1.2.1",
-        "axios": "^1.20.0",
-        "chalk": "^6.0.0",
+        "@typescript/native": "npm:typescript@^7.0.2",
+        "axios": "^1.21.1",
+        "chalk": "^6.0.1",
         "debug": "^4.4.3",
-        "express": "^5.2.1",
-        "express-rate-limit": "^8.7.0",
+        "express": "^5.3.0",
+        "express-rate-limit": "^8.7.5",
         "fancy-log": "^2.0.0",
         "grammy": "^1.46.0",
-        "llamaindex": "^0.12.1",
-        "openai": "^7.15.0",
-        "mongoose": "^8.24.1",
+        "mongoose": "^9.12.2",
         "node-fetch": ">=3.3.2",
-        "node-gyp": "^13.0.2",
+        "node-gyp": "^13.1.0",
+        "openai": "^7.60.0",
         "sandwich-stream": "^2.0.2",
-        "socket.io": "^4.8.3",
-        "ws": "^8.21.3",
-        "yaml": "^2.9.1",
-        "typescript": "^5.9.3"
+        "socket.io": "^4.8.4",
+        "ws": "^8.23.0",
+        "yaml": "^2.9.1"
     },
     "optionalDependencies": {
-        "better-sqlite3": "^13.0.3"
+        "better-sqlite3": "^13.2.0"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@types/chai": "^5.2.3",
         "@types/fancy-log": "^2.0.2",
         "@types/jest": "^30.0.0",
         "@types/mocha": "^10.0.10",
-        "@types/node": "^24.3.0",
-        "@typescript-eslint/eslint-plugin": "^8.70.0",
-        "@typescript-eslint/parser": "^8.70.0",
-        "chai": "^6.2.2",
-        "eslint": "^9.39.4",
+        "@types/node": "^26.6.6",
+        "@types/ws": "^8.18.2",
+        "@typescript-eslint/eslint-plugin": "^8.73.0",
+        "@typescript-eslint/parser": "^8.73.0",
+        "chai": "^6.3.0",
+        "eslint": "^10.15.0",
         "eslint-config-google": "^0.14.0",
-        "eslint-plugin-import": "^2.32.0",
-        "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-prettier": "^5.5.6",
+        "eslint-plugin-import-x": "^4.18.1",
+        "eslint-plugin-n": "^18.5.0",
+        "eslint-plugin-prettier": "^5.5.7",
         "eslint-plugin-promise": "^7.3.0",
-        "eslint-plugin-standard": "^4.1.0",
         "esm": "^3.2.25",
-        "jest": "^30.5.1",
-        "mocha": "^12.0.1",
-        "ts-jest": "^29.4.12",
-        "ts-node": "^10.9.2",
-        "ts-node-dev": "^2.0.0",
-        "@types/ws": "^8.18.1"
+        "globals": "^17.14.0",
+        "jest": "^30.5.2",
+        "mocha": "^12.0.3",
+        "prettier": "^3.10.1",
+        "ts-jest": "^29.4.15",
+        "tsx": "^4.23.15",
+        "typescript": "npm:@typescript/typescript6@^6.0.2"
     },
     "keywords": [
         "telegram-support-bot",
@@ -82,5 +83,9 @@
         "bot",
         "botapi",
         "bot framework"
-    ]
+    ],
+    "overrides": {
+        "glob": "^14.0.6",
+        "minimatch": "^11.0.9"
+    }
 }

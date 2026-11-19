@@ -6,19 +6,19 @@
 cp config/config-sample.yaml config/config.yaml   # create config (edit bot_token, staffchat_id, owner_id)
 npm install
 docker compose up -d mongodb                       # MongoDB is required at runtime
-npm run dev                                        # ts-node-dev hot-reload loop
+npm run dev                                        # tsx watch hot-reload loop
 ```
 
 ## Commands
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Development server via `ts-node-dev` (watch + restart) |
+| `npm run dev` | Development server via `tsx watch` (watch + restart) |
 | `npm run build` or `npm run tsc` | Compile TypeScript → `build/` |
 | `npm run prod` | Run compiled JS (`node ./build/index.js`) — requires prior `npm run build` |
 | `npm test` | Run Jest suite (always uses `--detectOpenHandles --forceExit --runInBand`) |
 
-There is **no** lint or format script in `package.json`. ESLint config exists at `.eslintrc.yml` but must be invoked manually: `npx eslint src/`.
+There is **no** lint or format script in `package.json`. ESLint 10 flat config lives in `eslint.config.js` (google rules minus pure formatting rules) and must be invoked manually: `npx eslint src/`.
 
 ## Running the bot
 
@@ -42,7 +42,7 @@ docker compose logs -f supportbot                  # view bot logs
 ### 3. Tests (local — no DB needed)
 Tests mock all external dependencies (MongoDB, Telegram API, config). No running services required:
 ```bash
-npm install && npm test                            # run full suite (10 suites, 68 tests)
+npm install && npm test                            # run full suite (13 suites, 126 tests)
 npm test -- test/cache.test.ts                     # single file
 npm test -- -t "test name"                         # specific test case
 ```
@@ -72,6 +72,7 @@ npm test -- -t "test name"                         # specific test case
 
 - `strictNullChecks` is **disabled** in `tsconfig.json`. Code may rely on loose null handling.
 - Module system: `Node16` resolution, target ES2022.
+- Compiler is TypeScript 7, installed as `@typescript/native` (provides `tsc`). The `typescript` package name is aliased to `@typescript/typescript6` (bin `tsc6`) because typescript-eslint and ts-jest still need the TS 6 compiler API.
 - Build output directory: `build/`. The compiled entry is `build/index.js` (package `"main"` field).
 
 ## Docker / deployment
@@ -79,7 +80,7 @@ npm test -- -t "test name"                         # specific test case
 - `docker-compose.yml` provides 4 services: bot, MongoDB, signal-cli REST API, mongo-express web UI.
 - Bot mounts `./config:/bot/config` so the YAML config is available inside the container.
 - `MONGO_URI` env var points to `mongodb://mongodb:27017/support`.
-- Dockerfile is multi-stage (node:22-alpine), requires `python3` + `build-base` for native modules (`better-sqlite3`).
+- Dockerfile is multi-stage (node:26-alpine), requires `python3` + `build-base` for native modules (`better-sqlite3`).
 - All non-bot ports are bound to `127.0.0.1` only — MongoDB, signal-cli, and mongo-express are not exposed externally.
 
 ## Dependencies worth knowing
@@ -88,5 +89,5 @@ npm test -- -t "test name"                         # specific test case
 |---|---|
 | `grammy` | Telegram Bot API framework |
 | `mongoose` | MongoDB ODM |
-| `llamaindex` / `openai` | LLM-powered auto-reply (optional, gated by `use_llm: true`) |
+| `openai` | LLM-powered auto-reply (optional, gated by `use_llm: true`) |
 | `better-sqlite3` | Optional — used only for legacy SQLite migration path |

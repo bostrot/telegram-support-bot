@@ -38,8 +38,8 @@ const buildInlineKeyboard = (
  * @returns The escaped string.
  */
 const strictEscape = (str: string): string => {
-  const { parse_mode } = cache.config;
-  switch (parse_mode) {
+  const { parse_mode: parseMode } = cache.config;
+  switch (parseMode) {
     case 'MarkdownV2':
       // Escape all special MarkdownV2 characters
       return str.replace(/([[\]()_*~`>#+\-=\|{}.!\\])/g, '\\$1');

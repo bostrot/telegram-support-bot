@@ -36,6 +36,8 @@ export interface ISupportee extends mongoose.Document {
   // Analytics fields
   first_response_at: Date | null;
   closed_at: Date | null;
+  // Alias of ticketId (schema `alias: 'id'`); no longer declared on mongoose.Document in v9
+  id?: any;
 }
 
 export const SupporteeSchema = new mongoose.Schema<ISupportee>({
@@ -57,6 +59,9 @@ export const SupporteeSchema = new mongoose.Schema<ISupportee>({
 });
 
 const Supportee = mongoose.model(getCollectionName(), SupporteeSchema);
+
+// Mongoose 9 types filters strictly; ids arrive as string | number and are cast at runtime
+type LooseFilter = mongoose.QueryFilter<any>;
 
 export { Supportee };
 
@@ -163,7 +168,7 @@ export async function getTicketById(
   ticketId: string | number,
   category: string | null
 ): Promise<ISupportee | null> {
-  const query = {
+  const query: LooseFilter = {
     $or: [{ ticketId: ticketId }],
     ...(category ? { category } : { category: null }),
   };
@@ -184,14 +189,14 @@ export async function getTicketByInternalId (
 export async function getTicketByUserId (
   userId: string | number,
   category: string | null
-) {
-  const query = {
+): Promise<ISupportee | null> {
+  const query: LooseFilter = {
     $or: [{ userid: userId }],
     ...(category ? { category } : { category: null }),
   };
   // Newest ticket first: with ticket_per_message a user has several documents
   const result = await Supportee.findOne(query).sort({ ticketId: -1 });
-  return result;
+  return result as ISupportee | null;
 };
 
 /**
@@ -205,7 +210,8 @@ export const addNewTicket = async (
   messenger: string,
 ): Promise<number> => {
   const ticketId = await getNextTicketId();
-  await Supportee.create({ userid, messenger, ticketId, status: 'open', category: category ?? null });
+  const doc: mongoose.AnyObject = { userid, messenger, ticketId, status: 'open', category: category ?? null };
+  await Supportee.create(doc);
   return ticketId;
 };
 
@@ -213,7 +219,7 @@ export async function getByTicketId(
   ticketId: string,
 ): Promise<ISupportee | null> {
   try {
-    const query = { $or: [{ ticketId }] };
+    const query: LooseFilter = { $or: [{ ticketId }] };
     return await Supportee.findOne(query) as ISupportee | null;
   } catch (err) {
     log.error('DB getByTicketId error:', err);
@@ -226,7 +232,7 @@ export async function checkBan(
   messenger: string,
 ): Promise<ISupportee | null> {
   try {
-    const query = {
+    const query: LooseFilter = {
       messenger,
       $or: [{ userid: String(userid) }],
       status: 'banned',
@@ -243,7 +249,7 @@ export const closeAll = async () => {
 };
 
 export const reopen = async (userid: any, category: string, messenger: string) => {
-  const query = {
+  const query: LooseFilter = {
     messenger,
     $or: [{ userid: userid }, { ticketId: userid }],
     ...(category && { category }),
@@ -260,7 +266,7 @@ export const addIdAndName = async (
     return null;
   }
   const internalIdNum = parseInt(internalId);
-  const query = {
+  const query: LooseFilter = {
     ticketId: ticketId,
   };
   const update = {
@@ -268,7 +274,7 @@ export const addIdAndName = async (
     $set: { name },
   };
   return await Supportee.findOneAndUpdate(query, update, {
-    new: true,
+    returnDocument: 'after',
     upsert: true,
   });
 };
@@ -281,29 +287,33 @@ export const add = async (
 ) => {
   let result;
   if (status === 'closed') {
-    const query = {
+    const query: LooseFilter = {
       messenger,
       $or: [{ userid: userid }, { ticketId: userid }],
       ...(category && { category }),
     };
     result = await Supportee.updateMany(query, { $set: { status: 'closed' } });
   } else if (status === 'open') {
-    let ticketId = await getNextTicketId();
+    const ticketId = await getNextTicketId();
+    const filter: LooseFilter = { messenger, userid };
+    const doc: mongoose.AnyObject = { userid, messenger, ticketId, status, category };
     result = await Supportee.findOneAndReplace(
-      { messenger, userid },
-      { userid, messenger, ticketId, status, category },
+      filter,
+      doc,
       { upsert: true }
     );
   } else if (status === 'banned') {
+    const filter: LooseFilter = { messenger, userid };
+    const doc: mongoose.AnyObject = {
+      userid,
+      messenger,
+      ticketId: await getNextTicketId(),
+      status: 'banned',
+      category: 'BANNED',
+    };
     result = await Supportee.findOneAndReplace(
-      { messenger, userid },
-      {
-        userid,
-        messenger,
-        ticketId: await getNextTicketId(),
-        status: 'banned',
-        category: 'BANNED',
-      },
+      filter,
+      doc,
       { upsert: true }
     );
   }
@@ -361,11 +371,11 @@ export async function getAllUsers(): Promise<Array<{ userid: string; messenger: 
 export async function addTicketMessage(
   ticketId: number,
   sender: 'user' | 'staff' | 'ai',
-  sender_id: string,
+  senderId: string,
   text: string,
 ): Promise<void> {
   try {
-    const msg = new TicketMessage({ ticketId, sender, sender_id, text });
+    const msg = new TicketMessage({ ticketId, sender, sender_id: senderId, text });
     await msg.save();
     // Keep only last N messages per ticket (configurable)
     const depth = cache.config.llm_memory_depth || 10;
@@ -402,11 +412,11 @@ export async function getConversationHistory(
 export async function recordAnalyticsEvent(
   type: string,
   ticketId: number,
-  agent_id: string | null = null,
+  agentId: string | null = null,
   metadata: Record<string, any> = {},
 ): Promise<void> {
   try {
-    const event = new AnalyticsEvent({ type, ticketId, agent_id, metadata });
+    const event = new AnalyticsEvent({ type, ticketId, agent_id: agentId, metadata });
     await event.save();
   } catch (err) {
     log.error('DB recordAnalyticsEvent error:', err);
@@ -439,11 +449,11 @@ export async function getAnalyticsEvents(
 
 export async function addInternalNote(
   ticketId: number,
-  author_id: string,
+  authorId: string,
   text: string,
 ): Promise<void> {
   try {
-    const note = new InternalNote({ ticketId, author_id, text });
+    const note = new InternalNote({ ticketId, author_id: authorId, text });
     await note.save();
   } catch (err) {
     log.error('DB addInternalNote error:', err);
@@ -467,12 +477,12 @@ export async function getInternalNotes(
 
 export async function assignTicket(
   ticketId: number,
-  agent_telegram_id: string,
+  agentTelegramId: string,
 ): Promise<void> {
   try {
     await Supportee.findOneAndUpdate(
       { ticketId },
-      { $set: { assigned_to: agent_telegram_id } },
+      { $set: { assigned_to: agentTelegramId } },
     );
   } catch (err) {
     log.error('DB assignTicket error:', err);

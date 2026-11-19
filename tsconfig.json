@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./build",
+    "rootDir": "./src",
     "allowJs": true,
     "target": "es2022",
     "module": "Node16",

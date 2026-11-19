@@ -604,7 +604,7 @@ const parseTicketArg = (arg?: string): number | null => {
  */
 const ticketCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const { language, parse_mode, anonymous_tickets } = cache.config;
+  const { language, parse_mode, anonymous_tickets: anonymousTickets } = cache.config;
   const esc = middleware.strictEscape;
 
   let ticket: ISupportee | null = null;
@@ -627,7 +627,7 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
   const padded = ticketId.toString().padStart(6, '0');
   const lines: string[] = [];
   lines.push(`*${esc(language.ticketDetails)} #T${padded}*`);
-  lines.push(`${esc(language.customer)}: ${anonymous_tickets ? esc(ticket.name ?? '-') : `${esc(ticket.name ?? '-')} (${esc(String(ticket.userid))})`}`);
+  lines.push(`${esc(language.customer)}: ${anonymousTickets ? esc(ticket.name ?? '-') : `${esc(ticket.name ?? '-')} (${esc(String(ticket.userid))})`}`);
   lines.push(`status: ${esc(ticket.status ?? '-')} · ${esc(String(ticket.messenger ?? '-'))}`);
   if (ticket.category) lines.push(`category: ${esc(ticket.category)}`);
   if (ticket.priority && ticket.priority !== 'normal') lines.push(`priority: ${esc(ticket.priority)}`);
@@ -661,8 +661,8 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
  */
 const broadcastCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const { language, allow_broadcast } = cache.config;
-  if (!allow_broadcast) {
+  const { language, allow_broadcast: allowBroadcast } = cache.config;
+  if (!allowBroadcast) {
     middleware.reply(ctx, 'Broadcast is disabled. Set allow_broadcast: true in config.yaml to enable it.');
     return;
   }

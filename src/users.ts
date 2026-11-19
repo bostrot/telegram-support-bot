@@ -1,4 +1,4 @@
-import { Context, Messenger, ParseMode } from './interfaces';
+import { Context, ParseMode } from './interfaces';
 import cache from './cache';
 import * as llm from './addons/llm';
 import * as db from './db';
@@ -82,7 +82,7 @@ function createAutoReplyMessage(msg: string, ctx: Context): string {
  */
 async function autoReply(ctx: Context): Promise<boolean> {
   const {
-    config: { autoreply, use_llm },
+    config: { autoreply, use_llm: useLlm },
   } = cache;
   const messageText = ctx.message.text.toString();
 
@@ -97,7 +97,7 @@ async function autoReply(ctx: Context): Promise<boolean> {
   }
 
   // Fallback to LLM response if enabled
-  if (use_llm) {
+  if (useLlm) {
     const response = await llm.getResponseFromLLM(ctx);
     if (response !== null) {
       reply(ctx, createAutoReplyMessage(response, ctx));

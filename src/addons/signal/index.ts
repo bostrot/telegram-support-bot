@@ -5,7 +5,6 @@ import cache from '../../cache';
 import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 import { registerCommonHandlers } from '../../handlers';
-import * as db from '../../db';
 import * as log from '../../logger';
 
 const SEND_ENDPOINT = 'v2/send';

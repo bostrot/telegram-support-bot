@@ -44,7 +44,7 @@ export const migrateData = async () => {
           status,
           category: category || null,
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     }
 
