@@ -6,6 +6,7 @@ import { mapSignalMessageToContext } from './mapper';
 import { Group, SignalMessage } from './models';
 import { registerCommonHandlers } from '../../handlers';
 import * as log from '../../logger';
+import { checkRights } from '../../permissions';
 
 const SEND_ENDPOINT = 'v2/send';
 const GROUP_ENDPOINT = 'v1/groups';
@@ -89,6 +90,9 @@ class SignalAddon implements Addon {
     if (!this.isGroup(ctx)) return;
     const groupId = ctx.chat.id;
     try {
+      // Only the configured staff chat or a category group can confer staff rights;
+      // being admin of any other Signal group the bot is in must not.
+      if (!(await checkRights(ctx, cache.config))) return;
       const response = await this.axiosInstance.get(`/${GROUP_ENDPOINT}/${PHONE_NUMBER}/${groupId}`);
       const group = response.data as Group;
       const admins = group?.admins || [];
