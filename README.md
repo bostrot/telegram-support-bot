@@ -38,6 +38,7 @@ When a user sends a message to the support bot it creates a ticket which is forw
 - [x] Staff roles (`admin`, `supervisor`, `agent`) and `/staff` overview
 - [x] Canned responses: define a `key` once, send it with `/key` as a reply
 - [x] `/ticket <id>` shows a ticket's details and last messages, `/open` marks tickets that were already answered (`show_replied_mark`)
+- [x] Optional checked reference codes (`ticket_ref_codes`, e.g. `TR-016J-D`) a user can quote when switching channels; staff look them up with `/ref <code>`, typos are rejected. The code is informational only and never links users or grants access
 - [x] `/broadcast` to all users (`allow_broadcast`), replies mirrored to the parent category group (`forward_replies_to_parent`)
 - [x] Custom user commands (`user_commands`) and reply-keyboard buttons on `/start` (`start_keyboard`)
 - [x] Escalation rules for unanswered tickets, auto-close of stale tickets, business hours with offline message
@@ -91,6 +92,7 @@ Staff commands (used in the staff group, mostly as a reply to a ticket):
 - `/note <text>` and `/notes` – internal notes (or start a reply with `!note` / `!internal`)
 - `/templates` – list canned responses, `/<key>` – send one as a reply
 - `/ticket <id>` – ticket details and last messages · `/broadcast <text>` – message every user (needs `allow_broadcast`)
+- `/ref <code>` – look up a ticket by the reference code a user quoted (needs `ticket_ref_codes`)
 - `/staff` – configured staff and roles · `/stats` – analytics · `/id` – your id and the group id
 
 User commands:

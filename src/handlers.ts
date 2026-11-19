@@ -54,6 +54,7 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
 
   // Ticket details (#85) and broadcast (#159)
   addon.command('ticket', (ctx: Context) => commands.ticketCommand(ctx));
+  addon.command('ref', (ctx: Context) => commands.refCommand(ctx));
   addon.command('broadcast', (ctx: Context) => commands.broadcastCommand(ctx));
 
   addon.command('id', (ctx: Context) =>

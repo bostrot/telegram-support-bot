@@ -8,6 +8,7 @@ import * as log from './logger'
 import * as triage from './triage';
 import * as webhooks from './webhooks';
 import * as workflows from './workflows';
+import { userRefCodeLine } from './refcode';
 
 const TIME_BETWEEN_CONFIRMATION_MESSAGES = 86400000; // 24 hours
 
@@ -181,7 +182,8 @@ async function processTicket(
       '\n' +
       (config.show_user_ticket
         ? `${config.language.ticket} #T${ticket.ticketId.toString().padStart(6, '0')}`
-        : '');
+        : '') +
+      userRefCodeLine(ticket.ticketId, ticket.messenger);
     sendMessage(chatId, ticket.messenger, confirmationMsg).catch(log.error);
   }
 

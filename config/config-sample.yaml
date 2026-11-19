@@ -41,6 +41,7 @@ forward_stickers: false # Forward stickers between users and staff (off: sticker
 forward_replies_to_parent: false # Mirror staff replies from a subcategory group into the parent category group
 allow_user_close: false # Let users close their own ticket with /close
 allow_broadcast: false # Enable the staff command /broadcast <text> (sends to every known user)
+ticket_ref_codes: false # Show users a checked reference code (e.g. TR-016J-D) they can quote on another channel; staff look it up with /ref <code>. Informational only: it never links users or grants access
 start_keyboard: [] # Reply-keyboard buttons shown with /start (Telegram, only when no categories are configured); each button sends its label as a message
   # - "FAQ"
   # - "/hours"
@@ -126,6 +127,7 @@ language:
   editedMessage: "edited their message"
   broadcastSent: "Broadcast sent to"
   closedByUser: "closed by the user"
+  ticketRef: "Reference code"
 
 autoreply:
   - question: 'install'

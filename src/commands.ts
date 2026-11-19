@@ -10,6 +10,7 @@ import * as workflows from './workflows';
 import { extractSupporteeId } from './staff';
 import * as webhooks from './webhooks';
 import { matchArg } from './match';
+import { encodeRefCode, parseRefCode } from './refcode';
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -78,6 +79,9 @@ const helpCommand = (ctx: Context): void => {
     text += `/stats — Show analytics stats\n`;
     text += `/templates — List canned responses\n`;
     text += `/ticket <id> — Show ticket details\n`;
+    if (cache.config.ticket_ref_codes) {
+      text += `/ref <code> — Look up a ticket by reference code\n`;
+    }
     if (cache.config.allow_broadcast) {
       text += `/broadcast <text> — Message all users\n`;
     }
@@ -604,8 +608,6 @@ const parseTicketArg = (arg?: string): number | null => {
  */
 const ticketCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const { language, parse_mode, anonymous_tickets: anonymousTickets } = cache.config;
-  const esc = middleware.strictEscape;
 
   let ticket: ISupportee | null = null;
   const requestedId = parseTicketArg(matchArg(ctx.match));
@@ -623,10 +625,21 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
     return;
   }
 
+  await sendTicketDetails(ctx, ticket);
+};
+
+/**
+ * Replies with a ticket's details and its last messages (shared by /ticket and /ref).
+ */
+const sendTicketDetails = async (ctx: Context, ticket: ISupportee): Promise<void> => {
+  const { language, parse_mode, anonymous_tickets: anonymousTickets } = cache.config;
+  const esc = middleware.strictEscape;
+
   const ticketId = ticket.ticketId;
   const padded = ticketId.toString().padStart(6, '0');
   const lines: string[] = [];
   lines.push(`*${esc(language.ticketDetails)} #T${padded}*`);
+  if (cache.config.ticket_ref_codes) lines.push(`${esc(language.ticketRef)}: ${esc(encodeRefCode(ticketId))}`);
   lines.push(`${esc(language.customer)}: ${anonymousTickets ? esc(ticket.name ?? '-') : `${esc(ticket.name ?? '-')} (${esc(String(ticket.userid))})`}`);
   lines.push(`status: ${esc(ticket.status ?? '-')} · ${esc(String(ticket.messenger ?? '-'))}`);
   if (ticket.category) lines.push(`category: ${esc(ticket.category)}`);
@@ -654,6 +667,34 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
   }
 
   middleware.reply(ctx, lines.join('\n'), { parse_mode });
+};
+
+/**
+ * Look up a ticket by its checked reference code: /ref <code> (ticket_ref_codes, #211)
+ * Staff only. The code is informational: it never links users or grants access.
+ */
+const refCommand = async (ctx: Context): Promise<void> => {
+  if (!ctx.session.admin) return;
+  if (!cache.config.ticket_ref_codes) {
+    middleware.reply(ctx, 'Reference codes are disabled. Set ticket_ref_codes: true in config.yaml to enable them.', {});
+    return;
+  }
+  const arg = matchArg(ctx.match);
+  if (!arg) {
+    middleware.reply(ctx, 'Usage: /ref <code>', {});
+    return;
+  }
+  const ticketId = parseRefCode(arg);
+  if (ticketId === null) {
+    middleware.reply(ctx, 'Invalid reference code (check for typos).', {});
+    return;
+  }
+  const ticket = await db.getByTicketId(String(ticketId));
+  if (!ticket) {
+    middleware.reply(ctx, `No ticket found for ${arg}.`, {});
+    return;
+  }
+  await sendTicketDetails(ctx, ticket);
 };
 
 /**
@@ -723,6 +764,7 @@ export {
   templatesCommand,
   // Ticket details, broadcast, user close, custom user commands
   ticketCommand,
+  refCommand,
   broadcastCommand,
   userCloseCommand,
   findUserCommand,

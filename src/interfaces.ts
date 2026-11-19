@@ -202,6 +202,8 @@ export interface Language {
   broadcastSent: string;
   // User-initiated close
   closedByUser: string;
+  // Ticket reference code (#211)
+  ticketRef: string;
 }
 
 export interface Category {
@@ -315,6 +317,8 @@ export class Config {
   user_commands: UserCommand[] = [];
   // Mirror staff replies from a subcategory group to its parent category group (#79)
   forward_replies_to_parent: boolean = false;
+  // Show users a checked ticket reference code and enable the staff /ref lookup (#211)
+  ticket_ref_codes: boolean = false;
 }
 
 export interface SocketEmit {
