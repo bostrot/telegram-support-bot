@@ -5,7 +5,8 @@ const mockGetByTicketId = jest.fn();
 jest.mock('../src/middleware', () => ({
   reply: mockReply,
   sendMessage: jest.fn().mockResolvedValue(undefined),
-  strictEscape: jest.fn((str: string) => str.replace(/-/g, '\\-')),
+  // Stand-in for MarkdownV2 escaping, only hyphens occur in reference codes
+  strictEscape: jest.fn((str: string) => str.split('-').join('\\-')),
   buildInlineKeyboard: jest.fn().mockReturnValue({}),
 }));
 
@@ -142,7 +143,7 @@ describe('userRefCodeLine', () => {
 
   it('escapes the code for Telegram only', () => {
     const code = encodeRefCode(1234);
-    expect(userRefCodeLine(1234, 'telegram')).toBe(`\nReference code: ${code.replace(/-/g, '\\-')}`);
+    expect(userRefCodeLine(1234, 'telegram')).toBe(`\nReference code: ${code.split('-').join('\\-')}`);
     expect(userRefCodeLine(1234, 'signal')).toBe(`\nReference code: ${code}`);
     expect(userRefCodeLine(1234, 'web')).toBe(`\nReference code: ${code}`);
   });
@@ -176,7 +177,7 @@ describe('refCommand (/ref)', () => {
     expect(mockGetByTicketId).toHaveBeenCalledWith('1234');
     const text = mockReply.mock.calls[0][1];
     expect(text).toContain('#T001234');
-    expect(text).toContain(`Reference code: ${code.replace(/-/g, '\\-')}`);
+    expect(text).toContain(`Reference code: ${code.split('-').join('\\-')}`);
   });
 
   it('trims the command argument', async () => {
