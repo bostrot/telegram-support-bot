@@ -122,7 +122,7 @@ docker compose up -d
 
 The compose stack starts the bot, MongoDB 8, signal-cli and (optionally) mongo-express. Only the bot's web port (`8080`) is published; all other services bind to `127.0.0.1`.
 
-Without Docker: Node.js **24+** and a MongoDB instance are required.
+Without Docker: Node.js **26+** and a MongoDB **4.4+** instance are required.
 
 ```bash
 npm ci
@@ -136,6 +136,14 @@ There are some breaking changes in the new versions. Please read the following i
 
 <details>
 <summary>click here to show</summary>
+
+### Upgrading to v6.0.0
+
+- Node.js **26** or newer is required for npm/native installs (`engines` in `package.json`). The Docker image ships Node 26.
+- MongoDB server **4.4** or newer is required (Mongoose 9 / MongoDB driver 7). The compose stack already uses MongoDB 8; no data migration is needed.
+- The `MONGO_URI` environment variable now overrides `mongodb_uri` in `config.yaml`. `docker-compose.yml` sets `MONGO_URI=mongodb://mongodb:27017/support`, so if you use an external database, put its connection string in `MONGO_URI` in `docker-compose.yml` (or remove that line) — otherwise the bot connects to the bundled MongoDB.
+- `forward_edited_messages` defaults to `true`: edited user messages are re-posted to the staff chat marked as edited. Set it to `false` to get the old behaviour.
+- New optional settings, all off by default: `staffchat_thread_id`, `ticket_per_message`, `show_replied_mark`, `forward_stickers`, `forward_replies_to_parent`, `allow_user_close`, `allow_broadcast`, `ticket_ref_codes`, `start_keyboard`, `user_commands`.
 
 ### Upgrading to v5.0.0
 
