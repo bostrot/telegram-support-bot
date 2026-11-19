@@ -1,31 +1,41 @@
 # Add 'source' label to any change to src files within the source dir EXCEPT for the docs sub-folder
 source:
-- any: ['src/**/*']
+- changed-files:
+  - any-glob-to-any-file: ['src/**/*']
 
 dependency:
-- any: ['package.json', 'package-lock.json']
+- changed-files:
+  - any-glob-to-any-file: ['package.json', 'package-lock.json']
 
 
 config:
-- any: ['config/**/*']
+- changed-files:
+  - any-glob-to-any-file: ['config/**/*']
 
 test:
-- any: ['test/**/*']
+- changed-files:
+  - any-glob-to-any-file: ['test/**/*']
 
 docker:
-- any: ['Dockerfile', 'docker-compose.yml', 'Dockerfile.signal']
+- changed-files:
+  - any-glob-to-any-file: ['Dockerfile', 'docker-compose.yml', 'Dockerfile.signal']
 
 github:
-- any: ['.github']
+- changed-files:
+  - any-glob-to-any-file: ['.github/**']
 
 githooks:
-- any: ['.githooks']
+- changed-files:
+  - any-glob-to-any-file: ['.githooks/**']
 
 community:
-- any: ['CODE_OF_CONDUCT.md', 'CONTRIBUTING.md']
+- changed-files:
+  - any-glob-to-any-file: ['CODE_OF_CONDUCT.md', 'CONTRIBUTING.md']
 
 license:
-- any: ['LICENSE']
+- changed-files:
+  - any-glob-to-any-file: ['LICENSE']
 
 readme:
-- any: ['README.md']
+- changed-files:
+  - any-glob-to-any-file: ['README.md']

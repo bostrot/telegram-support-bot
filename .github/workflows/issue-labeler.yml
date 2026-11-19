@@ -7,8 +7,16 @@ on:
 jobs:
   automate-issues-labels:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
-      - uses: andymckay/labeler@1.0.4
+      # Replaces the archived andymckay/labeler (node12): add "needs label" unless already labeled
+      - uses: actions/github-script@v9
         with:
-          add-labels: "needs label"
-          ignore-if-labeled: true
+          script: |
+            if (context.payload.issue.labels.length > 0) return;
+            await github.rest.issues.addLabels({
+              ...context.repo,
+              issue_number: context.payload.issue.number,
+              labels: ['needs label'],
+            });
