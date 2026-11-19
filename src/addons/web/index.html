@@ -187,7 +187,12 @@
       msgdiv.className = 'msg-full';
       var item = document.createElement('p');
       item.className = 'msg ' + (type == 'user' ? 'msg-you' : 'msg-other');
-      item.innerHTML = msg + '<div class="time">' + time + '</div>';
+      // Render as text: messages carry user/staff input and must not be parsed as HTML
+      item.textContent = msg;
+      var timediv = document.createElement('div');
+      timediv.className = 'time';
+      timediv.textContent = time;
+      item.appendChild(timediv);
       msgdiv.appendChild(item);
       messages.appendChild(msgdiv);
       messages.scrollTop = messages.scrollHeight;

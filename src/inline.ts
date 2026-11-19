@@ -149,6 +149,11 @@ async function callbackQuery(ctx: Context) {
     const parts = data.split(':');
     const ticketId = parseInt(parts[1]);
 
+    if (!team.canPerformAction(ctx.callbackQuery.from.id.toString(), 'assign')) {
+      await ctx.answerCbQuery('You cannot unassign tickets.', true);
+      return;
+    }
+
     await team.unassignTicketCommand(ctx, ticketId);
     await ctx.answerCbQuery('Ticket unassigned.', true);
     return;
