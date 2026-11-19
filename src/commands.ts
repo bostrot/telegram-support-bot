@@ -9,6 +9,7 @@ import * as analytics from './analytics';
 import * as workflows from './workflows';
 import { extractSupporteeId } from './staff';
 import * as webhooks from './webhooks';
+import { matchArg } from './match';
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -345,7 +346,7 @@ const unbanCommand = async (ctx: Context): Promise<void> => {
  */
 const assignCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const args = ctx.match?.trim();
+  const args = matchArg(ctx.match);
   if (!args) {
     middleware.reply(ctx, 'Usage: /assign <staff_telegram_id>');
     return;
@@ -398,7 +399,7 @@ const unassignCommand = async (ctx: Context): Promise<void> => {
  */
 const tagCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const args = ctx.match?.trim();
+  const args = matchArg(ctx.match);
   if (!args) {
     middleware.reply(ctx, 'Usage: /tag <tag1,tag2,...>');
     return;
@@ -425,7 +426,7 @@ const tagCommand = async (ctx: Context): Promise<void> => {
  */
 const untagCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const args = ctx.match?.trim();
+  const args = matchArg(ctx.match);
   if (!args) {
     middleware.reply(ctx, 'Usage: /untag <tag>');
     return;
@@ -451,7 +452,7 @@ const untagCommand = async (ctx: Context): Promise<void> => {
  */
 const priorityCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const args = ctx.match?.trim().toLowerCase() ?? '';
+  const args = matchArg(ctx.match).toLowerCase();
   const validPriorities = ['low', 'normal', 'high', 'urgent'];
   if (!args || !validPriorities.includes(args)) {
     middleware.reply(ctx, `Usage: /priority <${validPriorities.join('|')}>`);
@@ -520,7 +521,7 @@ const unmuteCommand = async (ctx: Context): Promise<void> => {
  */
 const noteCommand = async (ctx: Context): Promise<void> => {
   if (!ctx.session.admin) return;
-  const args = ctx.match?.trim();
+  const args = matchArg(ctx.match);
   if (!args) {
     middleware.reply(ctx, 'Usage: /note <internal note text>');
     return;
@@ -607,7 +608,7 @@ const ticketCommand = async (ctx: Context): Promise<void> => {
   const esc = middleware.strictEscape;
 
   let ticket: ISupportee | null = null;
-  const requestedId = parseTicketArg(ctx.match);
+  const requestedId = parseTicketArg(matchArg(ctx.match));
   if (requestedId) {
     ticket = await db.getByTicketId(String(requestedId));
   } else {
@@ -665,7 +666,7 @@ const broadcastCommand = async (ctx: Context): Promise<void> => {
     middleware.reply(ctx, 'Broadcast is disabled. Set allow_broadcast: true in config.yaml to enable it.');
     return;
   }
-  const text = ctx.match?.trim();
+  const text = matchArg(ctx.match);
   if (!text) {
     middleware.reply(ctx, 'Usage: /broadcast <text>');
     return;

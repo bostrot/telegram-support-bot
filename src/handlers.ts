@@ -8,20 +8,10 @@ import { Addon, Context } from './interfaces';
 import * as analytics from './analytics';
 import * as workflows from './workflows';
 import * as edited from './edited';
+import { matchedCommand } from './match';
 import * as log from './logger'
 
-/**
- * grammY sets ctx.match to a string for string triggers and to a RegExpMatchArray for
- * RegExp triggers; normalise to the first capture group (or the whole match).
- */
-export function matchedCommand(match: unknown): string | null {
-  if (typeof match === 'string') return match.replace(/^\//, '') || null;
-  if (Array.isArray(match)) {
-    const value = (match[1] ?? match[0]) as string | undefined;
-    return value ? value.replace(/^\//, '') : null;
-  }
-  return null;
-}
+export { matchedCommand };
 
 /**
  * Reply-keyboard markup for the /start message (start_keyboard, #142).
@@ -196,9 +186,12 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
         const replyText = replyMsg.text || replyMsg.caption;
         const match = replyText.match(/#T(.*)/);
         if (match) {
-          // Store canned text on context for staff handler to pick up
+          // Put the canned text on the context and run the regular chat handler with it —
+          // a `hears` handler ends the middleware chain, so it would never be reached
+          // on its own and the template would be dropped silently.
           ctx.message.text = cannedText;
-          return; // Let the regular chat handler process it
+          await text.handleText(addon, ctx, keys || []);
+          return;
         }
       }
       middleware.reply(ctx, `Template "${cmd}":\n\n${cannedText}`, { parse_mode: cache.config.parse_mode });

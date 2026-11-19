@@ -14,7 +14,9 @@ function isOutsideStaffThread(ctx: Context, staffchatId: string | number): boole
   const msg = ctx.message?.message_id ? ctx.message : ctx.editedMessage;
   // Callback queries and other non-message updates carry no thread id; leave them alone
   if (!msg) return false;
-  return (msg.message_thread_id ?? null) !== threadId;
+  const messageThreadId = msg.message_thread_id;
+  // Compare as strings: YAML may hand us the id as either a number or a string
+  return messageThreadId == null || String(messageThreadId) !== String(threadId);
 }
 
 /**
