@@ -93,8 +93,11 @@ class SignalAddon implements Addon {
       // Only the configured staff chat or a category group can confer staff rights;
       // being admin of any other Signal group the bot is in must not.
       if (!(await checkRights(ctx, cache.config))) return;
-      const response = await this.axiosInstance.get(`/${GROUP_ENDPOINT}/${PHONE_NUMBER}/${groupId}`);
-      const group = response.data as Group;
+      // Look the group up in the account's group list instead of interpolating
+      // the message-supplied ID into the request URL.
+      const response = await this.axiosInstance.get(`/${GROUP_ENDPOINT}/${PHONE_NUMBER}`);
+      const groups = (Array.isArray(response.data) ? response.data : []) as Group[];
+      const group = groups.find((g: Group) => g.id === groupId);
       const admins = group?.admins || [];
       // If the sender is in the group's admin list, mark as admin in the session
       if (group && admins.some((admin: string) => admin === ctx.from.id)) {

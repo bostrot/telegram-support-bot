@@ -31,13 +31,18 @@ function groupCtx(groupId: string): any {
   };
 }
 
+// signal-cli returns every group of the account; setGroupAdmin picks the chat's group from it
+function groupList(admins: string[]): any[] {
+  return ['ATTACKER_GROUP', 'STAFF_GROUP', 'CATEGORY_GROUP'].map((id) => ({ id, admins }));
+}
+
 describe('SignalAddon setGroupAdmin', () => {
   const addon: any = SignalAddon.getInstance();
 
   beforeEach(() => {
     mockAxiosGet.mockReset();
-    // The sender is an admin of whatever Signal group is queried.
-    mockAxiosGet.mockResolvedValue({ data: { admins: [ATTACKER] } });
+    // The sender is an admin of every Signal group the bot is in.
+    mockAxiosGet.mockResolvedValue({ data: groupList([ATTACKER]) });
   });
 
   it('does not grant admin to an admin of an unconfigured Signal group', async () => {
@@ -60,7 +65,7 @@ describe('SignalAddon setGroupAdmin', () => {
   });
 
   it('does not grant admin to a non-admin member of the staff chat', async () => {
-    mockAxiosGet.mockResolvedValue({ data: { admins: ['+15555555555'] } });
+    mockAxiosGet.mockResolvedValue({ data: groupList(['+15555555555']) });
     const ctx = groupCtx('STAFF_GROUP');
     await addon.setGroupAdmin(ctx);
     expect(ctx.session.admin).toBeFalsy();
