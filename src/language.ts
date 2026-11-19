@@ -63,6 +63,7 @@ export const defaultLanguage: Partial<Language> = {
   editedMessage: 'edited their message',
   broadcastSent: 'Broadcast sent to',
   closedByUser: 'closed by the user',
+  ticketRef: 'Reference code',
 };
 
 /**

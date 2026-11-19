@@ -3,6 +3,7 @@ import cache from './cache';
 import { buildInlineKeyboard, reply, sendMessage } from './middleware';
 import { Addon, Context } from './interfaces';
 import * as log from './logger'
+import { userRefCodeLine } from './refcode';
 
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -154,7 +155,7 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
   let confirmationMessage = `${config.language.confirmationMessage}${config.show_user_ticket
     ? config.language.yourTicketId + ' #T' + (ticket.ticketId ?? ticket.id ?? 0).toString().padStart(6, '0')
     : ''
-    }`;
+    }${userRefCodeLine(ticket.ticketId ?? ticket.id ?? 0, ticket.messenger)}`;
   if (session.admin && userInfo === undefined) {
     const nameMatch = replyText.match(
       new RegExp(`${escapeRegex(config.language.from)} (.*) ${escapeRegex(config.language.language)}`)
