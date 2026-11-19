@@ -1,5 +1,5 @@
 import DiscordAddon, { isValidSnowflake, sanitizeHeartbeatInterval } from '../src/addons/discord/index';
-import SignalAddon from '../src/addons/signal/index';
+import SignalAddon, { isValidAttachmentId } from '../src/addons/signal/index';
 import cache from '../src/cache';
 
 describe('Discord addon input validation', () => {
@@ -92,5 +92,69 @@ describe('Signal addon group admin lookup', () => {
 
     await addon.setGroupAdmin(ctx);
     expect(ctx.session.admin).toBeUndefined();
+  });
+});
+
+describe('Discord channel resolution', () => {
+  const addon = DiscordAddon.getInstance() as any;
+  let configured: any;
+  beforeAll(() => {
+    configured = cache.config.discord_channel_id;
+  });
+  afterAll(() => {
+    cache.config.discord_channel_id = configured;
+    addon.channels.clear();
+  });
+
+  it('only resolves to numeric snowflake IDs', () => {
+    addon.channels.set('support', { name: 'support', id: '223456789012345678' });
+    addon.channels.set('bogus', { name: 'bogus', id: '../../users/@me' });
+    expect(addon.resolveChannelId('123456789012345678')).toBe('123456789012345678');
+    expect(addon.resolveChannelId('support')).toBe('223456789012345678');
+    expect(addon.resolveChannelId('bogus')).toBeNull();
+    expect(addon.resolveChannelId('../../users/@me')).toBeNull();
+    expect(addon.resolveChannelId('unknown-channel')).toBeNull();
+  });
+
+  it('ignores a configured default channel that is not a snowflake', () => {
+    cache.config.discord_channel_id = '123/../../guilds';
+    expect(addon.resolveChannelId('default')).toBeNull();
+    cache.config.discord_channel_id = '323456789012345678';
+    expect(addon.resolveChannelId('default')).toBe('323456789012345678');
+  });
+
+  it('does not send a message for an unresolvable chat ID', async () => {
+    addon.axiosInstance.post = jest.fn().mockResolvedValue({ data: { id: '1' } });
+    expect(await addon.sendMessage('../../users/@me', 'hi')).toBeNull();
+    expect(addon.axiosInstance.post).not.toHaveBeenCalled();
+
+    await addon.sendMessage('123456789012345678', 'hi');
+    expect(addon.axiosInstance.post).toHaveBeenCalledWith('/channels/123456789012345678/messages', expect.anything());
+  });
+});
+
+describe('Signal attachment IDs', () => {
+  it('accepts only single-segment attachment IDs', () => {
+    expect(isValidAttachmentId('Xk2pQ9-_abc.jpg')).toBe(true);
+    expect(isValidAttachmentId('../v1/groups')).toBe(false);
+    expect(isValidAttachmentId('a/b')).toBe(false);
+    expect(isValidAttachmentId('..')).toBe(false);
+    expect(isValidAttachmentId('a?x=1')).toBe(false);
+    expect(isValidAttachmentId('')).toBe(false);
+    expect(isValidAttachmentId(undefined)).toBe(false);
+  });
+
+  it('does not fetch an attachment with an invalid ID', async () => {
+    const addon = SignalAddon.getInstance() as any;
+    addon.axiosInstance.get = jest.fn().mockResolvedValue({ data: Buffer.from(''), headers: {} });
+    addon.axiosInstance.post = jest.fn().mockResolvedValue({ data: { timestamp: 1 } });
+    addon.axiosInstance.delete = jest.fn().mockResolvedValue({});
+
+    expect(await addon.sendFile('+1', '../v1/groups/+1')).toBeNull();
+    expect(addon.axiosInstance.get).not.toHaveBeenCalled();
+
+    await addon.sendFile('+1', 'abc123.jpg');
+    expect(addon.axiosInstance.get).toHaveBeenCalledWith('/v1/attachments/abc123.jpg', expect.anything());
+    expect(addon.axiosInstance.delete).toHaveBeenCalledWith('/v1/attachments/abc123.jpg');
   });
 });

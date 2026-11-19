@@ -16,6 +16,14 @@ const TYPING_INDICATOR_ENDPOINT = 'v1/typing-indicator';
 
 const PHONE_NUMBER = cache.config.signal_number;
 
+/**
+ * Checks whether a value is a plausible signal-cli attachment ID (e.g. "Xk2...f.jpg"):
+ * a single path segment of letters, digits, '_', '-' and '.', not starting with '.'.
+ */
+export function isValidAttachmentId(id: unknown): id is string {
+  return typeof id === 'string' && /^[A-Za-z0-9_-][A-Za-z0-9._-]{0,127}$/.test(id);
+}
+
 class SignalAddon implements Addon {
   public baseURL: string = `http://${cache.config.signal_host}`;
   public wsURL: string = `ws://${cache.config.signal_host}/${RECEIVE_ENDPOINT}/${PHONE_NUMBER}?ignore_stories`;
@@ -117,9 +125,14 @@ class SignalAddon implements Addon {
 
   // --- Helper method to send a file attachment ---
   private async sendFile(chatId: string | number, fileId: any, caption: string = ''): Promise<string | null> {
+    // The attachment ID comes from an incoming message and becomes part of the URL
+    if (!isValidAttachmentId(fileId)) {
+      log.error(`Signal: Ignoring invalid attachment ID ${fileId}`);
+      return null;
+    }
     try {
       // Download attachment by fileId
-      const attachment = await this.axiosInstance.get(`/${ATTACHMENTS_ENDPOINT}/${fileId}`, { responseType: 'arraybuffer' });
+      const attachment = await this.axiosInstance.get(`/${ATTACHMENTS_ENDPOINT}/${encodeURIComponent(fileId)}`, { responseType: 'arraybuffer' });
       const base64File = Buffer.from(attachment.data).toString('base64');
       // Build the payload with the proper data URI format
       const payload = {
@@ -136,7 +149,7 @@ class SignalAddon implements Addon {
         headers: { 'Content-Type': 'application/json' },
       });
       // Delete the temporary downloaded attachment
-      await this.axiosInstance.delete(`/${ATTACHMENTS_ENDPOINT}/${fileId}`);
+      await this.axiosInstance.delete(`/${ATTACHMENTS_ENDPOINT}/${encodeURIComponent(fileId)}`);
       log.info(`Signal file ${fileId} sent successfully.`);
       return response.data.timestamp;
     } catch (error) {

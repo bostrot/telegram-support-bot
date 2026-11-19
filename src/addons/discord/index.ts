@@ -89,7 +89,7 @@ class DiscordAddon implements Addon {
         };
       }
 
-      const response = await this.axiosInstance.post(`/channels/${channelId}/messages`, payload);
+      const response = await this.axiosInstance.post(`/channels/${encodeURIComponent(channelId)}/messages`, payload);
 
       log.info(`Discord message sent to ${channelId}`);
       return response.data.id;
@@ -113,7 +113,7 @@ class DiscordAddon implements Addon {
       form.append('content', options?.caption || '');
       form.append('files[0]', photo, options?.filename || 'photo.jpg');
 
-      await this.axiosInstance.post(`/channels/${channelId}/messages`, form, {
+      await this.axiosInstance.post(`/channels/${encodeURIComponent(channelId)}/messages`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -138,7 +138,7 @@ class DiscordAddon implements Addon {
       form.append('content', options?.caption || '');
       form.append('files[0]', document, options?.filename || 'document');
 
-      await this.axiosInstance.post(`/channels/${channelId}/messages`, form, {
+      await this.axiosInstance.post(`/channels/${encodeURIComponent(channelId)}/messages`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -163,7 +163,7 @@ class DiscordAddon implements Addon {
       form.append('content', options?.caption || '');
       form.append('files[0]', video, options?.filename || 'video.mp4');
 
-      await this.axiosInstance.post(`/channels/${channelId}/messages`, form, {
+      await this.axiosInstance.post(`/channels/${encodeURIComponent(channelId)}/messages`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -506,12 +506,14 @@ class DiscordAddon implements Addon {
 
     // Check configured channel
     if (idStr === 'default' || !idStr) {
-      return cache.config.discord_channel_id || null;
+      const configured = String(cache.config.discord_channel_id ?? '');
+      return isValidSnowflake(configured) ? configured : null;
     }
 
-    // Look up by name
+    // Look up by name; anything that does not resolve to a snowflake is rejected
+    // so arbitrary chat IDs never end up in a request path.
     const channel = this.channels.get(idStr);
-    return channel ? channel.id : idStr;
+    return channel && isValidSnowflake(channel.id) ? channel.id : null;
   }
 }
 
