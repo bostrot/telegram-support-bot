@@ -2,7 +2,7 @@
 
 One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 
-- 2026-11-20 · Operator experience · Clear startup error for a missing or invalid `config/config.yaml`, and a warning when no messenger is enabled · PR_LINK
+- 2026-11-20 · Operator experience · Clear startup error for a missing or invalid `config/config.yaml`, and a warning when no messenger is enabled · https://github.com/bostrot/telegram-support-bot/pull/224
 
 ## Lessons from reviews
 
