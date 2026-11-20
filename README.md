@@ -120,6 +120,8 @@ cp config/config-sample.yaml config/config.yaml   # set bot_token, staffchat_id,
 docker compose up -d
 ```
 
+If `config/config.yaml` is missing or is not valid YAML, the bot exits on startup with a message naming the problem (for syntax errors, the line and column; file contents are never printed). Check it with `docker compose logs supportbot`.
+
 The compose stack starts the bot, MongoDB 8, signal-cli and (optionally) mongo-express. Only the bot's web port (`8080`) is published; all other services bind to `127.0.0.1`.
 
 Without Docker: Node.js **26+** and a MongoDB **4.4+** instance are required.
