@@ -1,9 +1,8 @@
 import { Cache, Config, Language, Messenger, ParseMode, SocketTo } from './interfaces';
-import * as YAML from 'yaml';
-import * as fs from 'fs';
 import * as log from './logger';
 import { mergeLanguage } from './language';
 import { defaultMongoUri } from './defaults';
+import { readConfigFile } from './configfile';
 
 const cache: Cache = {
   userId: '',
@@ -21,19 +20,14 @@ const cache: Cache = {
 };
 
 
-let parsedConfig: Record<string, unknown>;
-try {
-  parsedConfig = YAML.parse(
-    fs.readFileSync('./config/config.yaml', 'utf8'),
-  );
-} catch (err) {
-  // Config file missing or unreadable — use empty object so defaults apply
-  parsedConfig = {};
+const configFile = readConfigFile();
+if (configFile.problem) {
+  // Without a usable config file no messenger can start; fail loudly instead of
+  // running silently on defaults.
+  log.error(configFile.problem);
+  process.exit(1);
 }
-// YAML.parse('') returns null, not undefined — normalize to empty object
-if (parsedConfig === null) {
-  parsedConfig = {};
-}
+const parsedConfig = configFile.config;
 
 // Apply defaults for missing config fields to prevent runtime errors
 cache.config = {

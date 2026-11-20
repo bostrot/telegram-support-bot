@@ -75,6 +75,13 @@ function createAddons(): Addon[] {
     addons.push(discordAddon);
   }
 
+  if (addons.length === 0) {
+    log.error(
+      'No messenger is enabled, so the bot will not receive any messages. ' +
+      'Set bot_token in config/config.yaml (or enable signal_enabled, slack_enabled or discord_enabled).',
+    );
+  }
+
   return addons;
 }
 
