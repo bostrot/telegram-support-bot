@@ -3,7 +3,7 @@
 One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 
 - 2026-11-20 · Operator experience · Clear startup error for a missing or invalid `config/config.yaml`, and a warning when no messenger is enabled · https://github.com/bostrot/telegram-support-bot/pull/224
-- 2026-11-23 · Bug fix · An invalid `daily_summary_time` no longer sends the daily summary to the staff chat in a loop or breaks startup; it falls back to 09:00 with a clear log error · PR_LINK
+- 2026-11-23 · Bug fix · An invalid `daily_summary_time` no longer sends the daily summary to the staff chat in a loop or breaks startup; it falls back to 09:00 with a clear log error · https://github.com/bostrot/telegram-support-bot/pull/225
 
 ## Lessons from reviews
 
