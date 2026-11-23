@@ -10,6 +10,7 @@ import SlackAddon from './addons/slack';
 import DiscordAddon from './addons/discord';
 import * as team from './team';
 import * as analytics from './analytics';
+import { scheduleDailySummary } from './dailysummary';
 import * as workflows from './workflows';
 import * as recovery from './recovery';
 import * as log from './logger'
@@ -114,30 +115,7 @@ async function main(logs = true) {
   });
 
   // Set up daily summary cron job
-  const summaryTime = cache.config.daily_summary_time || '09:00';
-  if (summaryTime) {
-    const [hours, minutes] = summaryTime.split(':').map(Number);
-    const runDailySummary = () => {
-      analytics.sendDailySummary().then(() => {
-        // Schedule for next day at the same time
-        const now = new Date();
-        const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, hours, minutes);
-        const delay = target.getTime() - now.getTime();
-        setTimeout(runDailySummary, delay);
-      });
-    };
-
-    // Calculate initial delay to first run time
-    const now = new Date();
-    const targetToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
-    let delay = targetToday.getTime() - now.getTime();
-    if (delay < 0) {
-      // If the time has already passed today, schedule for tomorrow
-      delay += 86400000;
-    }
-    setTimeout(runDailySummary, Math.max(delay, 0));
-    log.info(`Daily summary scheduled at ${summaryTime} UTC (first run in ${Math.round(delay / 60000)} min)`);
-  }
+  scheduleDailySummary(cache.config.daily_summary_time, analytics.sendDailySummary);
 
   // Set up periodic workflow checks (every 30 minutes)
   const workflowInterval = setInterval(() => {

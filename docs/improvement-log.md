@@ -3,13 +3,18 @@
 One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 
 - 2026-11-20 · Operator experience · Clear startup error for a missing or invalid `config/config.yaml`, and a warning when no messenger is enabled · https://github.com/bostrot/telegram-support-bot/pull/224
+- 2026-11-23 · Bug fix · An invalid `daily_summary_time` no longer sends the daily summary to the staff chat in a loop or breaks startup; it falls back to 09:00 with a clear log error · PR_LINK
 
 ## Lessons from reviews
 
 - No `daily-improvement` PRs reviewed yet (first run, 2026-11-20).
+- 2026-11-23: #224 (config load errors) was merged without review comments. Small, focused operator-facing fixes with tests are accepted.
 
 ## Ideas backlog
 
-- **Validate common config values at startup** (operator): warn when `staffchat_id`/`owner_id` are still the sample placeholders (`SUPERGROUP_CHAT_ID`, `YOUR_TELEGRAM_ID`), when `daily_summary_time` is not `HH:MM` (it is split on `:` in `src/index.ts` and an invalid value yields `NaN` delays, which `setTimeout` treats as ~1 ms, so the daily summary may be re-sent in a tight loop — reproduce first, this may be a bug fix on its own), or when `spam_time` is not a number (issue #161 shows `spam_time: 5 * 60 * 1000`, which YAML reads as a string). Where: `src/cache.ts` after defaults are applied.
+- **Validate common config values at startup** (operator): warn when `staffchat_id`/`owner_id` are still the sample placeholders (`SUPERGROUP_CHAT_ID`, `YOUR_TELEGRAM_ID`), or when `spam_time` is not a number (issue #161 shows `spam_time: 5 * 60 * 1000`, which YAML reads as a string). Where: `src/cache.ts` after defaults are applied.
 - **Bot API `setMyCommands` per scope** (staff/end user): register user commands for private chats and staff commands for the staff chat so Telegram's `/` menu shows the right list. Where: `src/addons/telegram/index.ts` start-up. Open question: interaction with `user_commands` and language.
 - **Startup check that the bot is in the staff chat** (operator): call `getChat(staffchat_id)` once on start and log a clear error if it fails (wrong id, bot not added, group upgraded to supergroup — cf. closed issue #16). Open question: Telegram only; Signal/Slack/Discord equivalents.
+- **Daily summary time zone** (operator): `daily_summary_time` is interpreted in the server's local time zone, while the docs used to say UTC (UTC only inside the Docker image, which sets no `TZ`). Options: an optional `daily_summary_timezone` (IANA name, default = server zone) or document `TZ` in `docker-compose.yml`. Where: `src/dailysummary.ts`. Open question: whether to keep the old behaviour as default (yes, per the rules).
+- **Way to turn the daily summary off** (operator/staff): today an empty `daily_summary_time` falls back to 09:00, so the summary cannot be disabled. A value like `off`/`false` could skip scheduling. Where: `src/dailysummary.ts`, `config/config-sample.yaml`.
+- **Bot API date-time entities** (staff): Bot API 9.5 added date/time formatting entities (https://core.telegram.org/bots/api-changelog), which would let ticket timestamps in the staff chat show in each staff member's own time zone. Check grammY support first.

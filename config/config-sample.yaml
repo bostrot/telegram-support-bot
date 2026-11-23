@@ -216,7 +216,7 @@ translate_target_language: 'en' # Target language for translation (ISO code)
 
 # --- Team Collaboration ---
 enable_csat: false # Send CSAT survey when ticket is closed
-daily_summary_time: '09:00' # Time (UTC) to send daily analytics summary to staff chat
+daily_summary_time: '09:00' # Quoted 24-hour time (server time zone, UTC in the Docker image) to send daily analytics summary to staff chat
 staff_roles: [] # List of staff members and their roles
   # - telegram_id: "123456"
   #   role: "admin" # admin, supervisor, agent
