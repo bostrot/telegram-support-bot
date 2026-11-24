@@ -7,6 +7,7 @@ import * as inline from '../../inline';
 import cache from '../../cache';
 import { registerCommonHandlers } from '../../handlers';
 import * as log from '../../logger'
+import { staffMenu, userMenu } from '../../commandmenu';
 
 type BotContext = GrammyContext & SessionFlavor<SessionData>;
 
@@ -159,6 +160,28 @@ class TelegramAddon implements Addon {
     this.bot.hears(trigger, (gCtx) => callback(gCtx as unknown as Context));
   }
 
+  /**
+   * Fills Telegram's "/" command menu: user commands in private chats, staff
+   * commands in the staff chat (register_commands). Off by default so menus set
+   * in BotFather are kept.
+   */
+  async registerCommands(): Promise<void> {
+    if (!cache.config.register_commands) return;
+    try {
+      await this.bot.api.setMyCommands(userMenu(cache.config), {
+        scope: { type: 'all_private_chats' },
+      });
+      if (cache.config.staffchat_type === Messenger.TELEGRAM && cache.config.staffchat_id) {
+        await this.bot.api.setMyCommands(staffMenu(cache.config), {
+          scope: { type: 'chat', chat_id: cache.config.staffchat_id },
+        });
+      }
+      log.info('Registered the Telegram command menu.');
+    } catch (err) {
+      log.error('Failed to register the Telegram command menu (is the bot a member of the staff chat?):', err);
+    }
+  }
+
   // --- Start and Configure the Bot ---
   start(): void {
     log.info('Starting Telegram Addon...');
@@ -181,6 +204,7 @@ class TelegramAddon implements Addon {
 
     const keys = inline.initInline(this);
     registerCommonHandlers(this, keys);
+    this.registerCommands();
 
     // Start the Bot.
     this.bot.start();

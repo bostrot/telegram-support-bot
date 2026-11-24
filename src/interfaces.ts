@@ -319,6 +319,8 @@ export class Config {
   forward_replies_to_parent: boolean = false;
   // Show users a checked ticket reference code and enable the staff /ref lookup (#211)
   ticket_ref_codes: boolean = false;
+  // Register the user and staff command lists in Telegram's "/" menu
+  register_commands: boolean = false;
 }
 
 export interface SocketEmit {

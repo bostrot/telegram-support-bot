@@ -49,6 +49,7 @@ user_commands: [] # Custom user commands answered with static text (listed in /h
   # - command: "hours"
   #   text: "We are available Mon-Fri 9-17 CET."
   #   description: "Opening hours"
+register_commands: false # Telegram: fill the "/" command menu with user commands (private chats) and staff commands incl. canned responses (staff chat). Replaces commands set in BotFather
 
 dev_mode: true # Enable/disable dev mode
 

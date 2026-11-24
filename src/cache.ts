@@ -84,6 +84,7 @@ cache.config = {
   user_commands: [],
   forward_replies_to_parent: false,
   ticket_ref_codes: false,
+  register_commands: false,
   ...parsedConfig,
 } as unknown as Config;
 
