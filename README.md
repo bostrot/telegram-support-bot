@@ -104,12 +104,16 @@ User commands:
 - `/close` – closes the user's own ticket (needs `allow_user_close`)
 - any command defined in `user_commands`
 
+With `register_commands: true` the bot fills Telegram's `/` menu on startup: users see the user
+commands in their private chat, the staff chat sees the staff commands (including canned
+responses), each limited to what is enabled. This replaces a command list set in BotFather.
+
 All texts are configurable in the `language:` section of `config.yaml`. See the [wiki](https://github.com/bostrot/telegram-support-bot/wiki/Commands) for details.
 
 Commands, canned responses and `user_commands` work on every enabled platform (Telegram, Signal,
 Slack, Discord). A few options depend on features only Telegram has and are ignored elsewhere:
-`staffchat_thread_id` (forum topics), `start_keyboard` (reply keyboards), `forward_stickers`
-(stickers) and `forward_edited_messages` (edit events).
+`staffchat_thread_id` (forum topics), `start_keyboard` (reply keyboards), `register_commands`
+(command menu), `forward_stickers` (stickers) and `forward_edited_messages` (edit events).
 
 ## 📦 Install
 

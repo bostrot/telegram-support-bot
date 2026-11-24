@@ -5,6 +5,7 @@ const mockApi = {
   sendDocument: jest.fn().mockResolvedValue({ message_id: 7 }),
   sendVideo: jest.fn().mockResolvedValue({ message_id: 8 }),
   sendSticker: jest.fn().mockResolvedValue({ message_id: 9 }),
+  setMyCommands: jest.fn().mockResolvedValue(true),
   config: { use: jest.fn() },
 };
 
@@ -30,7 +31,13 @@ jest.mock('../src/handlers', () => ({ registerCommonHandlers: jest.fn() }));
 jest.mock('../src/cache', () => ({
   __esModule: true,
   default: {
-    config: { staffchat_id: '-100123', staffchat_thread_id: null, dev_mode: false },
+    config: {
+      staffchat_id: '-100123',
+      staffchat_type: 'telegram',
+      staffchat_thread_id: null,
+      dev_mode: false,
+      register_commands: false,
+    },
   },
 }));
 
@@ -43,6 +50,7 @@ describe('TelegramAddon', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     cache.config.staffchat_thread_id = null;
+    cache.config.register_commands = false;
   });
 
   it('sends plain messages without a thread id by default', async () => {
@@ -90,5 +98,37 @@ describe('TelegramAddon', () => {
   it('swallows sticker errors', async () => {
     mockApi.sendSticker.mockRejectedValueOnce(new Error('boom'));
     await expect(addon.sendSticker('555', 'file-1')).resolves.toBeNull();
+  });
+
+  it('leaves the command menu alone unless register_commands is set', async () => {
+    await addon.registerCommands();
+    expect(mockApi.setMyCommands).not.toHaveBeenCalled();
+  });
+
+  it('registers user commands for private chats and staff commands for the staff chat', async () => {
+    cache.config.register_commands = true;
+    await addon.registerCommands();
+    expect(mockApi.setMyCommands).toHaveBeenCalledTimes(2);
+    const [userCommands, userOptions] = mockApi.setMyCommands.mock.calls[0];
+    expect(userOptions).toEqual({ scope: { type: 'all_private_chats' } });
+    expect(userCommands.map((c: { command: string }) => c.command)).toContain('start');
+    expect(userCommands.map((c: { command: string }) => c.command)).not.toContain('open');
+    const [staffCommands, staffOptions] = mockApi.setMyCommands.mock.calls[1];
+    expect(staffOptions).toEqual({ scope: { type: 'chat', chat_id: '-100123' } });
+    expect(staffCommands.map((c: { command: string }) => c.command)).toContain('open');
+  });
+
+  it('skips the staff scope when the staff chat is not on Telegram', async () => {
+    cache.config.register_commands = true;
+    (cache.config as any).staffchat_type = 'signal';
+    await addon.registerCommands();
+    (cache.config as any).staffchat_type = 'telegram';
+    expect(mockApi.setMyCommands).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when Telegram rejects the command menu', async () => {
+    cache.config.register_commands = true;
+    mockApi.setMyCommands.mockRejectedValueOnce(new Error('chat not found'));
+    await expect(addon.registerCommands()).resolves.toBeUndefined();
   });
 });
