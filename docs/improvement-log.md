@@ -5,7 +5,7 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - 2026-11-20 · Operator experience · Clear startup error for a missing or invalid `config/config.yaml`, and a warning when no messenger is enabled · https://github.com/bostrot/telegram-support-bot/pull/224
 - 2026-11-23 · Bug fix · An invalid `daily_summary_time` no longer sends the daily summary to the staff chat in a loop or breaks startup; it falls back to 09:00 with a clear log error · https://github.com/bostrot/telegram-support-bot/pull/225
 - 2026-11-24 · Staff experience · Optional `register_commands` fills Telegram's `/` menu with user commands in private chats and staff commands (incl. canned responses) in the staff chat · https://github.com/bostrot/telegram-support-bot/pull/226
-- 2026-11-25 · Operator experience · Startup warnings for sample `staffchat_id`/`owner_id` placeholders and unusable `spam_time`/`spam_cant_msg` values (fallback to 300000/5); a missing `spam_cant_msg` no longer silently drops a user's follow-up messages · PR_LINK
+- 2026-11-25 · Operator experience · Startup warnings for sample `staffchat_id`/`owner_id` placeholders and unusable `spam_time`/`spam_cant_msg` values (fallback to 300000/5); a missing `spam_cant_msg` no longer silently drops a user's follow-up messages · https://github.com/bostrot/telegram-support-bot/pull/227
 
 ## Lessons from reviews
 
