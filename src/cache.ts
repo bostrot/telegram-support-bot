@@ -2,7 +2,7 @@ import { Cache, Config, Language, Messenger, ParseMode, SocketTo } from './inter
 import * as log from './logger';
 import { mergeLanguage } from './language';
 import { defaultMongoUri } from './defaults';
-import { readConfigFile } from './configfile';
+import { NUMBER_DEFAULTS, checkConfigValues, readConfigFile } from './configfile';
 
 const cache: Cache = {
   userId: '',
@@ -34,7 +34,8 @@ cache.config = {
   use_llm: false,
   staffchat_type: Messenger.TELEGRAM,
   staffchat_parse_mode: ParseMode.MarkdownV2,
-  spam_time: 5 * 60 * 1000,
+  spam_time: NUMBER_DEFAULTS.spam_time,
+  spam_cant_msg: NUMBER_DEFAULTS.spam_cant_msg,
   parse_mode: ParseMode.MarkdownV2,
   language: {} as Language,
   allow_private: false,
@@ -107,6 +108,10 @@ for (const field of arrayFields) {
 }
 
 cache.config.language = mergeLanguage(parsedConfig.language);
+
+for (const warning of checkConfigValues(cache.config as any)) {
+  log.error(warning);
+}
 
 if (cache.config.use_llm && !cache.config.llm_knowledge) {
   log.error(
