@@ -252,6 +252,7 @@ export class Config {
   language: Language = {} as Language;
   autoreply_confirmation: boolean = true;
   autoreply: Autoreply[] = [];
+  autoreply_ignore_case: boolean = false;
   clean_replies: boolean = false;
   pass_start: boolean = false;
   categories: Category[] = [];

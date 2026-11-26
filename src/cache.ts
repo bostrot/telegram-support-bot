@@ -55,6 +55,7 @@ cache.config = {
   pass_start: false,
   clean_replies: false,
   autoreply_confirmation: true,
+  autoreply_ignore_case: false,
   categories: [],
   mongodb_uri: defaultMongoUri(),
   llm_memory_depth: 10,

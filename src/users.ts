@@ -4,6 +4,7 @@ import * as llm from './addons/llm';
 import * as db from './db';
 import { buildInlineKeyboard, strictEscape as esc, reply, sendMessage } from './middleware';
 import { ISupportee } from './db';
+import { Autoreply } from './interfaces';
 import * as log from './logger'
 import * as triage from './triage';
 import * as webhooks from './webhooks';
@@ -76,6 +77,29 @@ function createAutoReplyMessage(msg: string, ctx: Context): string {
 }
 
 /**
+ * Returns the first `autoreply` entry whose question appears in the message, or
+ * undefined. Matching is case-sensitive unless `ignoreCase` is set, so with
+ * `autoreply_ignore_case: true` the question 'install' also answers "Install?".
+ *
+ * @param messageText - The user's message.
+ * @param items - Configured auto-reply entries.
+ * @param ignoreCase - Whether to compare without regard to letter case.
+ * @returns The matching entry, if any.
+ */
+function findAutoReply(
+  messageText: string,
+  items: Autoreply[],
+  ignoreCase: boolean,
+): Autoreply | undefined {
+  const text = ignoreCase ? messageText.toLowerCase() : messageText;
+  return items.find((item) => {
+    if (!item?.question) return false;
+    const question = String(item.question);
+    return text.includes(ignoreCase ? question.toLowerCase() : question);
+  });
+}
+
+/**
  * Checks for common questions and LLM responses to auto-reply.
  *
  * @param ctx - Bot context.
@@ -83,17 +107,16 @@ function createAutoReplyMessage(msg: string, ctx: Context): string {
  */
 async function autoReply(ctx: Context): Promise<boolean> {
   const {
-    config: { autoreply, use_llm: useLlm },
+    config: { autoreply, use_llm: useLlm, autoreply_ignore_case: ignoreCase },
   } = cache;
   const messageText = ctx.message.text.toString();
 
   if (autoreply && autoreply.length > 0 && autoreply[0]?.question) {
     // Check common auto-reply questions
-    for (const autoReplyItem of autoreply) {
-      if (messageText.includes(autoReplyItem.question)) {
-        reply(ctx, createAutoReplyMessage(autoReplyItem.answer, ctx));
-        return true;
-      }
+    const match = findAutoReply(messageText, autoreply, ignoreCase);
+    if (match) {
+      reply(ctx, createAutoReplyMessage(match.answer, ctx));
+      return true;
     }
   }
 
@@ -305,4 +328,4 @@ async function chat(ctx: Context, chat: { id: string }) {
   }
 }
 
-export { chat };
+export { chat, findAutoReply };
