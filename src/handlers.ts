@@ -150,6 +150,16 @@ export function registerCommonHandlers(addon: Addon, keys?: string[][]) {
   if (cache.config.forward_stickers && addon.sendSticker) {
     addon.on([':sticker'], (ctx: Context) => files.fileHandler('sticker', addon, ctx));
   }
+  // Voice notes, audio and round videos used to be dropped without a word to the user
+  if (addon.sendVoice) {
+    addon.on([':voice'], (ctx: Context) => files.fileHandler('voice', addon, ctx));
+  }
+  if (addon.sendAudio) {
+    addon.on([':audio'], (ctx: Context) => files.fileHandler('audio', addon, ctx));
+  }
+  if (addon.sendVideoNote) {
+    addon.on([':video_note'], (ctx: Context) => files.fileHandler('video_note', addon, ctx));
+  }
   if (cache.config.forward_edited_messages) {
     addon.on('edited_message', (ctx: Context) => edited.handleEditedMessage(ctx));
   }

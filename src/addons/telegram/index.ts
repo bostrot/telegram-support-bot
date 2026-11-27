@@ -142,6 +142,36 @@ class TelegramAddon implements Addon {
     }
   }
 
+  async sendVoice(chatId: string | number, voice: unknown, options?: Record<string, unknown>): Promise<string | null> {
+    try {
+      const response = await this.bot.api.sendVoice(chatId, voice as never, this.withThread(chatId, options) as never);
+      return response?.message_id?.toString() ?? null;
+    } catch (err) {
+      log.error('Failed to send voice message:', err);
+      return null;
+    }
+  }
+
+  async sendAudio(chatId: string | number, audio: unknown, options?: Record<string, unknown>): Promise<string | null> {
+    try {
+      const response = await this.bot.api.sendAudio(chatId, audio as never, this.withThread(chatId, options) as never);
+      return response?.message_id?.toString() ?? null;
+    } catch (err) {
+      log.error('Failed to send audio:', err);
+      return null;
+    }
+  }
+
+  async sendVideoNote(chatId: string | number, videoNote: unknown, options?: Record<string, unknown>): Promise<string | null> {
+    try {
+      const response = await this.bot.api.sendVideoNote(chatId, videoNote as never, this.withThread(chatId, options) as never);
+      return response?.message_id?.toString() ?? null;
+    } catch (err) {
+      log.error('Failed to send video note:', err);
+      return null;
+    }
+  }
+
   command(command: string, callback: (ctx: Context) => void): void {
     this.bot.command(command, (gCtx) => callback(gCtx as unknown as Context));
   }

@@ -37,9 +37,9 @@ const replyMarkup = (ctx: Context): { html: string; inline_keyboard: Array<Array
 };
 
 /**
- * Handles forwarding of files (document, photo, video, sticker) to staff.
+ * Handles forwarding of files (document, photo, video, sticker, voice, audio, video_note) to staff.
  *
- * @param type - The type of file ('document', 'photo', 'video' or 'sticker').
+ * @param type - The type of file ('document', 'photo', 'video', 'sticker', 'voice', 'audio' or 'video_note').
  * @param bot - The bot addon instance.
  * @param ctx - The bot context.
  */
@@ -132,16 +132,32 @@ async function fileHandler(type: string, bot: Addon, ctx: Context) {
         })).catch(log.error);
       }
       break;
-    case 'sticker': {
-      // Stickers cannot carry a caption: send the sticker, then the ticket header as text (#107)
-      if (!bot.sendSticker) return;
-      messageId = (await bot.sendSticker(receiverId, fileId)) as string | null;
+    case 'voice':
+    case 'audio': {
+      // Voice notes and audio files carry a caption like photos do
+      const send = type === 'voice' ? bot.sendVoice : bot.sendAudio;
+      if (!send) return;
+      messageId = (await send.call(bot, receiverId, fileId, commonOptions)) as string | null;
+      if (shouldForwardToGroup) {
+        Promise.resolve(send.call(bot, session.group, fileId, {
+          caption: captionText,
+          reply_markup: buildInlineKeyboard(ctx.from.id, message.from.first_name, session.groupCategory, (ticket.ticketId ?? ticket.id ?? 0) as number),
+        })).catch(log.error);
+      }
+      break;
+    }
+    case 'sticker':
+    case 'video_note': {
+      // Stickers and round videos cannot carry a caption: send the file, then the ticket header as text (#107)
+      const send = type === 'sticker' ? bot.sendSticker : bot.sendVideoNote;
+      if (!send) return;
+      messageId = (await send.call(bot, receiverId, fileId)) as string | null;
       const headerMessenger = session.admin && userInfo === undefined ? ticket.messenger : config.staffchat_type;
       if (captionText.trim()) {
         sendMessage(receiverId, headerMessenger, captionText).catch(log.error);
       }
       if (shouldForwardToGroup) {
-        Promise.resolve(bot.sendSticker(session.group, fileId)).catch(log.error);
+        Promise.resolve(send.call(bot, session.group, fileId)).catch(log.error);
       }
       break;
     }

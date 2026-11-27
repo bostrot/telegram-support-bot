@@ -7,6 +7,7 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - 2026-11-24 · Staff experience · Optional `register_commands` fills Telegram's `/` menu with user commands in private chats and staff commands (incl. canned responses) in the staff chat · https://github.com/bostrot/telegram-support-bot/pull/226
 - 2026-11-25 · Operator experience · Startup warnings for sample `staffchat_id`/`owner_id` placeholders and unusable `spam_time`/`spam_cant_msg` values (fallback to 300000/5); a missing `spam_cant_msg` no longer silently drops a user's follow-up messages · https://github.com/bostrot/telegram-support-bot/pull/227
 - 2026-11-26 · End-user experience · Optional `autoreply_ignore_case` lets keyword auto-replies match regardless of upper/lower case (`install` also answers "Install?") · https://github.com/bostrot/telegram-support-bot/pull/228
+- 2026-11-27 · End-user experience · Voice notes, audio files and round video messages from users reach the staff chat (and staff can answer with them) instead of being dropped without any reply · https://github.com/bostrot/telegram-support-bot/pull/229
 
 ## Lessons from reviews
 
@@ -15,6 +16,7 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - 2026-11-24: #225 (daily summary fallback) merged without review comments.
 - 2026-11-25: #226 (command menu) merged without review comments; no `daily-improvement` PR has been closed unmerged so far.
 - 2026-11-26: #227 (config value checks) merged without review comments. Five in a row merged as-is: opt-in behaviour changes with tests and sample-config docs are the accepted pattern.
+- 2026-11-27: #228 (case-insensitive auto-replies) merged without review comments. Still no PR closed unmerged.
 
 ## Ideas backlog
 
@@ -26,3 +28,6 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - **Check other numeric settings at startup** (operator): extend `checkConfigValues` in `src/configfile.ts` to `auto_close_after_days`, `llm_memory_depth`, `web_server_port`, `sentiment_alert_threshold` (same fallback-with-warning pattern).
 - **Whole-word auto-reply matching** (end user): `autoreply` questions match as substrings, so `install` also fires on "reinstalled" or "uninstall". An opt-in word-boundary match (`autoreply_match: contains | word`) would cut false auto-replies. Where: `findAutoReply` in `src/users.ts`. Open question: Unicode word boundaries (`\b` is ASCII-only; use `\p{L}` lookarounds).
 - **Auto-reply hit stats** (staff): record which `autoreply` entry fired via `db.recordAnalyticsEvent` and show the top entries in `/stats`, so staff see which FAQ answers deflect tickets. Where: `src/users.ts`, `src/analytics.ts`.
+- **Voice/audio for Signal, Slack and Discord** (addon parity): Signal voice notes arrive as `audio/aac` attachments; check how `src/addons/signal/mapper.ts` maps them today and whether staff can play them. Discord/Slack upload audio as plain files, which already go through the document path.
+- **Location and contact messages** (end user): a user sharing a location or contact card in Telegram is still dropped silently. Forward them as text (`📍 lat, long` link / contact name + number) — careful: a phone number is personal data, so the forwarded text must stay within the staff chat like the rest of the ticket.
+- **Tell users when a message type can't be forwarded** (end user): polls, dice, games and similar messages are still ignored silently; a short `language` text (e.g. "Please send text, photos or files") would stop users waiting for an answer that cannot come.

@@ -438,6 +438,30 @@ export interface Addon {
   sendSticker?(chatId: string | number, sticker: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
 
   /**
+   * Sends a voice note (optional — not every platform supports voice notes).
+   * @param chatId The target chat identifier.
+   * @param voice The voice file id.
+   * @param options Optional parameters (e.g. caption).
+   */
+  sendVoice?(chatId: string | number, voice: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends an audio file such as a music track (optional).
+   * @param chatId The target chat identifier.
+   * @param audio The audio file id.
+   * @param options Optional parameters (e.g. caption).
+   */
+  sendAudio?(chatId: string | number, audio: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
+
+  /**
+   * Sends a round video message (optional, no caption).
+   * @param chatId The target chat identifier.
+   * @param videoNote The video note file id.
+   * @param options Optional parameters.
+   */
+  sendVideoNote?(chatId: string | number, videoNote: unknown, options?: Record<string, unknown>): Promise<void> | Promise<string | null>;
+
+  /**
    * Sends a document.
    * @param chatId The target chat identifier.
    * @param document The document content to send.
