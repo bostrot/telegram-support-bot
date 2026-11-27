@@ -1,10 +1,13 @@
-// Tests for the Telegram addon: staffchat_thread_id injection (#183) and sticker sending (#107)
+// Tests for the Telegram addon: staffchat_thread_id injection (#183) and sticker, voice, audio and video note sending
 const mockApi = {
   sendMessage: jest.fn().mockResolvedValue({ message_id: 5 }),
   sendPhoto: jest.fn().mockResolvedValue({ message_id: 6 }),
   sendDocument: jest.fn().mockResolvedValue({ message_id: 7 }),
   sendVideo: jest.fn().mockResolvedValue({ message_id: 8 }),
   sendSticker: jest.fn().mockResolvedValue({ message_id: 9 }),
+  sendVoice: jest.fn().mockResolvedValue({ message_id: 10 }),
+  sendAudio: jest.fn().mockResolvedValue({ message_id: 11 }),
+  sendVideoNote: jest.fn().mockResolvedValue({ message_id: 12 }),
   setMyCommands: jest.fn().mockResolvedValue(true),
   config: { use: jest.fn() },
 };
@@ -98,6 +101,25 @@ describe('TelegramAddon', () => {
   it('swallows sticker errors', async () => {
     mockApi.sendSticker.mockRejectedValueOnce(new Error('boom'));
     await expect(addon.sendSticker('555', 'file-1')).resolves.toBeNull();
+  });
+
+  it('sends voice notes, audio and round videos to the staff topic and returns the message id', async () => {
+    cache.config.staffchat_thread_id = 42;
+    expect(await addon.sendVoice('-100123', 'voice-1', { caption: 'c' })).toBe('10');
+    expect(mockApi.sendVoice).toHaveBeenCalledWith('-100123', 'voice-1', { caption: 'c', message_thread_id: 42 });
+    expect(await addon.sendAudio('-100123', 'audio-1', {})).toBe('11');
+    expect(mockApi.sendAudio).toHaveBeenCalledWith('-100123', 'audio-1', { message_thread_id: 42 });
+    expect(await addon.sendVideoNote('555', 'note-1')).toBe('12');
+    expect(mockApi.sendVideoNote).toHaveBeenCalledWith('555', 'note-1', {});
+  });
+
+  it('swallows voice, audio and video note errors', async () => {
+    mockApi.sendVoice.mockRejectedValueOnce(new Error('boom'));
+    mockApi.sendAudio.mockRejectedValueOnce(new Error('boom'));
+    mockApi.sendVideoNote.mockRejectedValueOnce(new Error('boom'));
+    await expect(addon.sendVoice('555', 'voice-1')).resolves.toBeNull();
+    await expect(addon.sendAudio('555', 'audio-1')).resolves.toBeNull();
+    await expect(addon.sendVideoNote('555', 'note-1')).resolves.toBeNull();
   });
 
   it('leaves the command menu alone unless register_commands is set', async () => {

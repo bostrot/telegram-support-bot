@@ -21,7 +21,7 @@
 
 ## ✨ Features
 
-When a user sends a message to the support bot it creates a ticket which is forwarded to the staff group. Any admin in the staff group can answer that ticket by replying to it. Salutation is added automatically. Photos and files are forwarded too.
+When a user sends a message to the support bot it creates a ticket which is forwarded to the staff group. Any admin in the staff group can answer that ticket by replying to it. Salutation is added automatically. Photos, files, voice notes, audio and round video messages are forwarded too.
 
 **Ticketing**
 - [x] File forwarding from and to user
@@ -114,6 +114,7 @@ Commands, canned responses and `user_commands` work on every enabled platform (T
 Slack, Discord). A few options depend on features only Telegram has and are ignored elsewhere:
 `staffchat_thread_id` (forum topics), `start_keyboard` (reply keyboards), `register_commands`
 (command menu), `forward_stickers` (stickers) and `forward_edited_messages` (edit events).
+Voice notes, audio files and round video messages are forwarded on Telegram only.
 
 ## 📦 Install
 

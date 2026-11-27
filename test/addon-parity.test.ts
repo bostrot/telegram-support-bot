@@ -82,7 +82,7 @@ const register = (platform: string, supportsStickers: boolean): Captured => {
     sendPhoto: jest.fn(),
     sendDocument: jest.fn(),
     sendVideo: jest.fn(),
-    ...(supportsStickers ? { sendSticker: jest.fn() } : {}),
+    ...(supportsStickers ? { sendSticker: jest.fn(), sendVoice: jest.fn(), sendAudio: jest.fn(), sendVideoNote: jest.fn() } : {}),
   } as unknown as Addon;
   registerCommonHandlers(addon);
   return captured;
@@ -108,7 +108,7 @@ const makeCtx = (messenger: Messenger, overrides: Record<string, unknown> = {}):
     ...overrides,
   } as unknown as Context);
 
-// The platforms the bot ships with; only Telegram implements stickers today.
+// The platforms the bot ships with; only Telegram implements stickers and voice notes today.
 const platforms: Array<[string, Messenger, boolean]> = [
   ['telegram', Messenger.TELEGRAM, true],
   ['signal', Messenger.SIGNAL, false],
@@ -136,6 +136,12 @@ describe.each(platforms)('registerCommonHandlers on %s', (platform, messenger, s
     // photos, documents and videos work everywhere
     expect(captured.on).toContainEqual([':photo']);
     expect(captured.on).toContainEqual([':document']);
+  });
+
+  it('registers voice, audio and round video handlers only where the addon can send them', () => {
+    for (const filter of [':voice', ':audio', ':video_note']) {
+      expect(captured.on.some((f) => Array.isArray(f) && f[0] === filter)).toBe(supportsStickers);
+    }
   });
 
   it('answers custom user commands (#84)', async () => {

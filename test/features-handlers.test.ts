@@ -1,5 +1,5 @@
 // Tests for: thread confinement (#183), ticket_per_message (#172), edited messages (#147),
-// start keyboard (#142), stickers (#107), parent forwarding (#79), user commands in hears (#84)
+// start keyboard (#142), stickers (#107), voice/audio/round videos, parent forwarding (#79), user commands in hears (#84)
 // and the canned-response match fix.
 const mockReply = jest.fn().mockResolvedValue(undefined);
 const mockSendMessage = jest.fn().mockResolvedValue(undefined);
@@ -338,6 +338,52 @@ describe('stickers (#107)', () => {
   });
 });
 
+// ---------------------------------------------------------------- voice, audio, round videos
+describe('voice notes, audio and round videos', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    cache.ticketSent = {};
+    mockGetTicketByUserId.mockResolvedValue({ ticketId: 3, userid: '42', status: 'open', messenger: 'telegram' });
+  });
+
+  it('forwards a voice note to the staff chat with the ticket header as caption', async () => {
+    const bot = { sendVoice: jest.fn().mockResolvedValue('601') } as unknown as Addon;
+    const ctx = makeCtx();
+    ctx.message.caption = 'listen please';
+
+    await files.fileHandler('voice', bot, ctx);
+
+    expect(bot.sendVoice).toHaveBeenCalledWith('-100123', 'file-1', expect.objectContaining({
+      caption: expect.stringMatching(/^Ticket #T000003 from Alice[\s\S]*listen please$/),
+    }));
+    expect(mockAddIdAndName).toHaveBeenCalledWith(3, '601', 'Alice');
+  });
+
+  it('forwards an audio file to the staff chat', async () => {
+    const bot = { sendAudio: jest.fn().mockResolvedValue('602') } as unknown as Addon;
+    await files.fileHandler('audio', bot, makeCtx());
+    expect(bot.sendAudio).toHaveBeenCalledWith('-100123', 'file-1', expect.objectContaining({
+      caption: expect.stringContaining('Ticket #T000003 from Alice'),
+    }));
+  });
+
+  it('forwards a round video followed by the ticket header, as it cannot carry a caption', async () => {
+    const bot = { sendVideoNote: jest.fn().mockResolvedValue('603') } as unknown as Addon;
+    await files.fileHandler('video_note', bot, makeCtx());
+    expect(bot.sendVideoNote).toHaveBeenCalledWith('-100123', 'file-1');
+    expect(mockSendMessage).toHaveBeenCalledWith('-100123', 'telegram', expect.stringContaining('Ticket #T000003 from Alice'));
+    expect(mockAddIdAndName).toHaveBeenCalledWith(3, '603', 'Alice');
+  });
+
+  it('does nothing on platforms that cannot send them', async () => {
+    for (const type of ['voice', 'audio', 'video_note']) {
+      await files.fileHandler(type, {} as Addon, makeCtx());
+    }
+    expect(mockSendMessage).not.toHaveBeenCalled();
+    expect(mockAddIdAndName).not.toHaveBeenCalled();
+  });
+});
+
 // ---------------------------------------------------------------- handlers
 describe('handler registration and command matching', () => {
   type Handler = (ctx: Context) => unknown;
@@ -345,6 +391,9 @@ describe('handler registration and command matching', () => {
   const fakeAddon = {
     platform: 'telegram',
     sendSticker: jest.fn(),
+    sendVoice: jest.fn(),
+    sendAudio: jest.fn(),
+    sendVideoNote: jest.fn(),
     command: (name: string, cb: Handler) => captured.commands.set(name, cb),
     hears: (trigger: unknown, cb: Handler) => captured.hears.push({ trigger, cb }),
     on: (filter: unknown) => captured.on.push(filter),
@@ -373,10 +422,13 @@ describe('handler registration and command matching', () => {
     expect(matchedCommand(undefined)).toBeNull();
   });
 
-  it('registers /ticket, /broadcast, sticker and edited_message handlers', () => {
+  it('registers /ticket, /broadcast, sticker, voice and edited_message handlers', () => {
     expect(captured.commands.has('ticket')).toBe(true);
     expect(captured.commands.has('broadcast')).toBe(true);
     expect(captured.on).toContainEqual([':sticker']);
+    expect(captured.on).toContainEqual([':voice']);
+    expect(captured.on).toContainEqual([':audio']);
+    expect(captured.on).toContainEqual([':video_note']);
     expect(captured.on).toContain('edited_message');
   });
 
