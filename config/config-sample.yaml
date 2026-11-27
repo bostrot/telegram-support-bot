@@ -130,6 +130,7 @@ language:
   closedByUser: "closed by the user"
   ticketRef: "Reference code"
 
+autoreply_ignore_case: false # Match autoreply questions regardless of upper/lower case ('install' also answers "Install?")
 autoreply:
   - question: 'install'
     answer: "If you want to install the bot, you can use the following link: \

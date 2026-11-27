@@ -29,6 +29,7 @@ When a user sends a message to the support bot it creates a ticket which is forw
 - [x] Categories and sub-categories routed to different staff groups
 - [x] Private 1:1 reply tunnel, anonymous tickets / anonymous replies
 - [x] Configurable confirmation message, ticket ids shown to users (optional)
+- [x] Keyword auto-replies (`autoreply`), optionally matched regardless of upper/lower case (`autoreply_ignore_case`)
 - [x] Edited user messages are re-posted to staff marked as edited, stickers are forwarded (`forward_stickers`), users may close their own ticket (`allow_user_close`)
 - [x] Run the bot inside a single forum topic of your staff group (`staffchat_thread_id`) or open a new ticket per message (`ticket_per_message`)
 

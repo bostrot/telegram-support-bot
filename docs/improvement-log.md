@@ -6,6 +6,7 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - 2026-11-23 · Bug fix · An invalid `daily_summary_time` no longer sends the daily summary to the staff chat in a loop or breaks startup; it falls back to 09:00 with a clear log error · https://github.com/bostrot/telegram-support-bot/pull/225
 - 2026-11-24 · Staff experience · Optional `register_commands` fills Telegram's `/` menu with user commands in private chats and staff commands (incl. canned responses) in the staff chat · https://github.com/bostrot/telegram-support-bot/pull/226
 - 2026-11-25 · Operator experience · Startup warnings for sample `staffchat_id`/`owner_id` placeholders and unusable `spam_time`/`spam_cant_msg` values (fallback to 300000/5); a missing `spam_cant_msg` no longer silently drops a user's follow-up messages · https://github.com/bostrot/telegram-support-bot/pull/227
+- 2026-11-26 · End-user experience · Optional `autoreply_ignore_case` lets keyword auto-replies match regardless of upper/lower case (`install` also answers "Install?") · https://github.com/bostrot/telegram-support-bot/pull/228
 
 ## Lessons from reviews
 
@@ -13,6 +14,7 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - 2026-11-23: #224 (config load errors) was merged without review comments. Small, focused operator-facing fixes with tests are accepted.
 - 2026-11-24: #225 (daily summary fallback) merged without review comments.
 - 2026-11-25: #226 (command menu) merged without review comments; no `daily-improvement` PR has been closed unmerged so far.
+- 2026-11-26: #227 (config value checks) merged without review comments. Five in a row merged as-is: opt-in behaviour changes with tests and sample-config docs are the accepted pattern.
 
 ## Ideas backlog
 
@@ -22,3 +24,5 @@ One line per daily improvement run: `- <date> · <area> · <change> · <PR>`.
 - **Bot API date-time entities** (staff): Bot API 9.5 added date/time formatting entities (https://core.telegram.org/bots/api-changelog), which would let ticket timestamps in the staff chat show in each staff member's own time zone. Check grammY support first.
 - **Command menu follow-ups** (staff/end user, after `register_commands`): register the staff menu in category `group_id` chats too (one `chat` scope per group, tolerate failures per group), and localised descriptions via `setMyCommands(..., { language_code })` from a new `language` key. Where: `src/commandmenu.ts`, `src/addons/telegram/index.ts`.
 - **Check other numeric settings at startup** (operator): extend `checkConfigValues` in `src/configfile.ts` to `auto_close_after_days`, `llm_memory_depth`, `web_server_port`, `sentiment_alert_threshold` (same fallback-with-warning pattern).
+- **Whole-word auto-reply matching** (end user): `autoreply` questions match as substrings, so `install` also fires on "reinstalled" or "uninstall". An opt-in word-boundary match (`autoreply_match: contains | word`) would cut false auto-replies. Where: `findAutoReply` in `src/users.ts`. Open question: Unicode word boundaries (`\b` is ASCII-only; use `\p{L}` lookarounds).
+- **Auto-reply hit stats** (staff): record which `autoreply` entry fired via `db.recordAnalyticsEvent` and show the top entries in `/stats`, so staff see which FAQ answers deflect tickets. Where: `src/users.ts`, `src/analytics.ts`.
